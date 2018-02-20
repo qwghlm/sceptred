@@ -1,0 +1,23 @@
+{
+  "name": "sceptred",
+  "version": "0.0.1",
+  "description": "An interesting project",
+  "main": "js/index.js",
+  "scripts": {
+    "test": "echo 'No Tests Yet!'"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/qwghlm/sceptred.git"
+  },
+  "keywords": [
+    "3d",
+    "map"
+  ],
+  "author": "Chris Applegate",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/qwghlm/sceptred/issues"
+  },
+  "homepage": "https://github.com/qwghlm/sceptred#readme"
+}

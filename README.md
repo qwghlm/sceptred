@@ -1,2 +1,3 @@
-# sceptred
-An exciting project
+# Sceptred
+
+An exciting project, coming soon
