@@ -4,7 +4,7 @@ const THREE = require('three');
 const Detector = require('three/examples/js/Detector');
 THREE.TrackballControls = require('./lib/TrackballControls');
 
-// The grid square with Edinburgh here
+// TODO: Once Go server is setup, we can move this out of here
 require('../data/NT27.json');
 
 const landColor = 0x116622;
@@ -13,23 +13,32 @@ const seaColor = 0x111144;
 export class MapView {
 
     constructor(wrapper, config) {
+
+        // Setup config
         this.config = config;
-        this.initialize(wrapper);
+
+        // Initialize the wrapper
+        this.initializeWrapper(wrapper);
+        this.initializeCanvas();
+        this.loadData();
     }
 
-    initialize(wrapper) {
-
-        this.wrapper = wrapper;
-
+    initializeWrapper(wrapper) {
         var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
         var height = this.height = 0.8*width;
 
         wrapper.style.height = height + 'px';
+        this.wrapper = wrapper;
+
+        // TODO: Auto-resize on window resize
+    }
+
+    initializeCanvas() {
 
         // Add WebGL message...
         if (!Detector.webgl) {
             Detector.addGetWebGLMessage();
-            return;
+            return; // TODO Raise an exception?
         }
 
         // Setup camera
@@ -37,7 +46,7 @@ export class MapView {
         camera.position.z = Math.min(this.width, this.height);
 
         // Setup trackball controls
-        var controls = this.controls = new THREE.TrackballControls(camera, wrapper);
+        var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
         controls.rotateSpeed = 1.0;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
@@ -74,7 +83,7 @@ export class MapView {
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(this.width, this.height);
         renderer.setClearColor(0x444444);
-        wrapper.appendChild(renderer.domElement);
+        this.wrapper.appendChild(renderer.domElement);
 
         // Shadows
         renderer.shadowMap.enabled = true;
@@ -89,6 +98,10 @@ export class MapView {
 
         this.renderMap();
         this.animateMap();
+
+    }
+
+    loadData() {
 
         this.config.gridSquares.forEach(grid => {
             fetch(`./data/${grid}.json`)

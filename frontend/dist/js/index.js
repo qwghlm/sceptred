@@ -41880,7 +41880,7 @@ var THREE = __webpack_require__(0);
 var Detector = __webpack_require__(5);
 THREE.TrackballControls = __webpack_require__(6);
 
-// The grid square with Edinburgh here
+// TODO: Once Go server is setup, we can move this out of here
 __webpack_require__(7);
 
 var landColor = 0x116622;
@@ -41890,26 +41890,34 @@ var MapView = exports.MapView = function () {
     function MapView(wrapper, config) {
         _classCallCheck(this, MapView);
 
+        // Setup config
         this.config = config;
-        this.initialize(wrapper);
+
+        // Initialize the wrapper
+        this.initializeWrapper(wrapper);
+        this.initializeCanvas();
+        this.loadData();
     }
 
     _createClass(MapView, [{
-        key: 'initialize',
-        value: function initialize(wrapper) {
-            var _this = this;
-
-            this.wrapper = wrapper;
-
+        key: 'initializeWrapper',
+        value: function initializeWrapper(wrapper) {
             var width = this.width = wrapper.offsetWidth === 0 ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
             var height = this.height = 0.8 * width;
 
             wrapper.style.height = height + 'px';
+            this.wrapper = wrapper;
+
+            // TODO: Auto-resize on window resize
+        }
+    }, {
+        key: 'initializeCanvas',
+        value: function initializeCanvas() {
 
             // Add WebGL message...
             if (!Detector.webgl) {
                 Detector.addGetWebGLMessage();
-                return;
+                return; // TODO Raise an exception?
             }
 
             // Setup camera
@@ -41917,7 +41925,7 @@ var MapView = exports.MapView = function () {
             camera.position.z = Math.min(this.width, this.height);
 
             // Setup trackball controls
-            var controls = this.controls = new THREE.TrackballControls(camera, wrapper);
+            var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
             controls.rotateSpeed = 1.0;
             controls.zoomSpeed = 1.2;
             controls.panSpeed = 0.8;
@@ -41954,7 +41962,7 @@ var MapView = exports.MapView = function () {
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.setSize(this.width, this.height);
             renderer.setClearColor(0x444444);
-            wrapper.appendChild(renderer.domElement);
+            this.wrapper.appendChild(renderer.domElement);
 
             // Shadows
             renderer.shadowMap.enabled = true;
@@ -41969,6 +41977,11 @@ var MapView = exports.MapView = function () {
 
             this.renderMap();
             this.animateMap();
+        }
+    }, {
+        key: 'loadData',
+        value: function loadData() {
+            var _this = this;
 
             this.config.gridSquares.forEach(function (grid) {
                 fetch('./data/' + grid + '.json').then(function (response) {

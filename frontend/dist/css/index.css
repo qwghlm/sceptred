@@ -2775,4 +2775,8 @@ a.text-error:focus, a.text-error:hover {
   word-break: break-word;
   word-wrap: break-word; }
 
+#map-view-wrapper {
+  max-width: 640px;
+  margin: 0 auto; }
+
 /*# sourceMappingURL=index.css.map*/
