@@ -15,3 +15,9 @@
 
 # Node
 node_modules
+
+# Sourcemaps
+*.map
+
+# Test coverage
+coverage

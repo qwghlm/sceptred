@@ -1,10 +1,8 @@
 # Rough list of milestones
 
-1. Port in Vanilla Webpack install and Typescript helloworld
-2. Replace Typescript helloworld with ES2015 version of project
 3. Convert ES2015 to Typescript
-3a. Add debuggers, other tools
-4. Write some client-side tests!
+3. Add three.js debuggers, other tools
+4. Write some client-side tests and get 100% coverage!
 4. Setup server in Golang and get it working with static code; remove Express
 5. Write server-side tests!
 5. Wrap server in Dockerfile
@@ -18,5 +16,5 @@
 
 1. Add altitude-based coloring
 2. Change resolution/stream bandwidth
-3. Service workers? 
+3. Service workers?
 4. Streambuffer optimisations
