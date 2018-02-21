@@ -9,7 +9,7 @@ var LiveReloadPlugin = require('webpack-livereload-plugin');
 
 // Constants used, can edit
 const entryNames = ['index'];
-const namespace = 'BOILERPLATE';
+const namespace = 'SCEPTRED';
 const version = require('./package.json').version;
 
 module.exports = function(env, caller) {
@@ -19,7 +19,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./src/js/${d}.js`;
+        obj[d] = `./src/js/${d}.ts`;
         return obj;
     }, {});
 
@@ -65,9 +65,6 @@ module.exports = function(env, caller) {
     if (isProduction) {
         // plugins.push(new BundleAnalyzerPlugin());
     }
-    else {
-
-    }
 
     var config = {
 
@@ -89,18 +86,24 @@ module.exports = function(env, caller) {
         resolve: {
             alias: {
                 'modernizr': path.resolve(__dirname, ".modernizrrc"),
-            }
+            },
+            extensions: ['.tsx', '.ts', '.js'],
         },
 
         module: {
 
             rules: [
-
                 {
-                    test: /\.(js|jsx)$/,
-                    loader: 'babel-loader',
-                    exclude: /(node_modules|bower_components)/,
+                    test: /\.tsx?$/,
+                    use: 'ts-loader',
+                    exclude: /node_modules/
                 },
+                // TODO Re-incorporate Babel?
+                // {
+                //     test: /\.(js|jsx)$/,
+                //     loader: 'babel-loader',
+                //     exclude: /(node_modules|bower_components)/,
+                // },
                 {
                     test: /\.(c|sc|sa)ss$/,
                     loader: ExtractTextPlugin.extract({

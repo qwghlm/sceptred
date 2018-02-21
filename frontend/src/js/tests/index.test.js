@@ -1,4 +1,4 @@
-import { ExampleView } from '../lib/app.js';
+import { ExampleView } from '../lib/app';
 
 test('dummy test', () => {
 
