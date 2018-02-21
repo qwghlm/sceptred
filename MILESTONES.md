@@ -3,6 +3,7 @@
 1. Port in Vanilla Webpack install and Typescript helloworld
 2. Replace Typescript helloworld with ES2015 version of project
 3. Convert ES2015 to Typescript
+3a. Add debuggers, other tools
 4. Write some client-side tests!
 4. Setup server in Golang and get it working with static code; remove Express
 5. Write server-side tests!
@@ -11,5 +12,11 @@
 6. Create dynamic endpoint that parses data and outputs JSON
 7. (add caching)
 8. Make frontend fully dynamic, add controls & UI
-9. Add altitude-based coloring
 10. Declare a release, deploy to a server as a demo
+
+## Bonus extras
+
+1. Add altitude-based coloring
+2. Change resolution/stream bandwidth
+3. Service workers? 
+4. Streambuffer optimisations
