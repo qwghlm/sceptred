@@ -1,11 +1,4 @@
-// import '../sass/index.scss';
-// import { ExampleView } from './lib/app';
-
-// document.addEventListener("DOMContentLoaded", function(event) {
-//     new ExampleView();
-// });
-
-function greeter(person: string) {
+function greeter(person) {
     return "Hello, " + person;
 }
 

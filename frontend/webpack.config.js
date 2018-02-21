@@ -19,7 +19,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./src/js/${d}.ts`;
+        obj[d] = `./src/js/${d}.js`;
         return obj;
     }, {});
 
@@ -94,16 +94,15 @@ module.exports = function(env, caller) {
 
             rules: [
                 {
+                    test: /\.(js|jsx)$/,
+                    loader: 'babel-loader',
+                    exclude: /node_modules/,
+                },
+                {
                     test: /\.tsx?$/,
                     use: 'ts-loader',
                     exclude: /node_modules/
                 },
-                // TODO Re-incorporate Babel?
-                // {
-                //     test: /\.(js|jsx)$/,
-                //     loader: 'babel-loader',
-                //     exclude: /(node_modules|bower_components)/,
-                // },
                 {
                     test: /\.(c|sc|sa)ss$/,
                     loader: ExtractTextPlugin.extract({
