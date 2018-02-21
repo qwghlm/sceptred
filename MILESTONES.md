@@ -10,6 +10,6 @@
 6. Add CI integrations
 6. Create dynamic endpoint that parses data and outputs JSON
 7. (add caching)
-8. Make frontend fully dynamic, add controls for f
+8. Make frontend fully dynamic, add controls & UI
 9. Add altitude-based coloring
-10. Declare a release, deploy to a server
+10. Declare a release, deploy to a server as a demo
