@@ -1,4 +1,4 @@
-import { materials } from './lib/constants.js';
+import { materials, colors } from './lib/constants.js';
 
 const THREE = require('three');
 const Detector = require('three/examples/js/Detector');
@@ -6,9 +6,6 @@ THREE.TrackballControls = require('./lib/TrackballControls');
 
 // TODO: Once Go server is setup, we can move this out of here
 require('../data/NT27.json');
-
-const landColor = 0x116622;
-const seaColor = 0x111144;
 
 export class MapView {
 
@@ -124,6 +121,7 @@ export class MapView {
 
         // Work out the max bound we want the map to occupy
         const maxBound = Math.min(this.width, this.height);
+
         // Exaggerate height by a factor of 5
         const scaleFactor = 5/(gridSize);
 
@@ -175,10 +173,10 @@ export class MapView {
         var seaGeometry = new THREE.PlaneGeometry(seaWidth*2, seaHeight*2, 0);
 
         var material = 'phong';
-        var landMesh = new THREE.Mesh( landGeometry, materials[material](landColor) );
+        var landMesh = new THREE.Mesh( landGeometry, materials[material](colors.landColor) );
         this.scene.add(landMesh);
 
-        var seaMesh = new THREE.Mesh( seaGeometry, materials[material](seaColor) );
+        var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
         this.scene.add(seaMesh);
 
         this.renderMap();

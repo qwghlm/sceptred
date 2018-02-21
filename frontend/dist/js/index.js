@@ -41883,9 +41883,6 @@ THREE.TrackballControls = __webpack_require__(6);
 // TODO: Once Go server is setup, we can move this out of here
 __webpack_require__(7);
 
-var landColor = 0x116622;
-var seaColor = 0x111144;
-
 var MapView = exports.MapView = function () {
     function MapView(wrapper, config) {
         _classCallCheck(this, MapView);
@@ -42010,6 +42007,7 @@ var MapView = exports.MapView = function () {
 
             // Work out the max bound we want the map to occupy
             var maxBound = Math.min(this.width, this.height);
+
             // Exaggerate height by a factor of 5
             var scaleFactor = 5 / gridSize;
 
@@ -42067,10 +42065,10 @@ var MapView = exports.MapView = function () {
             var seaGeometry = new THREE.PlaneGeometry(seaWidth * 2, seaHeight * 2, 0);
 
             var material = 'phong';
-            var landMesh = new THREE.Mesh(landGeometry, _constants.materials[material](landColor));
+            var landMesh = new THREE.Mesh(landGeometry, _constants.materials[material](_constants.colors.landColor));
             this.scene.add(landMesh);
 
-            var seaMesh = new THREE.Mesh(seaGeometry, _constants.materials[material](seaColor));
+            var seaMesh = new THREE.Mesh(seaGeometry, _constants.materials[material](_constants.colors.seaColor));
             this.scene.add(seaMesh);
 
             this.renderMap();
@@ -42102,6 +42100,11 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 var THREE = __webpack_require__(0);
+
+var colors = exports.colors = {
+    landColor: 0x116622,
+    seaColor: 0x111144
+};
 
 var materials = exports.materials = {
     phong: function phong(color) {

@@ -1,5 +1,10 @@
 const THREE = require('three');
 
+export const colors = {
+    landColor : 0x116622,
+    seaColor : 0x111144
+};
+
 export const materials = {
 
     phong(color) {
