@@ -4,9 +4,9 @@
   "description": "An interesting project",
   "main": "js/index.js",
   "scripts": {
-    "dist": "./node_modules/.bin/webpack -p",
-    "watch": "./node_modules/.bin/webpack --watch",
-    "test": "./node_modules/jest/bin/jest.js ./js/tests 2>&1 && open coverage/index.html"
+    "dist": "webpack -p",
+    "watch": "webpack --watch",
+    "test": "eslint ./src/js && jest"
   },
   "repository": {
     "type": "git",

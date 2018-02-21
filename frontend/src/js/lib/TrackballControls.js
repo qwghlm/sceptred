@@ -364,7 +364,7 @@ const TrackballControls = function ( object, domElement ) {
 
         if ( _state !== STATE.NONE ) {
 
-            return;
+            // return;
 
         } else if ( event.keyCode === _this.keys[ STATE.ROTATE ] && ! _this.noRotate ) {
 
