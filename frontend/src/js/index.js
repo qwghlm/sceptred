@@ -6,7 +6,6 @@ document.addEventListener("DOMContentLoaded", function(e) {
         document.querySelector('#map-view-wrapper'),
         {
             gridSquares : ['NT27'],
-        },
-        {}
+        }
     );
 });

@@ -41845,7 +41845,7 @@ var _map = __webpack_require__(3);
 document.addEventListener("DOMContentLoaded", function (e) {
     new _map.MapView(document.querySelector('#map-view-wrapper'), {
         gridSquares: ['NT27']
-    }, {});
+    });
 });
 
 /***/ }),
@@ -41872,30 +41872,25 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 var _constants = __webpack_require__(4);
 
-var _utils = __webpack_require__(5);
-
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var THREE = __webpack_require__(0);
-var Detector = __webpack_require__(6);
-THREE.TrackballControls = __webpack_require__(7);
+var Detector = __webpack_require__(5);
+THREE.TrackballControls = __webpack_require__(6);
 
 // The grid square with Edinburgh here
-__webpack_require__(8);
+__webpack_require__(7);
 
 var landColor = 0x116622;
 var seaColor = 0x111144;
 
 var MapView = exports.MapView = function () {
-    function MapView(wrapper, config, data) {
+    function MapView(wrapper, config) {
         _classCallCheck(this, MapView);
 
-        var defaults = {
-            scrollTrigger: 200
-        };
-        this.config = (0, _utils.extend)(defaults, config);
+        this.config = config;
         this.initialize(wrapper);
     }
 
@@ -42136,48 +42131,6 @@ var materials = exports.materials = {
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.isMobile = isMobile;
-exports.isTouch = isTouch;
-exports.isRetina = isRetina;
-exports.extend = extend;
-// Feature detection
-function isMobile() {
-  return window.matchMedia("(max-width: 640px)").matches;
-}
-function isTouch() {
-  return 'ontouchstart' in window || !!navigator.maxTouchPoints;
-}
-function isRetina() {
-  return window.devicePixelRatio && window.devicePixelRatio > 1.3;
-}
-
-// http://youmightnotneedjquery.com/
-function extend(out) {
-  out = out || {};
-
-  for (var i = 1; i < arguments.length; i++) {
-    if (!arguments[i]) continue;
-
-    for (var key in arguments[i]) {
-      /* istanbul ignore else  */
-      if (arguments[i].hasOwnProperty(key)) {
-        out[key] = arguments[i][key];
-      }
-    }
-  }
-  return out;
-}
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
 /**
  * @author alteredq / http://alteredqualia.com/
  * @author mr.doob / http://mrdoob.com/
@@ -42259,7 +42212,7 @@ if ( true ) {
 
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -42828,7 +42781,7 @@ TrackballControls.prototype.constructor = TrackballControls;
 module.exports = TrackballControls;
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "data/NT27.json";

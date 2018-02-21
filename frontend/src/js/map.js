@@ -1,5 +1,4 @@
 import { materials } from './lib/constants.js';
-import { extend } from './lib/utils.js';
 
 const THREE = require('three');
 const Detector = require('three/examples/js/Detector');
@@ -13,11 +12,8 @@ const seaColor = 0x111144;
 
 export class MapView {
 
-    constructor(wrapper, config, data) {
-        var defaults = {
-            scrollTrigger : 200,
-        };
-        this.config = extend(defaults, config);
+    constructor(wrapper, config) {
+        this.config = config;
         this.initialize(wrapper);
     }
 
@@ -97,7 +93,7 @@ export class MapView {
         this.config.gridSquares.forEach(grid => {
             fetch(`./data/${grid}.json`)
                 .then(response => response.json())
-                .then(data => this.populateMap(data))
+                .then(data => this.populateMap(data));
         });
 
     }
@@ -128,7 +124,7 @@ export class MapView {
             var scaledZ = scaleFactor*z;
 
             return [scaledX, scaledY, scaledZ];
-        }
+        };
 
         // Convert grid into vertices and faces
         var faces = [];
@@ -146,10 +142,10 @@ export class MapView {
                 var i = x + gridWidth*y;
 
                 // First triangle: top-left, top-right, bottom-left
-                faces.push(new THREE.Face3(i, i+1, i+gridWidth))
+                faces.push(new THREE.Face3(i, i+1, i+gridWidth));
 
                 // Second triangle: top-right, bottom-right, bottom-left
-                faces.push(new THREE.Face3(i+1, i+gridWidth+1, i+gridWidth))
+                faces.push(new THREE.Face3(i+1, i+gridWidth+1, i+gridWidth));
             }
 
         }));
@@ -158,7 +154,7 @@ export class MapView {
         var landGeometry = new THREE.Geometry();
         landGeometry.vertices = vertices;
         landGeometry.faces = faces;
-        landGeometry.computeFaceNormals()
+        landGeometry.computeFaceNormals();
         landGeometry.computeVertexNormals();
 
         // Sea geometry

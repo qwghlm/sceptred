@@ -1,7 +1,3 @@
-import { ExampleView } from '../lib/app';
-
-test('dummy test', () => {
-
-    new ExampleView();
+test('Dummy test', () => {
     expect(1).toBe(1);
 });
