@@ -1,7 +1,11 @@
-function greeter(person) {
-    return "Hello, " + person;
-}
+import '../sass/index.scss';
+import { MapView } from './map';
 
-let user = "Chris User";
-
-document.body.innerHTML = greeter(user);
+document.addEventListener("DOMContentLoaded", function(e) {
+    new MapView(
+        document.querySelector('#map-view-wrapper'),
+        {
+            gridSquares : ['NT27'],
+        }
+    );
+});

@@ -19,7 +19,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./src/js/${d}.js`;
+        obj[d] = `./src/js/${d}.ts`;
         return obj;
     }, {});
 
@@ -93,11 +93,11 @@ module.exports = function(env, caller) {
         module: {
 
             rules: [
-                {
-                    test: /\.(js|jsx)$/,
-                    loader: 'babel-loader',
-                    exclude: /node_modules/,
-                },
+                // {
+                //     test: /\.(js|jsx)$/,
+                //     loader: 'babel-loader',
+                //     exclude: /node_modules/,
+                // },
                 {
                     test: /\.tsx?$/,
                     use: 'ts-loader',
@@ -113,13 +113,13 @@ module.exports = function(env, caller) {
                                     sourceMap: !isProduction
                                 }
                             },
-                            {
-                                loader: 'postcss-loader',
-                                options: {
-                                    plugins: () => [require('autoprefixer')],
-                                    sourceMap: !isProduction
-                                }
-                            },
+                            // {
+                            //     loader: 'postcss-loader',
+                            //     options: {
+                            //         plugins: () => [require('autoprefixer')],
+                            //         sourceMap: !isProduction
+                            //     }
+                            // },
                             {
                                 loader: 'sass-loader',
                                 options: {

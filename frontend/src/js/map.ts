@@ -1,13 +1,27 @@
 import { materials, colors } from './lib/constants.js';
 
-const THREE = require('three');
-const Detector = require('three/examples/js/Detector');
-THREE.TrackballControls = require('./lib/TrackballControls');
+import * as THREE from 'three';
+import * as Detector from 'three/examples/js/Detector';
+import * as TrackballControls from './lib/TrackballControls';
+THREE.TrackballControls = TrackballControls;
 
-// TODO: Once Go server is setup, we can move this out of here
-require('../data/NT27.json');
+interface Config {
+    gridSquares: string[];
+}
 
 export class MapView {
+
+    config: Config;
+
+    width: number;
+    height: number;
+
+    wrapper: HTMLElement;
+
+    camera: any;
+    controls: any;
+    scene: any;
+    renderer: any;
 
     constructor(wrapper, config) {
 
@@ -21,6 +35,7 @@ export class MapView {
     }
 
     initializeWrapper(wrapper) {
+
         var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
         var height = this.height = 0.8*width;
 
