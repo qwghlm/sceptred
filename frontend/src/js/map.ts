@@ -1,9 +1,10 @@
+/// <reference path="../../node_modules/@types/three/three-core.d.ts" />
+
 import { materials, colors } from './lib/constants.js';
 
 import * as THREE from 'three';
 import * as Detector from 'three/examples/js/Detector';
-import * as TrackballControls from './lib/TrackballControls';
-THREE.TrackballControls = TrackballControls;
+import './lib/TrackballControls';
 
 interface Config {
     gridSquares: string[];
@@ -18,10 +19,10 @@ export class MapView {
 
     wrapper: HTMLElement;
 
-    camera: any;
-    controls: any;
-    scene: any;
-    renderer: any;
+    camera: THREE.PerspectiveCamera;
+    controls: THREE.TrackballControls;
+    scene: THREE.Scene;
+    renderer: THREE.WebGLRenderer;
 
     constructor(wrapper, config) {
 
@@ -95,18 +96,8 @@ export class MapView {
         renderer.setPixelRatio(window.devicePixelRatio);
         renderer.setSize(this.width, this.height);
         renderer.setClearColor(0x444444);
-        this.wrapper.appendChild(renderer.domElement);
-
-        // Shadows
         renderer.shadowMap.enabled = true;
-        renderer.shadowMapSoft = true;
-        renderer.shadowCameraNear = 1;
-        renderer.shadowCameraFar = camera.far;
-        renderer.shadowCameraFov = 60;
-        renderer.shadowMapBias = 0.0025;
-        renderer.shadowMapDarkness = 0.5;
-        renderer.shadowMapWidth = 1024;
-        renderer.shadowMapHeight = 1024;
+        this.wrapper.appendChild(renderer.domElement);
 
         this.renderMap();
         this.animateMap();
