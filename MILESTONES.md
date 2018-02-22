@@ -1,6 +1,6 @@
 # Rough list of milestones
 
-3. Convert ES2015 to Typescript
+3. Convert tests to Typescript!
 3. Add three.js debuggers, other tools
 4. Write some client-side tests and get 100% coverage!
 4. Setup server in Golang and get it working with static code; remove Express

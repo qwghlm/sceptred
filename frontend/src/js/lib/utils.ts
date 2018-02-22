@@ -10,17 +10,18 @@ export function isRetina() {
 }
 
 // http://youmightnotneedjquery.com/
-export function extend(out) {
-  out = out || {};
+export function extend(...args: any[]) {
 
-  for (var i = 1; i < arguments.length; i++) {
-    if (!arguments[i])
+  let out: any = args[0] || {};
+
+  for (var i = 1; i < args.length; i++) {
+    if (!args[i])
       continue;
 
-    for (var key in arguments[i]) {
+    for (var key in args[i]) {
       /* istanbul ignore else  */
-      if (arguments[i].hasOwnProperty(key)) {
-          out[key] = arguments[i][key];
+      if (args[i].hasOwnProperty(key)) {
+          out[key] = args[i][key];
       }
     }
   }

@@ -41861,13 +41861,13 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MapView; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__lib_constants_js__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_three_examples_js_Detector__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_three_examples_js_Detector__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_TrackballControls__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_3__lib_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(4);
 /// <reference path="../../node_modules/@types/three/three-core.d.ts" />
 
 
@@ -41891,15 +41891,15 @@ var MapView = /** @class */ (function () {
     };
     MapView.prototype.initializeCanvas = function () {
         // Add WebGL message...
-        if (!__WEBPACK_IMPORTED_MODULE_2_three_examples_js_Detector__["webgl"]) {
-            __WEBPACK_IMPORTED_MODULE_2_three_examples_js_Detector__["addGetWebGLMessage"]();
+        if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
+            __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
             return; // TODO Raise an exception?
         }
         // Setup camera
-        var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_1_three__["PerspectiveCamera"](70, this.width / this.height, 0.1, 10000);
+        var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 0.1, 10000);
         camera.position.z = Math.min(this.width, this.height);
         // Setup trackball controls
-        var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_1_three__["TrackballControls"](camera, this.wrapper);
+        var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"](camera, this.wrapper);
         controls.rotateSpeed = 1.0;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
@@ -41911,19 +41911,19 @@ var MapView = /** @class */ (function () {
         controls.keys = [-1, 16, 17];
         controls.addEventListener('change', this.renderMap.bind(this));
         // Setup scene
-        var scene = this.scene = new __WEBPACK_IMPORTED_MODULE_1_three__["Scene"]();
+        var scene = this.scene = new __WEBPACK_IMPORTED_MODULE_0_three__["Scene"]();
         // Lights
-        var light = new __WEBPACK_IMPORTED_MODULE_1_three__["DirectionalLight"](0xffffff);
+        var light = new __WEBPACK_IMPORTED_MODULE_0_three__["DirectionalLight"](0xffffff);
         light.position.set(1, 1, 1);
         scene.add(light);
-        var spotLight = new __WEBPACK_IMPORTED_MODULE_1_three__["SpotLight"](0xffffff);
+        var spotLight = new __WEBPACK_IMPORTED_MODULE_0_three__["SpotLight"](0xffffff);
         spotLight.position.set(-1000, -1000, 1000);
         spotLight.castShadow = true;
         scene.add(spotLight);
-        var ambientLight = new __WEBPACK_IMPORTED_MODULE_1_three__["AmbientLight"](0x080808);
+        var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
         scene.add(ambientLight);
         // Renderer
-        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_1_three__["WebGLRenderer"]({
+        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
             antialias: true,
             alpha: true,
         });
@@ -41947,7 +41947,7 @@ var MapView = /** @class */ (function () {
         var gridSize = data.meta.gridSize;
         var resolution = 1;
         // Filter out the many many points
-        var filter = function (_, i) { return i % resolution === 0; };
+        var filter = function (n, i) { return i % resolution === 0; };
         var grid = data.data.filter(filter).map(function (row) { return row.filter(filter); });
         var gridHeight = grid.length;
         var gridWidth = grid[0].length;
@@ -41968,32 +41968,32 @@ var MapView = /** @class */ (function () {
         var faces = [];
         var vertices = [];
         grid.forEach(function (row, y) { return row.forEach(function (z, x) {
-            vertices.push(new ((_a = __WEBPACK_IMPORTED_MODULE_1_three__["Vector3"]).bind.apply(_a, [void 0].concat(scale(x, y, z))))());
+            vertices.push(new ((_a = __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"]).bind.apply(_a, [void 0].concat(scale(x, y, z))))());
             // If this point can form top-left of a square, add the two
             // triangles that are formed by that square
             if (x < gridWidth - 1 && y < gridHeight - 1) {
                 // Work out index of this point in the vertices array
                 var i = x + gridWidth * y;
                 // First triangle: top-left, top-right, bottom-left
-                faces.push(new __WEBPACK_IMPORTED_MODULE_1_three__["Face3"](i, i + 1, i + gridWidth));
+                faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i, i + 1, i + gridWidth));
                 // Second triangle: top-right, bottom-right, bottom-left
-                faces.push(new __WEBPACK_IMPORTED_MODULE_1_three__["Face3"](i + 1, i + gridWidth + 1, i + gridWidth));
+                faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i + 1, i + gridWidth + 1, i + gridWidth));
             }
             var _a;
         }); });
         // Setup land geometry
-        var landGeometry = new __WEBPACK_IMPORTED_MODULE_1_three__["Geometry"]();
+        var landGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["Geometry"]();
         landGeometry.vertices = vertices;
         landGeometry.faces = faces;
         landGeometry.computeFaceNormals();
         landGeometry.computeVertexNormals();
         // Sea geometry
         var _a = scale(0, gridHeight, 0), seaWidth = _a[0], seaHeight = _a[1];
-        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_1_three__["PlaneGeometry"](seaWidth * 2, seaHeight * 2, 0);
+        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](seaWidth * 2, seaHeight * 2, 0);
         var material = 'phong';
-        var landMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["Mesh"](landGeometry, __WEBPACK_IMPORTED_MODULE_0__lib_constants_js__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_0__lib_constants_js__["a" /* colors */].landColor));
+        var landMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](landGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
         this.scene.add(landMesh);
-        var seaMesh = new __WEBPACK_IMPORTED_MODULE_1_three__["Mesh"](seaGeometry, __WEBPACK_IMPORTED_MODULE_0__lib_constants_js__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_0__lib_constants_js__["a" /* colors */].seaColor));
+        var seaMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
         this.scene.add(seaMesh);
         this.renderMap();
     };
@@ -42014,54 +42014,42 @@ var MapView = /** @class */ (function () {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-const THREE = __webpack_require__(0);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return colors; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return materials; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
 
-const colors = {
-    landColor : 0x116622,
-    seaColor : 0x111144
+var colors = {
+    landColor: 0x116622,
+    seaColor: 0x111144
 };
-/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
-
-
-const materials = {
-
-    phong(color) {
-        return new THREE.MeshPhongMaterial({
+var materials = {
+    phong: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
             color: color,
-            side: THREE.DoubleSide
+            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
         });
     },
-    meshLambert(color) {
-        return new THREE.MeshLambertMaterial({
+    meshLambert: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
             transparent: true
         });
     },
-    meshWireFrame(color) {
-        return new THREE.MeshBasicMaterial({
+    meshWireFrame: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
+            transparent: true,
             wireframe: true,
-            transparent: true
         });
     },
-    meshBasic(color) {
-        return new THREE.MeshBasicMaterial({
+    meshBasic: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
             transparent: true
         });
     }
 };
-/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
-
 
 
 /***/ }),

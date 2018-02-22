@@ -1,13 +1,19 @@
 /// <reference path="../../node_modules/@types/three/three-core.d.ts" />
-
-import { materials, colors } from './lib/constants.js';
-
 import * as THREE from 'three';
 import * as Detector from 'three/examples/js/Detector';
-import './lib/TrackballControls';
+import './vendor/TrackballControls';
+
+import { materials, colors } from './lib/constants';
 
 interface Config {
     gridSquares: string[];
+}
+
+interface GridData {
+    meta: {
+        gridSize: number,
+    },
+    data: number[][],
 }
 
 export class MapView {
@@ -24,7 +30,7 @@ export class MapView {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
 
-    constructor(wrapper, config) {
+    constructor(wrapper: HTMLElement, config: Config) {
 
         // Setup config
         this.config = config;
@@ -35,9 +41,9 @@ export class MapView {
         this.loadData();
     }
 
-    initializeWrapper(wrapper) {
+    initializeWrapper(wrapper: HTMLElement) {
 
-        var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
+        var width = this.width = (wrapper.offsetWidth === 0) ? (<HTMLElement> wrapper.parentNode).offsetWidth : wrapper.offsetWidth;
         var height = this.height = 0.8*width;
 
         wrapper.style.height = height + 'px';
@@ -114,13 +120,13 @@ export class MapView {
 
     }
 
-    populateMap(data) {
+    populateMap(data: GridData) {
 
         const gridSize = data.meta.gridSize;
         const resolution = 1;
 
         // Filter out the many many points
-        const filter = (_, i) => i%resolution === 0;
+        const filter = (n: any, i: number) => i%resolution === 0;
         var grid = data.data.filter(filter).map(row => row.filter(filter));
         var gridHeight = grid.length;
         var gridWidth = grid[0].length;
@@ -132,7 +138,7 @@ export class MapView {
         const scaleFactor = 5/(gridSize);
 
         // From position x, y and z, work out the position on the screen
-        const scale = (x, y, z) => {
+        const scale = (x: number, y: number, z: number) => {
 
             // Scale x and y to be a fraction of this, with 0 in the center
             // Y is inverted as Y means south in output terms
@@ -144,8 +150,8 @@ export class MapView {
         };
 
         // Convert grid into vertices and faces
-        var faces = [];
-        var vertices = [];
+        var faces: THREE.Face3[] = [];
+        var vertices: THREE.Vector3[] = [];
 
         grid.forEach((row, y) => row.forEach((z, x) => {
 
