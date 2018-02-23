@@ -2,11 +2,14 @@
   "compilerOptions": {
     "outDir": "./dist/",
     "allowJs": true,
-    "strict": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
     "module": "es6",
     "target": "es5",
   },
   "include": [
-    "./src/js/*.ts"
+    "./src/js/index.ts"
   ]
 }

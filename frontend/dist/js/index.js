@@ -41843,7 +41843,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 document.addEventListener("DOMContentLoaded", function (e) {
-    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](document.querySelector('#map-view-wrapper'), {
+    var element = document.querySelector('#map-view-wrapper');
+    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
         gridSquares: ['NT27'],
     });
 });
@@ -41863,11 +41864,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MapView; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(6);
 /// <reference path="../../node_modules/@types/three/three-core.d.ts" />
 
 
@@ -42011,49 +42012,6 @@ var MapView = /** @class */ (function () {
 
 /***/ }),
 /* 4 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return colors; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return materials; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
-
-var colors = {
-    landColor: 0x116622,
-    seaColor: 0x111144
-};
-var materials = {
-    phong: function (color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
-            color: color,
-            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
-        });
-    },
-    meshLambert: function (color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
-            color: color,
-            transparent: true
-        });
-    },
-    meshWireFrame: function (color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
-            color: color,
-            transparent: true,
-            wireframe: true,
-        });
-    },
-    meshBasic: function (color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
-            color: color,
-            transparent: true
-        });
-    }
-};
-
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -42137,7 +42095,7 @@ if ( true ) {
 
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -42772,6 +42730,49 @@ THREE.TrackballControls = TrackballControls;
 
 module.exports = TrackballControls;
 
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return colors; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return materials; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
+
+var colors = {
+    landColor: 0x116622,
+    seaColor: 0x111144
+};
+var materials = {
+    phong: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
+            color: color,
+            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
+        });
+    },
+    meshLambert: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
+            color: color,
+            transparent: true
+        });
+    },
+    meshWireFrame: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true,
+            wireframe: true,
+        });
+    },
+    meshBasic: function (color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true
+        });
+    }
+};
 
 
 /***/ })
