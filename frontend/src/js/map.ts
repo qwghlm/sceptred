@@ -10,6 +10,7 @@ import { coordsToGridref, gridrefToCoords } from './lib/grid';
 interface Config {
     origin: number[],
     heightFactor: number,
+    debug: boolean,
 }
 
 interface GridData {
@@ -44,7 +45,11 @@ export class MapView {
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
+
+        // Setup scale and load in
         this.initializeScale();
+
+        // Render the map
         this.renderMap();
         this.animateMap();
 
@@ -216,7 +221,7 @@ export class MapView {
         var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
         this.scene.add(seaMesh);
 
-        this.renderMap();
+        requestAnimationFrame(this.renderMap.bind(this));
     }
 
     renderMap() {

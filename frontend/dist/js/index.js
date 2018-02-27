@@ -41847,6 +41847,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
     new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
         origin: [325000, 675000],
         heightFactor: 2,
+        debug: true,
     });
 });
 
@@ -41885,7 +41886,9 @@ class MapView {
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
+        // Setup scale and load in
         this.initializeScale();
+        // Render the map
         this.renderMap();
         this.animateMap();
     }
@@ -42003,7 +42006,7 @@ class MapView {
         this.scene.add(landMesh);
         var seaMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
         this.scene.add(seaMesh);
-        this.renderMap();
+        requestAnimationFrame(this.renderMap.bind(this));
     }
     renderMap() {
         this.renderer.render(this.scene, this.camera);
