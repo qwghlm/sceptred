@@ -6,7 +6,8 @@ document.addEventListener("DOMContentLoaded", function(e) {
     new MapView(
         element,
         {
-            gridSquares : ['NT27'],
+            origin : [325000, 675000],
+            heightFactor: 2,
         }
     );
 });

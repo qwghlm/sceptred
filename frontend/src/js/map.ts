@@ -4,14 +4,18 @@ import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
+import { linearScale } from './lib/scale';
+import { coordsToGridref, gridrefToCoords } from './lib/grid';
 
 interface Config {
-    gridSquares: string[];
+    origin: number[],
+    heightFactor: number,
 }
 
 interface GridData {
     meta: {
-        gridSize: number,
+        squareSize: number,
+        gridReference: string
     },
     data: number[][],
 }
@@ -30,6 +34,8 @@ export class MapView {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
 
+    scale: (x: number, y: number, z: number) => number[]
+
     constructor(wrapper: HTMLElement, config: Config) {
 
         // Setup config
@@ -38,7 +44,10 @@ export class MapView {
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
-        this.loadData();
+        this.initializeScale();
+        this.renderMap();
+        this.animateMap();
+
     }
 
     initializeWrapper(wrapper: HTMLElement) {
@@ -105,20 +114,32 @@ export class MapView {
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
 
-        this.renderMap();
-        this.animateMap();
+    }
+
+    initializeScale() {
+
+        const metresPerPixel = 50;
+
+        var xScale = linearScale(this.config.origin[0], 0, 1/metresPerPixel);
+        var yScale = linearScale(this.config.origin[1], 0, -1/metresPerPixel);
+        var zScale = linearScale(0, 0, this.config.heightFactor/metresPerPixel);
+
+        this.scale = (x: number, y: number, z: number) => {
+            return [xScale(x), yScale(y), zScale(z)];
+        };
+
+        var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
+        this.loadData(gridSquare);
 
     }
 
-    loadData() {
+    loadData(gridSquare: string) {
 
         // Start loader here
 
-        this.config.gridSquares.forEach(grid => {
-            fetch(`./data/${grid}.json`)
-                .then(response => response.json())
-                .then(data => this.populateMap(data));
-        });
+        fetch(`./data/${gridSquare}.json`)
+            .then(response => response.json())
+            .then(data => this.populateMap(data));
 
         // End loader here
 
@@ -135,29 +156,13 @@ export class MapView {
 
         // End parser here
 
-        // Work out the max bound we want the map to occupy
-        const maxBound = Math.min(this.width, this.height);
+        const tileOrigin = gridrefToCoords(data.meta.gridReference);
+        const squareSize = data.meta.squareSize;
 
         // Start scaler here
 
-        // Exaggerate height by a factor of 5
-        const gridSize = data.meta.gridSize;
         var gridHeight = grid.length;
         var gridWidth = grid[0].length;
-        const heightFactor = 5/(gridSize);
-
-        // From position x, y and z, work out the position on the screen
-        const scale = (x: number, y: number, z: number) => {
-
-            // Scale x and y to be a fraction of this, with 0 in the center
-            // Y is inverted as Y means south in output terms
-            var scaledX = maxBound * (x/gridWidth - 0.5);
-            var scaledY = maxBound * (0.5 - y/gridWidth);
-            var scaledZ = heightFactor*z;
-
-            return [scaledX, scaledY, scaledZ];
-
-        };
 
         // Convert grid into vertices and faces
         var faces: THREE.Face3[] = [];
@@ -165,7 +170,12 @@ export class MapView {
 
         grid.forEach((row, y) => row.forEach((z, x) => {
 
-            vertices.push(new THREE.Vector3(...scale(x, y, z)));
+            var coords = this.scale(
+                tileOrigin[0] + x*squareSize,
+                tileOrigin[1] + y*squareSize,
+                z);
+
+            vertices.push(new THREE.Vector3(...coords));
 
             // If this point can form top-left of a square, add the two
             // triangles that are formed by that square
@@ -193,8 +203,11 @@ export class MapView {
         landGeometry.computeVertexNormals();
 
         // Sea geometry
-        var [seaWidth, seaHeight] = scale(0, gridHeight, 0);
-        var seaGeometry = new THREE.PlaneGeometry(seaWidth*2, seaHeight*2, 0);
+        const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
+        const topRight = this.scale(tileOrigin[0] + gridWidth*squareSize,
+            tileOrigin[1] + gridHeight*squareSize, 0);
+
+        var seaGeometry = new THREE.PlaneGeometry(topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
 
         var material = 'phong';
         var landMesh = new THREE.Mesh( landGeometry, materials[material](colors.landColor) );

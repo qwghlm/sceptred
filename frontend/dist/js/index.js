@@ -41845,7 +41845,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 document.addEventListener("DOMContentLoaded", function (e) {
     let element = document.querySelector('#map-view-wrapper');
     new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
-        gridSquares: ['NT27'],
+        origin: [325000, 675000],
+        heightFactor: 2,
     });
 });
 
@@ -41868,7 +41869,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_scale__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_grid__ = __webpack_require__(8);
 /// <reference path="../../node_modules/@types/three/three-core.d.ts" />
+
+
 
 
 
@@ -41880,7 +41885,9 @@ class MapView {
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
-        this.loadData();
+        this.initializeScale();
+        this.renderMap();
+        this.animateMap();
     }
     initializeWrapper(wrapper) {
         var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
@@ -41932,16 +41939,23 @@ class MapView {
         renderer.setClearColor(0x444444);
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
-        this.renderMap();
-        this.animateMap();
     }
-    loadData() {
+    initializeScale() {
+        const metresPerPixel = 50;
+        var xScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(this.config.origin[0], 0, 1 / metresPerPixel);
+        var yScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(this.config.origin[1], 0, -1 / metresPerPixel);
+        var zScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(0, 0, this.config.heightFactor / metresPerPixel);
+        this.scale = (x, y, z) => {
+            return [xScale(x), yScale(y), zScale(z)];
+        };
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_5__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
+        this.loadData(gridSquare);
+    }
+    loadData(gridSquare) {
         // Start loader here
-        this.config.gridSquares.forEach(grid => {
-            fetch(`./data/${grid}.json`)
-                .then(response => response.json())
-                .then(data => this.populateMap(data));
-        });
+        fetch(`./data/${gridSquare}.json`)
+            .then(response => response.json())
+            .then(data => this.populateMap(data));
         // End loader here
     }
     populateMap(data) {
@@ -41951,28 +41965,17 @@ class MapView {
         const filter = (n, i) => i % resolution === 0;
         var grid = data.data.filter(filter).map(row => row.filter(filter));
         // End parser here
-        // Work out the max bound we want the map to occupy
-        const maxBound = Math.min(this.width, this.height);
+        const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_5__lib_grid__["b" /* gridrefToCoords */])(data.meta.gridReference);
+        const squareSize = data.meta.squareSize;
         // Start scaler here
-        // Exaggerate height by a factor of 5
-        const gridSize = data.meta.gridSize;
         var gridHeight = grid.length;
         var gridWidth = grid[0].length;
-        const heightFactor = 5 / (gridSize);
-        // From position x, y and z, work out the position on the screen
-        const scale = (x, y, z) => {
-            // Scale x and y to be a fraction of this, with 0 in the center
-            // Y is inverted as Y means south in output terms
-            var scaledX = maxBound * (x / gridWidth - 0.5);
-            var scaledY = maxBound * (0.5 - y / gridWidth);
-            var scaledZ = heightFactor * z;
-            return [scaledX, scaledY, scaledZ];
-        };
         // Convert grid into vertices and faces
         var faces = [];
         var vertices = [];
         grid.forEach((row, y) => row.forEach((z, x) => {
-            vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...scale(x, y, z)));
+            var coords = this.scale(tileOrigin[0] + x * squareSize, tileOrigin[1] + y * squareSize, z);
+            vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...coords));
             // If this point can form top-left of a square, add the two
             // triangles that are formed by that square
             if (x < gridWidth - 1 && y < gridHeight - 1) {
@@ -41992,8 +41995,9 @@ class MapView {
         landGeometry.computeFaceNormals();
         landGeometry.computeVertexNormals();
         // Sea geometry
-        var [seaWidth, seaHeight] = scale(0, gridHeight, 0);
-        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](seaWidth * 2, seaHeight * 2, 0);
+        const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
+        const topRight = this.scale(tileOrigin[0] + gridWidth * squareSize, tileOrigin[1] + gridHeight * squareSize, 0);
+        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
         var material = 'phong';
         var landMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](landGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
         this.scene.add(landMesh);
@@ -42778,6 +42782,95 @@ const materials = {
 };
 /* harmony export (immutable) */ __webpack_exports__["b"] = materials;
 
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = linearScale;
+// Simple function that returns a linear scale
+function linearScale(fromOrigin, toOrigin, scaleFactor) {
+    function scale(n) {
+        return toOrigin + (n - fromOrigin) * scaleFactor;
+    }
+    return scale;
+}
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["b"] = gridrefToCoords;
+/* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
+// Grid conversion functions are based upon
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+// Converts a grid reference (e.g. TL27) to Easting/Northings [520000, 270000]
+// Grid reference can have spaces, but no commas
+function gridrefToCoords(gridref) {
+    gridref = gridref.replace(/ +/g, "");
+    // Validate format
+    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+        throw new Error('Invalid grid reference');
+    }
+    var letter1 = letterToNumber(gridref.substr(0, 1));
+    var letter2 = letterToNumber(gridref.substr(1, 1));
+    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
+    var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
+    var n100km = (19 - Math.floor(letter1 / 5) * 5) - Math.floor(letter2 / 5);
+    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
+        throw new Error('Grid reference outside of UK');
+    }
+    // Get number pair out
+    var numbers = gridref.slice(2);
+    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
+    // Standardise to 10-digit refs (metres)
+    eastingsNorthings[0] = e100km + eastingsNorthings[0].padEnd(5, '0');
+    eastingsNorthings[1] = n100km + eastingsNorthings[1].padEnd(5, '0');
+    return eastingsNorthings.map(s => parseInt(s));
+}
+// Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)
+function coordsToGridref(eastings, northings, digits = 10) {
+    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
+        throw new RangeError('Invalid precision ‘' + digits + '’');
+    }
+    // Get the 100km-grid indices
+    var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
+        throw new Error("Co-ordinates are not within UK National Grid");
+    }
+    // Translate those into numeric equivalents of the grid letters
+    var number1 = (19 - n100k) - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
+    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
+    // Strip 100km-grid indices from easting & northing, and reduce precision
+    digits /= 2;
+    eastings = Math.floor((eastings % 100000) / Math.pow(10, 5 - digits));
+    northings = Math.floor((northings % 100000) / Math.pow(10, 5 - digits));
+    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    const eastingsString = eastings.toString().padStart(digits, '0');
+    const northingsString = northings.toString().padStart(digits, '0');
+    return `${gridSquare}${eastingsString}${northingsString}`;
+}
+// Utils
+// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
+function letterToNumber(letter) {
+    if (letter.toUpperCase() === 'I') {
+        throw new Error("I is not used in the grid system");
+    }
+    var index = letter.toUpperCase().charCodeAt(0) - 65;
+    // As I is not used, if greater than I, return one less
+    return (index > 7) ? index - 1 : index;
+}
+function numberToLetter(n) {
+    // Compensate for skipped 'I' and build grid letter-pairs
+    if (n > 7)
+        n++;
+    return String.fromCharCode(n + 65);
+}
 
 
 /***/ })
