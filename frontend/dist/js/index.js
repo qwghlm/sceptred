@@ -41843,7 +41843,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 document.addEventListener("DOMContentLoaded", function (e) {
-    var element = document.querySelector('#map-view-wrapper');
+    let element = document.querySelector('#map-view-wrapper');
     new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
         gridSquares: ['NT27'],
     });
@@ -41861,7 +41861,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return MapView; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(4);
@@ -41874,8 +41873,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 
 
-var MapView = /** @class */ (function () {
-    function MapView(wrapper, config) {
+class MapView {
+    constructor(wrapper, config) {
         // Setup config
         this.config = config;
         // Initialize the wrapper
@@ -41883,14 +41882,14 @@ var MapView = /** @class */ (function () {
         this.initializeCanvas();
         this.loadData();
     }
-    MapView.prototype.initializeWrapper = function (wrapper) {
+    initializeWrapper(wrapper) {
         var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
         var height = this.height = 0.8 * width;
         wrapper.style.height = height + 'px';
         this.wrapper = wrapper;
         // TODO: Auto-resize on window resize
-    };
-    MapView.prototype.initializeCanvas = function () {
+    }
+    initializeCanvas() {
         // Add WebGL message...
         if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
             __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
@@ -41935,41 +41934,45 @@ var MapView = /** @class */ (function () {
         this.wrapper.appendChild(renderer.domElement);
         this.renderMap();
         this.animateMap();
-    };
-    MapView.prototype.loadData = function () {
-        var _this = this;
-        this.config.gridSquares.forEach(function (grid) {
-            fetch("./data/" + grid + ".json")
-                .then(function (response) { return response.json(); })
-                .then(function (data) { return _this.populateMap(data); });
+    }
+    loadData() {
+        // Start loader here
+        this.config.gridSquares.forEach(grid => {
+            fetch(`./data/${grid}.json`)
+                .then(response => response.json())
+                .then(data => this.populateMap(data));
         });
-    };
-    MapView.prototype.populateMap = function (data) {
-        var gridSize = data.meta.gridSize;
-        var resolution = 1;
+        // End loader here
+    }
+    populateMap(data) {
+        // Start parser here
         // Filter out the many many points
-        var filter = function (n, i) { return i % resolution === 0; };
-        var grid = data.data.filter(filter).map(function (row) { return row.filter(filter); });
+        const resolution = 1;
+        const filter = (n, i) => i % resolution === 0;
+        var grid = data.data.filter(filter).map(row => row.filter(filter));
+        // End parser here
+        // Work out the max bound we want the map to occupy
+        const maxBound = Math.min(this.width, this.height);
+        // Start scaler here
+        // Exaggerate height by a factor of 5
+        const gridSize = data.meta.gridSize;
         var gridHeight = grid.length;
         var gridWidth = grid[0].length;
-        // Work out the max bound we want the map to occupy
-        var maxBound = Math.min(this.width, this.height);
-        // Exaggerate height by a factor of 5
-        var scaleFactor = 5 / (gridSize);
+        const heightFactor = 5 / (gridSize);
         // From position x, y and z, work out the position on the screen
-        var scale = function (x, y, z) {
+        const scale = (x, y, z) => {
             // Scale x and y to be a fraction of this, with 0 in the center
             // Y is inverted as Y means south in output terms
             var scaledX = maxBound * (x / gridWidth - 0.5);
             var scaledY = maxBound * (0.5 - y / gridWidth);
-            var scaledZ = scaleFactor * z;
+            var scaledZ = heightFactor * z;
             return [scaledX, scaledY, scaledZ];
         };
         // Convert grid into vertices and faces
         var faces = [];
         var vertices = [];
-        grid.forEach(function (row, y) { return row.forEach(function (z, x) {
-            vertices.push(new ((_a = __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"]).bind.apply(_a, [void 0].concat(scale(x, y, z))))());
+        grid.forEach((row, y) => row.forEach((z, x) => {
+            vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...scale(x, y, z)));
             // If this point can form top-left of a square, add the two
             // triangles that are formed by that square
             if (x < gridWidth - 1 && y < gridHeight - 1) {
@@ -41980,8 +41983,8 @@ var MapView = /** @class */ (function () {
                 // Second triangle: top-right, bottom-right, bottom-left
                 faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i + 1, i + gridWidth + 1, i + gridWidth));
             }
-            var _a;
-        }); });
+        }));
+        // End scaler here
         // Setup land geometry
         var landGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["Geometry"]();
         landGeometry.vertices = vertices;
@@ -41989,7 +41992,7 @@ var MapView = /** @class */ (function () {
         landGeometry.computeFaceNormals();
         landGeometry.computeVertexNormals();
         // Sea geometry
-        var _a = scale(0, gridHeight, 0), seaWidth = _a[0], seaHeight = _a[1];
+        var [seaWidth, seaHeight] = scale(0, gridHeight, 0);
         var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](seaWidth * 2, seaHeight * 2, 0);
         var material = 'phong';
         var landMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](landGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
@@ -41997,16 +42000,16 @@ var MapView = /** @class */ (function () {
         var seaMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
         this.scene.add(seaMesh);
         this.renderMap();
-    };
-    MapView.prototype.renderMap = function () {
+    }
+    renderMap() {
         this.renderer.render(this.scene, this.camera);
-    };
-    MapView.prototype.animateMap = function () {
+    }
+    animateMap() {
         requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
-    };
-    return MapView;
-}());
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
 
 
 
@@ -42737,42 +42740,44 @@ module.exports = TrackballControls;
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return colors; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "b", function() { return materials; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
 
-var colors = {
+const colors = {
     landColor: 0x116622,
     seaColor: 0x111144
 };
-var materials = {
-    phong: function (color) {
+/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
+
+const materials = {
+    phong(color) {
         return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
             color: color,
             side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
         });
     },
-    meshLambert: function (color) {
+    meshLambert(color) {
         return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
             color: color,
             transparent: true
         });
     },
-    meshWireFrame: function (color) {
+    meshWireFrame(color) {
         return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
             color: color,
             transparent: true,
             wireframe: true,
         });
     },
-    meshBasic: function (color) {
+    meshBasic(color) {
         return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
             color: color,
             transparent: true
         });
     }
 };
+/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
+
 
 
 /***/ })

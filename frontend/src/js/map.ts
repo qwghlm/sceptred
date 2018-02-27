@@ -112,30 +112,39 @@ export class MapView {
 
     loadData() {
 
+        // Start loader here
+
         this.config.gridSquares.forEach(grid => {
             fetch(`./data/${grid}.json`)
                 .then(response => response.json())
                 .then(data => this.populateMap(data));
         });
 
+        // End loader here
+
     }
 
     populateMap(data: GridData) {
 
-        const gridSize = data.meta.gridSize;
-        const resolution = 1;
+        // Start parser here
 
         // Filter out the many many points
+        const resolution = 1;
         const filter = (n: any, i: number) => i%resolution === 0;
         var grid = data.data.filter(filter).map(row => row.filter(filter));
-        var gridHeight = grid.length;
-        var gridWidth = grid[0].length;
+
+        // End parser here
 
         // Work out the max bound we want the map to occupy
         const maxBound = Math.min(this.width, this.height);
 
+        // Start scaler here
+
         // Exaggerate height by a factor of 5
-        const scaleFactor = 5/(gridSize);
+        const gridSize = data.meta.gridSize;
+        var gridHeight = grid.length;
+        var gridWidth = grid[0].length;
+        const heightFactor = 5/(gridSize);
 
         // From position x, y and z, work out the position on the screen
         const scale = (x: number, y: number, z: number) => {
@@ -144,9 +153,10 @@ export class MapView {
             // Y is inverted as Y means south in output terms
             var scaledX = maxBound * (x/gridWidth - 0.5);
             var scaledY = maxBound * (0.5 - y/gridWidth);
-            var scaledZ = scaleFactor*z;
+            var scaledZ = heightFactor*z;
 
             return [scaledX, scaledY, scaledZ];
+
         };
 
         // Convert grid into vertices and faces
@@ -172,6 +182,8 @@ export class MapView {
             }
 
         }));
+
+        // End scaler here
 
         // Setup land geometry
         var landGeometry = new THREE.Geometry();
