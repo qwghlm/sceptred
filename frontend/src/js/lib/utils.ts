@@ -1,10 +1,13 @@
 // Feature detection
+/* istanbul ignore next */
 export function isMobile() {
     return window.matchMedia("(max-width: 640px)").matches;
 }
+/* istanbul ignore next */
 export function isTouch() {
     return 'ontouchstart' in window || !!navigator.maxTouchPoints;
 }
+/* istanbul ignore next */
 export function isRetina() {
     return window.devicePixelRatio && window.devicePixelRatio > 1.3;
 }

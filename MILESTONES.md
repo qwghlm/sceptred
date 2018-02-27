@@ -1,8 +1,6 @@
 # Rough list of milestones
 
-3. Add three.js debuggers, other tools
-3. Split off scale and fetch functions into separate
-4. Write some client-side unit tests and get 100% coverage!
+4. Add three.js debuggers, other tools
 4. Setup server in Golang and get it working with static code; remove Express
 5. Write server-side tests!
 5. Wrap server in Dockerfile
