@@ -1,26 +1,30 @@
 // Feature detection
+/* istanbul ignore next */
 export function isMobile() {
     return window.matchMedia("(max-width: 640px)").matches;
 }
+/* istanbul ignore next */
 export function isTouch() {
     return 'ontouchstart' in window || !!navigator.maxTouchPoints;
 }
+/* istanbul ignore next */
 export function isRetina() {
     return window.devicePixelRatio && window.devicePixelRatio > 1.3;
 }
 
 // http://youmightnotneedjquery.com/
-export function extend(out) {
-  out = out || {};
+export function extend(...args: any[]) {
 
-  for (var i = 1; i < arguments.length; i++) {
-    if (!arguments[i])
+  let out: any = args[0] || {};
+
+  for (var i = 1; i < args.length; i++) {
+    if (!args[i])
       continue;
 
-    for (var key in arguments[i]) {
+    for (var key in args[i]) {
       /* istanbul ignore else  */
-      if (arguments[i].hasOwnProperty(key)) {
-          out[key] = arguments[i][key];
+      if (args[i].hasOwnProperty(key)) {
+          out[key] = args[i][key];
       }
     }
   }

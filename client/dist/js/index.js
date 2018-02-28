@@ -41833,20 +41833,24 @@ if (true) {
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__sass_index_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__map__ = __webpack_require__(3);
 
-
-__webpack_require__(2);
-
-var _map = __webpack_require__(3);
 
 document.addEventListener("DOMContentLoaded", function (e) {
-    new _map.MapView(document.querySelector('#map-view-wrapper'), {
-        gridSquares: ['NT27']
+    let element = document.querySelector('#map-view-wrapper');
+    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
+        origin: [325000, 675000],
+        heightFactor: 2,
+        debug: true,
     });
 });
+
 
 /***/ }),
 /* 2 */
@@ -41856,295 +41860,168 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 /***/ }),
 /* 3 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_scale__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_grid__ = __webpack_require__(8);
+/// <reference types="three" />
 
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.MapView = undefined;
 
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _constants = __webpack_require__(4);
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var THREE = __webpack_require__(0);
-var Detector = __webpack_require__(5);
-THREE.TrackballControls = __webpack_require__(6);
-
-// TODO: Once Go server is setup, we can move this out of here
-__webpack_require__(7);
-
-var MapView = exports.MapView = function () {
-    function MapView(wrapper, config) {
-        _classCallCheck(this, MapView);
-
+class MapView {
+    constructor(wrapper, config) {
         // Setup config
         this.config = config;
-
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
-        this.loadData();
+        // Setup scale and load in
+        this.initializeScale();
+        // Render the map
+        this.renderMap();
+        this.animateMap();
     }
-
-    _createClass(MapView, [{
-        key: 'initializeWrapper',
-        value: function initializeWrapper(wrapper) {
-            var width = this.width = wrapper.offsetWidth === 0 ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
-            var height = this.height = 0.8 * width;
-
-            wrapper.style.height = height + 'px';
-            this.wrapper = wrapper;
-
-            // TODO: Auto-resize on window resize
+    initializeWrapper(wrapper) {
+        var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
+        var height = this.height = 0.8 * width;
+        wrapper.style.height = height + 'px';
+        this.wrapper = wrapper;
+        // TODO: Auto-resize on window resize
+    }
+    initializeCanvas() {
+        // Add WebGL message...
+        if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
+            __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
+            return; // TODO Raise an exception?
         }
-    }, {
-        key: 'initializeCanvas',
-        value: function initializeCanvas() {
-
-            // Add WebGL message...
-            if (!Detector.webgl) {
-                Detector.addGetWebGLMessage();
-                return; // TODO Raise an exception?
+        // Setup camera
+        var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 0.1, 10000);
+        camera.position.z = Math.min(this.width, this.height);
+        // Setup trackball controls
+        var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"](camera, this.wrapper);
+        controls.rotateSpeed = 1.0;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+        controls.noZoom = false;
+        controls.noPan = false;
+        controls.staticMoving = true;
+        controls.dynamicDampingFactor = 0.3;
+        // Shift+ drag to zoom, Ctrl+ drag to pan
+        controls.keys = [-1, 16, 17];
+        controls.addEventListener('change', this.renderMap.bind(this));
+        // Setup scene
+        var scene = this.scene = new __WEBPACK_IMPORTED_MODULE_0_three__["Scene"]();
+        // Lights
+        var light = new __WEBPACK_IMPORTED_MODULE_0_three__["DirectionalLight"](0xffffff);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        var spotLight = new __WEBPACK_IMPORTED_MODULE_0_three__["SpotLight"](0xffffff);
+        spotLight.position.set(-1000, -1000, 1000);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+        var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
+        scene.add(ambientLight);
+        // Renderer
+        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(this.width, this.height);
+        renderer.setClearColor(0x444444);
+        renderer.shadowMap.enabled = true;
+        this.wrapper.appendChild(renderer.domElement);
+    }
+    initializeScale() {
+        const metresPerPixel = 50;
+        var xScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(this.config.origin[0], 0, 1 / metresPerPixel);
+        var yScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(this.config.origin[1], 0, -1 / metresPerPixel);
+        var zScale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* linearScale */])(0, 0, this.config.heightFactor / metresPerPixel);
+        this.scale = (x, y, z) => {
+            return [xScale(x), yScale(y), zScale(z)];
+        };
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_5__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
+        this.loadData(gridSquare);
+    }
+    loadData(gridSquare) {
+        // Start loader here
+        fetch(`./data/${gridSquare}.json`)
+            .then(response => response.json())
+            .then(data => this.populateMap(data));
+        // End loader here
+    }
+    populateMap(data) {
+        // Start parser here
+        // Filter out the many many points
+        const resolution = 1;
+        const filter = (n, i) => i % resolution === 0;
+        var grid = data.data.filter(filter).map(row => row.filter(filter));
+        // End parser here
+        const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_5__lib_grid__["b" /* gridrefToCoords */])(data.meta.gridReference);
+        const squareSize = data.meta.squareSize;
+        // Start scaler here
+        var gridHeight = grid.length;
+        var gridWidth = grid[0].length;
+        // Convert grid into vertices and faces
+        var faces = [];
+        var vertices = [];
+        grid.forEach((row, y) => row.forEach((z, x) => {
+            var coords = this.scale(tileOrigin[0] + x * squareSize, tileOrigin[1] + y * squareSize, z);
+            vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...coords));
+            // If this point can form top-left of a square, add the two
+            // triangles that are formed by that square
+            if (x < gridWidth - 1 && y < gridHeight - 1) {
+                // Work out index of this point in the vertices array
+                var i = x + gridWidth * y;
+                // First triangle: top-left, top-right, bottom-left
+                faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i, i + 1, i + gridWidth));
+                // Second triangle: top-right, bottom-right, bottom-left
+                faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i + 1, i + gridWidth + 1, i + gridWidth));
             }
+        }));
+        // End scaler here
+        // Setup land geometry
+        var landGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["Geometry"]();
+        landGeometry.vertices = vertices;
+        landGeometry.faces = faces;
+        landGeometry.computeFaceNormals();
+        landGeometry.computeVertexNormals();
+        // Sea geometry
+        const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
+        const topRight = this.scale(tileOrigin[0] + gridWidth * squareSize, tileOrigin[1] + gridHeight * squareSize, 0);
+        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
+        var material = 'phong';
+        var landMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](landGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
+        this.scene.add(landMesh);
+        var seaMesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
+        this.scene.add(seaMesh);
+        requestAnimationFrame(this.renderMap.bind(this));
+    }
+    renderMap() {
+        this.renderer.render(this.scene, this.camera);
+    }
+    animateMap() {
+        requestAnimationFrame(this.animateMap.bind(this));
+        this.controls.update();
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
 
-            // Setup camera
-            var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.1, 10000);
-            camera.position.z = Math.min(this.width, this.height);
 
-            // Setup trackball controls
-            var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
-            controls.rotateSpeed = 1.0;
-            controls.zoomSpeed = 1.2;
-            controls.panSpeed = 0.8;
-            controls.noZoom = false;
-            controls.noPan = false;
-            controls.staticMoving = true;
-            controls.dynamicDampingFactor = 0.3;
-
-            // Shift+ drag to zoom, Ctrl+ drag to pan
-            controls.keys = [-1, 16, 17];
-            controls.addEventListener('change', this.renderMap.bind(this));
-
-            // Setup scene
-            var scene = this.scene = new THREE.Scene();
-
-            // Lights
-            var light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(1, 1, 1);
-            scene.add(light);
-
-            var spotLight = new THREE.SpotLight(0xffffff);
-            spotLight.position.set(-1000, -1000, 1000);
-            spotLight.castShadow = true;
-            scene.add(spotLight);
-
-            var ambientLight = new THREE.AmbientLight(0x080808);
-            scene.add(ambientLight);
-
-            // Renderer
-            var renderer = this.renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                alpha: true
-            });
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(this.width, this.height);
-            renderer.setClearColor(0x444444);
-            this.wrapper.appendChild(renderer.domElement);
-
-            // Shadows
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMapSoft = true;
-            renderer.shadowCameraNear = 1;
-            renderer.shadowCameraFar = camera.far;
-            renderer.shadowCameraFov = 60;
-            renderer.shadowMapBias = 0.0025;
-            renderer.shadowMapDarkness = 0.5;
-            renderer.shadowMapWidth = 1024;
-            renderer.shadowMapHeight = 1024;
-
-            this.renderMap();
-            this.animateMap();
-        }
-    }, {
-        key: 'loadData',
-        value: function loadData() {
-            var _this = this;
-
-            this.config.gridSquares.forEach(function (grid) {
-                fetch('./data/' + grid + '.json').then(function (response) {
-                    return response.json();
-                }).then(function (data) {
-                    return _this.populateMap(data);
-                });
-            });
-        }
-    }, {
-        key: 'populateMap',
-        value: function populateMap(data) {
-
-            var gridSize = data.meta.gridSize;
-            var resolution = 1;
-
-            // Filter out the many many points
-            var filter = function filter(_, i) {
-                return i % resolution === 0;
-            };
-            var grid = data.data.filter(filter).map(function (row) {
-                return row.filter(filter);
-            });
-            var gridHeight = grid.length;
-            var gridWidth = grid[0].length;
-
-            // Work out the max bound we want the map to occupy
-            var maxBound = Math.min(this.width, this.height);
-
-            // Exaggerate height by a factor of 5
-            var scaleFactor = 5 / gridSize;
-
-            // From position x, y and z, work out the position on the screen
-            var scale = function scale(x, y, z) {
-
-                // Scale x and y to be a fraction of this, with 0 in the center
-                // Y is inverted as Y means south in output terms
-                var scaledX = maxBound * (x / gridWidth - 0.5);
-                var scaledY = maxBound * (0.5 - y / gridWidth);
-                var scaledZ = scaleFactor * z;
-
-                return [scaledX, scaledY, scaledZ];
-            };
-
-            // Convert grid into vertices and faces
-            var faces = [];
-            var vertices = [];
-
-            grid.forEach(function (row, y) {
-                return row.forEach(function (z, x) {
-
-                    vertices.push(new (Function.prototype.bind.apply(THREE.Vector3, [null].concat(_toConsumableArray(scale(x, y, z)))))());
-
-                    // If this point can form top-left of a square, add the two
-                    // triangles that are formed by that square
-                    if (x < gridWidth - 1 && y < gridHeight - 1) {
-
-                        // Work out index of this point in the vertices array
-                        var i = x + gridWidth * y;
-
-                        // First triangle: top-left, top-right, bottom-left
-                        faces.push(new THREE.Face3(i, i + 1, i + gridWidth));
-
-                        // Second triangle: top-right, bottom-right, bottom-left
-                        faces.push(new THREE.Face3(i + 1, i + gridWidth + 1, i + gridWidth));
-                    }
-                });
-            });
-
-            // Setup land geometry
-            var landGeometry = new THREE.Geometry();
-            landGeometry.vertices = vertices;
-            landGeometry.faces = faces;
-            landGeometry.computeFaceNormals();
-            landGeometry.computeVertexNormals();
-
-            // Sea geometry
-
-            var _scale = scale(0, gridHeight, 0),
-                _scale2 = _slicedToArray(_scale, 2),
-                seaWidth = _scale2[0],
-                seaHeight = _scale2[1];
-
-            var seaGeometry = new THREE.PlaneGeometry(seaWidth * 2, seaHeight * 2, 0);
-
-            var material = 'phong';
-            var landMesh = new THREE.Mesh(landGeometry, _constants.materials[material](_constants.colors.landColor));
-            this.scene.add(landMesh);
-
-            var seaMesh = new THREE.Mesh(seaGeometry, _constants.materials[material](_constants.colors.seaColor));
-            this.scene.add(seaMesh);
-
-            this.renderMap();
-        }
-    }, {
-        key: 'renderMap',
-        value: function renderMap() {
-            this.renderer.render(this.scene, this.camera);
-        }
-    }, {
-        key: 'animateMap',
-        value: function animateMap() {
-            requestAnimationFrame(this.animateMap.bind(this));
-            this.controls.update();
-        }
-    }]);
-
-    return MapView;
-}();
 
 /***/ }),
 /* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-var THREE = __webpack_require__(0);
-
-var colors = exports.colors = {
-    landColor: 0x116622,
-    seaColor: 0x111144
-};
-
-var materials = exports.materials = {
-    phong: function phong(color) {
-        return new THREE.MeshPhongMaterial({
-            color: color,
-            side: THREE.DoubleSide
-        });
-    },
-    meshLambert: function meshLambert(color) {
-        return new THREE.MeshLambertMaterial({
-            color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
-            transparent: true
-        });
-    },
-    meshWireFrame: function meshWireFrame(color) {
-        return new THREE.MeshBasicMaterial({
-            color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
-            wireframe: true,
-            transparent: true
-        });
-    },
-    meshBasic: function meshBasic(color) {
-        return new THREE.MeshBasicMaterial({
-            color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
-            transparent: true
-        });
-    }
-};
-
-/***/ }),
-/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -42228,11 +42105,8 @@ if ( true ) {
 
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
 
 /**
  * @author Eberhard Graether / http://egraether.com/
@@ -42241,15 +42115,15 @@ if ( true ) {
  * @author Luca Antiga  / http://lantiga.github.io
  */
 
-var THREE = __webpack_require__(0);
+const THREE = __webpack_require__(0);
 
-var TrackballControls = function TrackballControls(object, domElement) {
+const TrackballControls = function ( object, domElement ) {
 
     var _this = this;
-    var STATE = { NONE: -1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
+    var STATE = { NONE: - 1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
 
     this.object = object;
-    this.domElement = domElement !== undefined ? domElement : document;
+    this.domElement = ( domElement !== undefined ) ? domElement : document;
 
     // API
 
@@ -42271,7 +42145,7 @@ var TrackballControls = function TrackballControls(object, domElement) {
     this.minDistance = 0;
     this.maxDistance = Infinity;
 
-    this.keys = [65 /*A*/, 83 /*S*/, 68 /*D*/];
+    this.keys = [ 65 /*A*/, 83 /*S*/, 68 /*D*/ ];
 
     // internals
 
@@ -42282,18 +42156,24 @@ var TrackballControls = function TrackballControls(object, domElement) {
     var lastPosition = new THREE.Vector3();
 
     var _state = STATE.NONE,
-        _prevState = STATE.NONE,
-        _eye = new THREE.Vector3(),
-        _movePrev = new THREE.Vector2(),
-        _moveCurr = new THREE.Vector2(),
-        _lastAxis = new THREE.Vector3(),
-        _lastAngle = 0,
-        _zoomStart = new THREE.Vector2(),
-        _zoomEnd = new THREE.Vector2(),
-        _touchZoomDistanceStart = 0,
-        _touchZoomDistanceEnd = 0,
-        _panStart = new THREE.Vector2(),
-        _panEnd = new THREE.Vector2();
+    _prevState = STATE.NONE,
+
+    _eye = new THREE.Vector3(),
+
+    _movePrev = new THREE.Vector2(),
+    _moveCurr = new THREE.Vector2(),
+
+    _lastAxis = new THREE.Vector3(),
+    _lastAngle = 0,
+
+    _zoomStart = new THREE.Vector2(),
+    _zoomEnd = new THREE.Vector2(),
+
+    _touchZoomDistanceStart = 0,
+    _touchZoomDistanceEnd = 0,
+
+    _panStart = new THREE.Vector2(),
+    _panEnd = new THREE.Vector2();
 
     // for reset
 
@@ -42307,16 +42187,18 @@ var TrackballControls = function TrackballControls(object, domElement) {
     var startEvent = { type: 'start' };
     var endEvent = { type: 'end' };
 
+
     // methods
 
     this.handleResize = function () {
 
-        if (this.domElement === document) {
+        if ( this.domElement === document ) {
 
             this.screen.left = 0;
             this.screen.top = 0;
             this.screen.width = window.innerWidth;
             this.screen.height = window.innerHeight;
+
         } else {
 
             var box = this.domElement.getBoundingClientRect();
@@ -42326,43 +42208,56 @@ var TrackballControls = function TrackballControls(object, domElement) {
             this.screen.top = box.top + window.pageYOffset - d.clientTop;
             this.screen.width = box.width;
             this.screen.height = box.height;
+
         }
+
     };
 
-    this.handleEvent = function (event) {
+    this.handleEvent = function ( event ) {
 
-        if (typeof this[event.type] == 'function') {
+        if ( typeof this[ event.type ] == 'function' ) {
 
-            this[event.type](event);
+            this[ event.type ]( event );
+
         }
+
     };
 
-    var getMouseOnScreen = function () {
+    var getMouseOnScreen = ( function () {
 
         var vector = new THREE.Vector2();
 
-        return function getMouseOnScreen(pageX, pageY) {
+        return function getMouseOnScreen( pageX, pageY ) {
 
-            vector.set((pageX - _this.screen.left) / _this.screen.width, (pageY - _this.screen.top) / _this.screen.height);
-
-            return vector;
-        };
-    }();
-
-    var getMouseOnCircle = function () {
-
-        var vector = new THREE.Vector2();
-
-        return function getMouseOnCircle(pageX, pageY) {
-
-            vector.set((pageX - _this.screen.width * 0.5 - _this.screen.left) / (_this.screen.width * 0.5), (_this.screen.height + 2 * (_this.screen.top - pageY)) / _this.screen.width // screen.width intentional
+            vector.set(
+                ( pageX - _this.screen.left ) / _this.screen.width,
+                ( pageY - _this.screen.top ) / _this.screen.height
             );
 
             return vector;
-        };
-    }();
 
-    this.rotateCamera = function () {
+        };
+
+    }() );
+
+    var getMouseOnCircle = ( function () {
+
+        var vector = new THREE.Vector2();
+
+        return function getMouseOnCircle( pageX, pageY ) {
+
+            vector.set(
+                ( ( pageX - _this.screen.width * 0.5 - _this.screen.left ) / ( _this.screen.width * 0.5 ) ),
+                ( ( _this.screen.height + 2 * ( _this.screen.top - pageY ) ) / _this.screen.width ) // screen.width intentional
+            );
+
+            return vector;
+
+        };
+
+    }() );
+
+    this.rotateCamera = ( function() {
 
         var axis = new THREE.Vector3(),
             quaternion = new THREE.Quaternion(),
@@ -42374,74 +42269,85 @@ var TrackballControls = function TrackballControls(object, domElement) {
 
         return function rotateCamera() {
 
-            moveDirection.set(_moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0);
+            moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
             angle = moveDirection.length();
 
-            if (angle) {
+            if ( angle ) {
 
-                _eye.copy(_this.object.position).sub(_this.target);
+                _eye.copy( _this.object.position ).sub( _this.target );
 
-                eyeDirection.copy(_eye).normalize();
-                objectUpDirection.copy(_this.object.up).normalize();
-                objectSidewaysDirection.crossVectors(objectUpDirection, eyeDirection).normalize();
+                eyeDirection.copy( _eye ).normalize();
+                objectUpDirection.copy( _this.object.up ).normalize();
+                objectSidewaysDirection.crossVectors( objectUpDirection, eyeDirection ).normalize();
 
-                objectUpDirection.setLength(_moveCurr.y - _movePrev.y);
-                objectSidewaysDirection.setLength(_moveCurr.x - _movePrev.x);
+                objectUpDirection.setLength( _moveCurr.y - _movePrev.y );
+                objectSidewaysDirection.setLength( _moveCurr.x - _movePrev.x );
 
-                moveDirection.copy(objectUpDirection.add(objectSidewaysDirection));
+                moveDirection.copy( objectUpDirection.add( objectSidewaysDirection ) );
 
-                axis.crossVectors(moveDirection, _eye).normalize();
+                axis.crossVectors( moveDirection, _eye ).normalize();
 
                 angle *= _this.rotateSpeed;
-                quaternion.setFromAxisAngle(axis, angle);
+                quaternion.setFromAxisAngle( axis, angle );
 
-                _eye.applyQuaternion(quaternion);
-                _this.object.up.applyQuaternion(quaternion);
+                _eye.applyQuaternion( quaternion );
+                _this.object.up.applyQuaternion( quaternion );
 
-                _lastAxis.copy(axis);
+                _lastAxis.copy( axis );
                 _lastAngle = angle;
-            } else if (!_this.staticMoving && _lastAngle) {
 
-                _lastAngle *= Math.sqrt(1.0 - _this.dynamicDampingFactor);
-                _eye.copy(_this.object.position).sub(_this.target);
-                quaternion.setFromAxisAngle(_lastAxis, _lastAngle);
-                _eye.applyQuaternion(quaternion);
-                _this.object.up.applyQuaternion(quaternion);
+            } else if ( ! _this.staticMoving && _lastAngle ) {
+
+                _lastAngle *= Math.sqrt( 1.0 - _this.dynamicDampingFactor );
+                _eye.copy( _this.object.position ).sub( _this.target );
+                quaternion.setFromAxisAngle( _lastAxis, _lastAngle );
+                _eye.applyQuaternion( quaternion );
+                _this.object.up.applyQuaternion( quaternion );
+
             }
 
-            _movePrev.copy(_moveCurr);
+            _movePrev.copy( _moveCurr );
+
         };
-    }();
+
+    }() );
+
 
     this.zoomCamera = function () {
 
         var factor;
 
-        if (_state === STATE.TOUCH_ZOOM_PAN) {
+        if ( _state === STATE.TOUCH_ZOOM_PAN ) {
 
             factor = _touchZoomDistanceStart / _touchZoomDistanceEnd;
             _touchZoomDistanceStart = _touchZoomDistanceEnd;
-            _eye.multiplyScalar(factor);
+            _eye.multiplyScalar( factor );
+
         } else {
 
-            factor = 1.0 + (_zoomEnd.y - _zoomStart.y) * _this.zoomSpeed;
+            factor = 1.0 + ( _zoomEnd.y - _zoomStart.y ) * _this.zoomSpeed;
 
-            if (factor !== 1.0 && factor > 0.0) {
+            if ( factor !== 1.0 && factor > 0.0 ) {
 
-                _eye.multiplyScalar(factor);
+                _eye.multiplyScalar( factor );
+
             }
 
-            if (_this.staticMoving) {
+            if ( _this.staticMoving ) {
 
-                _zoomStart.copy(_zoomEnd);
+                _zoomStart.copy( _zoomEnd );
+
             } else {
 
-                _zoomStart.y += (_zoomEnd.y - _zoomStart.y) * this.dynamicDampingFactor;
+                _zoomStart.y += ( _zoomEnd.y - _zoomStart.y ) * this.dynamicDampingFactor;
+
             }
+
         }
+
     };
 
-    this.panCamera = function () {
+    this.panCamera = ( function() {
 
         var mouseChange = new THREE.Vector2(),
             objectUp = new THREE.Vector3(),
@@ -42449,78 +42355,92 @@ var TrackballControls = function TrackballControls(object, domElement) {
 
         return function panCamera() {
 
-            mouseChange.copy(_panEnd).sub(_panStart);
+            mouseChange.copy( _panEnd ).sub( _panStart );
 
-            if (mouseChange.lengthSq()) {
+            if ( mouseChange.lengthSq() ) {
 
-                mouseChange.multiplyScalar(_eye.length() * _this.panSpeed);
+                mouseChange.multiplyScalar( _eye.length() * _this.panSpeed );
 
-                pan.copy(_eye).cross(_this.object.up).setLength(mouseChange.x);
-                pan.add(objectUp.copy(_this.object.up).setLength(mouseChange.y));
+                pan.copy( _eye ).cross( _this.object.up ).setLength( mouseChange.x );
+                pan.add( objectUp.copy( _this.object.up ).setLength( mouseChange.y ) );
 
-                _this.object.position.add(pan);
-                _this.target.add(pan);
+                _this.object.position.add( pan );
+                _this.target.add( pan );
 
-                if (_this.staticMoving) {
+                if ( _this.staticMoving ) {
 
-                    _panStart.copy(_panEnd);
+                    _panStart.copy( _panEnd );
+
                 } else {
 
-                    _panStart.add(mouseChange.subVectors(_panEnd, _panStart).multiplyScalar(_this.dynamicDampingFactor));
+                    _panStart.add( mouseChange.subVectors( _panEnd, _panStart ).multiplyScalar( _this.dynamicDampingFactor ) );
+
                 }
+
             }
+
         };
-    }();
+
+    }() );
 
     this.checkDistances = function () {
 
-        if (!_this.noZoom || !_this.noPan) {
+        if ( ! _this.noZoom || ! _this.noPan ) {
 
-            if (_eye.lengthSq() > _this.maxDistance * _this.maxDistance) {
+            if ( _eye.lengthSq() > _this.maxDistance * _this.maxDistance ) {
 
-                _this.object.position.addVectors(_this.target, _eye.setLength(_this.maxDistance));
-                _zoomStart.copy(_zoomEnd);
+                _this.object.position.addVectors( _this.target, _eye.setLength( _this.maxDistance ) );
+                _zoomStart.copy( _zoomEnd );
+
             }
 
-            if (_eye.lengthSq() < _this.minDistance * _this.minDistance) {
+            if ( _eye.lengthSq() < _this.minDistance * _this.minDistance ) {
 
-                _this.object.position.addVectors(_this.target, _eye.setLength(_this.minDistance));
-                _zoomStart.copy(_zoomEnd);
+                _this.object.position.addVectors( _this.target, _eye.setLength( _this.minDistance ) );
+                _zoomStart.copy( _zoomEnd );
+
             }
+
         }
+
     };
 
     this.update = function () {
 
-        _eye.subVectors(_this.object.position, _this.target);
+        _eye.subVectors( _this.object.position, _this.target );
 
-        if (!_this.noRotate) {
+        if ( ! _this.noRotate ) {
 
             _this.rotateCamera();
+
         }
 
-        if (!_this.noZoom) {
+        if ( ! _this.noZoom ) {
 
             _this.zoomCamera();
+
         }
 
-        if (!_this.noPan) {
+        if ( ! _this.noPan ) {
 
             _this.panCamera();
+
         }
 
-        _this.object.position.addVectors(_this.target, _eye);
+        _this.object.position.addVectors( _this.target, _eye );
 
         _this.checkDistances();
 
-        _this.object.lookAt(_this.target);
+        _this.object.lookAt( _this.target );
 
-        if (lastPosition.distanceToSquared(_this.object.position) > EPS) {
+        if ( lastPosition.distanceToSquared( _this.object.position ) > EPS ) {
 
-            _this.dispatchEvent(changeEvent);
+            _this.dispatchEvent( changeEvent );
 
-            lastPosition.copy(_this.object.position);
+            lastPosition.copy( _this.object.position );
+
         }
+
     };
 
     this.reset = function () {
@@ -42528,127 +42448,144 @@ var TrackballControls = function TrackballControls(object, domElement) {
         _state = STATE.NONE;
         _prevState = STATE.NONE;
 
-        _this.target.copy(_this.target0);
-        _this.object.position.copy(_this.position0);
-        _this.object.up.copy(_this.up0);
+        _this.target.copy( _this.target0 );
+        _this.object.position.copy( _this.position0 );
+        _this.object.up.copy( _this.up0 );
 
-        _eye.subVectors(_this.object.position, _this.target);
+        _eye.subVectors( _this.object.position, _this.target );
 
-        _this.object.lookAt(_this.target);
+        _this.object.lookAt( _this.target );
 
-        _this.dispatchEvent(changeEvent);
+        _this.dispatchEvent( changeEvent );
 
-        lastPosition.copy(_this.object.position);
+        lastPosition.copy( _this.object.position );
+
     };
 
     // listeners
 
-    function keydown(event) {
+    function keydown( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
-        window.removeEventListener('keydown', keydown);
+        window.removeEventListener( 'keydown', keydown );
 
         _prevState = _state;
 
-        if (_state !== STATE.NONE) {
+        if ( _state !== STATE.NONE ) {
 
-            return;
-        } else if (event.keyCode === _this.keys[STATE.ROTATE] && !_this.noRotate) {
+            // return;
+
+        } else if ( event.keyCode === _this.keys[ STATE.ROTATE ] && ! _this.noRotate ) {
 
             _state = STATE.ROTATE;
-        } else if (event.keyCode === _this.keys[STATE.ZOOM] && !_this.noZoom) {
+
+        } else if ( event.keyCode === _this.keys[ STATE.ZOOM ] && ! _this.noZoom ) {
 
             _state = STATE.ZOOM;
-        } else if (event.keyCode === _this.keys[STATE.PAN] && !_this.noPan) {
+
+        } else if ( event.keyCode === _this.keys[ STATE.PAN ] && ! _this.noPan ) {
 
             _state = STATE.PAN;
+
         }
+
     }
 
-    function keyup(event) {
+    function keyup( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         _state = _prevState;
 
-        window.addEventListener('keydown', keydown, false);
+        window.addEventListener( 'keydown', keydown, false );
+
     }
 
-    function mousedown(event) {
+    function mousedown( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        if (_state === STATE.NONE) {
+        if ( _state === STATE.NONE ) {
 
             _state = event.button;
+
         }
 
-        if (_state === STATE.ROTATE && !_this.noRotate) {
+        if ( _state === STATE.ROTATE && ! _this.noRotate ) {
 
-            _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
-            _movePrev.copy(_moveCurr);
-        } else if (_state === STATE.ZOOM && !_this.noZoom) {
+            _moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
+            _movePrev.copy( _moveCurr );
 
-            _zoomStart.copy(getMouseOnScreen(event.pageX, event.pageY));
-            _zoomEnd.copy(_zoomStart);
-        } else if (_state === STATE.PAN && !_this.noPan) {
+        } else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
 
-            _panStart.copy(getMouseOnScreen(event.pageX, event.pageY));
-            _panEnd.copy(_panStart);
+            _zoomStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+            _zoomEnd.copy( _zoomStart );
+
+        } else if ( _state === STATE.PAN && ! _this.noPan ) {
+
+            _panStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+            _panEnd.copy( _panStart );
+
         }
 
-        document.addEventListener('mousemove', mousemove, false);
-        document.addEventListener('mouseup', mouseup, false);
+        document.addEventListener( 'mousemove', mousemove, false );
+        document.addEventListener( 'mouseup', mouseup, false );
 
-        _this.dispatchEvent(startEvent);
+        _this.dispatchEvent( startEvent );
+
     }
 
-    function mousemove(event) {
+    function mousemove( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        if (_state === STATE.ROTATE && !_this.noRotate) {
+        if ( _state === STATE.ROTATE && ! _this.noRotate ) {
 
-            _movePrev.copy(_moveCurr);
-            _moveCurr.copy(getMouseOnCircle(event.pageX, event.pageY));
-        } else if (_state === STATE.ZOOM && !_this.noZoom) {
+            _movePrev.copy( _moveCurr );
+            _moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
 
-            _zoomEnd.copy(getMouseOnScreen(event.pageX, event.pageY));
-        } else if (_state === STATE.PAN && !_this.noPan) {
+        } else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
 
-            _panEnd.copy(getMouseOnScreen(event.pageX, event.pageY));
+            _zoomEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+
+        } else if ( _state === STATE.PAN && ! _this.noPan ) {
+
+            _panEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+
         }
+
     }
 
-    function mouseup(event) {
+    function mouseup( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
         event.stopPropagation();
 
         _state = STATE.NONE;
 
-        document.removeEventListener('mousemove', mousemove);
-        document.removeEventListener('mouseup', mouseup);
-        _this.dispatchEvent(endEvent);
+        document.removeEventListener( 'mousemove', mousemove );
+        document.removeEventListener( 'mouseup', mouseup );
+        _this.dispatchEvent( endEvent );
+
     }
 
-    function mousewheel(event) {
+    function mousewheel( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        switch (event.deltaMode) {
+        switch ( event.deltaMode ) {
 
             case 2:
                 // Zoom in pages
@@ -42667,73 +42604,74 @@ var TrackballControls = function TrackballControls(object, domElement) {
 
         }
 
-        _this.dispatchEvent(startEvent);
-        _this.dispatchEvent(endEvent);
+        _this.dispatchEvent( startEvent );
+        _this.dispatchEvent( endEvent );
+
     }
 
-    function touchstart(event) {
+    function touchstart( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
-        switch (event.touches.length) {
+        switch ( event.touches.length ) {
 
             case 1:
                 _state = STATE.TOUCH_ROTATE;
-                _moveCurr.copy(getMouseOnCircle(event.touches[0].pageX, event.touches[0].pageY));
-                _movePrev.copy(_moveCurr);
+                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
+                _movePrev.copy( _moveCurr );
                 break;
 
-            default:
-                // 2 or more
+            default: // 2 or more
                 _state = STATE.TOUCH_ZOOM_PAN;
-                var dx = event.touches[0].pageX - event.touches[1].pageX;
-                var dy = event.touches[0].pageY - event.touches[1].pageY;
-                _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt(dx * dx + dy * dy);
+                var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+                var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+                _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt( dx * dx + dy * dy );
 
-                var x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
-                var y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
-                _panStart.copy(getMouseOnScreen(x, y));
-                _panEnd.copy(_panStart);
+                var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
+                var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
+                _panStart.copy( getMouseOnScreen( x, y ) );
+                _panEnd.copy( _panStart );
                 break;
 
         }
 
-        _this.dispatchEvent(startEvent);
+        _this.dispatchEvent( startEvent );
+
     }
 
-    function touchmove(event) {
+    function touchmove( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
         event.stopPropagation();
 
-        switch (event.touches.length) {
+        switch ( event.touches.length ) {
 
             case 1:
-                _movePrev.copy(_moveCurr);
-                _moveCurr.copy(getMouseOnCircle(event.touches[0].pageX, event.touches[0].pageY));
+                _movePrev.copy( _moveCurr );
+                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
                 break;
 
-            default:
-                // 2 or more
-                var dx = event.touches[0].pageX - event.touches[1].pageX;
-                var dy = event.touches[0].pageY - event.touches[1].pageY;
-                _touchZoomDistanceEnd = Math.sqrt(dx * dx + dy * dy);
+            default: // 2 or more
+                var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+                var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+                _touchZoomDistanceEnd = Math.sqrt( dx * dx + dy * dy );
 
-                var x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
-                var y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
-                _panEnd.copy(getMouseOnScreen(x, y));
+                var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
+                var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
+                _panEnd.copy( getMouseOnScreen( x, y ) );
                 break;
 
         }
+
     }
 
-    function touchend(event) {
+    function touchend( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
-        switch (event.touches.length) {
+        switch ( event.touches.length ) {
 
             case 0:
                 _state = STATE.NONE;
@@ -42741,66 +42679,202 @@ var TrackballControls = function TrackballControls(object, domElement) {
 
             case 1:
                 _state = STATE.TOUCH_ROTATE;
-                _moveCurr.copy(getMouseOnCircle(event.touches[0].pageX, event.touches[0].pageY));
-                _movePrev.copy(_moveCurr);
+                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
+                _movePrev.copy( _moveCurr );
                 break;
 
         }
 
-        _this.dispatchEvent(endEvent);
+        _this.dispatchEvent( endEvent );
+
     }
 
-    function contextmenu(event) {
+    function contextmenu( event ) {
 
-        if (_this.enabled === false) return;
+        if ( _this.enabled === false ) return;
 
         event.preventDefault();
+
     }
 
-    this.dispose = function () {
+    this.dispose = function() {
 
-        this.domElement.removeEventListener('contextmenu', contextmenu, false);
-        this.domElement.removeEventListener('mousedown', mousedown, false);
-        this.domElement.removeEventListener('wheel', mousewheel, false);
+        this.domElement.removeEventListener( 'contextmenu', contextmenu, false );
+        this.domElement.removeEventListener( 'mousedown', mousedown, false );
+        this.domElement.removeEventListener( 'wheel', mousewheel, false );
 
-        this.domElement.removeEventListener('touchstart', touchstart, false);
-        this.domElement.removeEventListener('touchend', touchend, false);
-        this.domElement.removeEventListener('touchmove', touchmove, false);
+        this.domElement.removeEventListener( 'touchstart', touchstart, false );
+        this.domElement.removeEventListener( 'touchend', touchend, false );
+        this.domElement.removeEventListener( 'touchmove', touchmove, false );
 
-        document.removeEventListener('mousemove', mousemove, false);
-        document.removeEventListener('mouseup', mouseup, false);
+        document.removeEventListener( 'mousemove', mousemove, false );
+        document.removeEventListener( 'mouseup', mouseup, false );
 
-        window.removeEventListener('keydown', keydown, false);
-        window.removeEventListener('keyup', keyup, false);
+        window.removeEventListener( 'keydown', keydown, false );
+        window.removeEventListener( 'keyup', keyup, false );
+
     };
 
-    this.domElement.addEventListener('contextmenu', contextmenu, false);
-    this.domElement.addEventListener('mousedown', mousedown, false);
-    this.domElement.addEventListener('wheel', mousewheel, false);
+    this.domElement.addEventListener( 'contextmenu', contextmenu, false );
+    this.domElement.addEventListener( 'mousedown', mousedown, false );
+    this.domElement.addEventListener( 'wheel', mousewheel, false );
 
-    this.domElement.addEventListener('touchstart', touchstart, false);
-    this.domElement.addEventListener('touchend', touchend, false);
-    this.domElement.addEventListener('touchmove', touchmove, false);
+    this.domElement.addEventListener( 'touchstart', touchstart, false );
+    this.domElement.addEventListener( 'touchend', touchend, false );
+    this.domElement.addEventListener( 'touchmove', touchmove, false );
 
-    window.addEventListener('keydown', keydown, false);
-    window.addEventListener('keyup', keyup, false);
+    window.addEventListener( 'keydown', keydown, false );
+    window.addEventListener( 'keyup', keyup, false );
 
     this.handleResize();
 
     // force an update at start
     this.update();
+
 };
 
-TrackballControls.prototype = Object.create(THREE.EventDispatcher.prototype);
+TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 TrackballControls.prototype.constructor = TrackballControls;
+
+THREE.TrackballControls = TrackballControls;
 
 module.exports = TrackballControls;
 
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_three__);
+
+const colors = {
+    landColor: 0x116622,
+    seaColor: 0x111144
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
+
+const materials = {
+    phong(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
+            color: color,
+            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
+        });
+    },
+    meshLambert(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
+            color: color,
+            transparent: true
+        });
+    },
+    meshWireFrame(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true,
+            wireframe: true,
+        });
+    },
+    meshBasic(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true
+        });
+    }
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
+
+
+
 /***/ }),
 /* 7 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
-module.exports = __webpack_require__.p + "data/NT27.json";
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = linearScale;
+// Simple function that returns a linear scale
+function linearScale(fromOrigin, toOrigin, scaleFactor) {
+    function scale(n) {
+        return toOrigin + (n - fromOrigin) * scaleFactor;
+    }
+    return scale;
+}
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["b"] = gridrefToCoords;
+/* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
+// Grid conversion functions are based upon
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+// Converts a grid reference (e.g. TL27) to Easting/Northings [520000, 270000]
+// Grid reference can have spaces, but no commas
+function gridrefToCoords(gridref) {
+    gridref = gridref.replace(/ +/g, "");
+    // Validate format
+    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+        throw new Error('Invalid grid reference');
+    }
+    var letter1 = letterToNumber(gridref.substr(0, 1));
+    var letter2 = letterToNumber(gridref.substr(1, 1));
+    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
+    var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
+    var n100km = (19 - Math.floor(letter1 / 5) * 5) - Math.floor(letter2 / 5);
+    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
+        throw new Error('Grid reference outside of UK');
+    }
+    // Get number pair out
+    var numbers = gridref.slice(2);
+    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
+    // Standardise to 10-digit refs (metres)
+    eastingsNorthings[0] = e100km + eastingsNorthings[0].padEnd(5, '0');
+    eastingsNorthings[1] = n100km + eastingsNorthings[1].padEnd(5, '0');
+    return eastingsNorthings.map(s => parseInt(s));
+}
+// Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)
+function coordsToGridref(eastings, northings, digits = 10) {
+    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
+        throw new RangeError('Invalid precision ‘' + digits + '’');
+    }
+    // Get the 100km-grid indices
+    var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
+        throw new Error("Co-ordinates are not within UK National Grid");
+    }
+    // Translate those into numeric equivalents of the grid letters
+    var number1 = (19 - n100k) - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
+    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
+    // Strip 100km-grid indices from easting & northing, and reduce precision
+    digits /= 2;
+    eastings = Math.floor((eastings % 100000) / Math.pow(10, 5 - digits));
+    northings = Math.floor((northings % 100000) / Math.pow(10, 5 - digits));
+    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    const eastingsString = eastings.toString().padStart(digits, '0');
+    const northingsString = northings.toString().padStart(digits, '0');
+    return `${gridSquare}${eastingsString}${northingsString}`;
+}
+// Utils
+// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
+function letterToNumber(letter) {
+    if (letter.toUpperCase() === 'I') {
+        throw new Error("I is not used in the grid system");
+    }
+    var index = letter.toUpperCase().charCodeAt(0) - 65;
+    // As I is not used, if greater than I, return one less
+    return (index > 7) ? index - 1 : index;
+}
+function numberToLetter(n) {
+    // Compensate for skipped 'I' and build grid letter-pairs
+    if (n > 7)
+        n++;
+    return String.fromCharCode(n + 65);
+}
+
 
 /***/ })
 /******/ ]);

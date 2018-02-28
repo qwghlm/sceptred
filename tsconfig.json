@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "outDir": "./client/dist/",
+    "allowJs": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "module": "es6",
+    "target": "es2017",
+  },
+  "include": [
+    "./client/src/js/index.ts"
+  ]
+}

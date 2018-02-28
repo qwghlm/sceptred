@@ -19,7 +19,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./src/js/${d}.js`;
+        obj[d] = `./client/src/js/${d}.ts`;
         return obj;
     }, {});
 
@@ -33,7 +33,7 @@ module.exports = function(env, caller) {
 
         new HtmlWebpackPlugin({
             filename: chunk + '.html',
-            template: `./src/templates/${chunk}.hbs`,
+            template: `./client/src/templates/${chunk}.hbs`,
             inject: true,
             chunks: [chunk],
             params: {
@@ -46,7 +46,7 @@ module.exports = function(env, caller) {
     if (isWatching) {
 
         var app = express();
-        app.use(express.static('dist'));
+        app.use(express.static('client/dist'));
         app.get('/favicon.ico', (req, res) => res.sendStatus(204));
         app.listen(8000, '0.0.0.0', function () {
             console.log('Dev server listening on http://localhost:8000/'); // eslint-disable-line no-console
@@ -74,7 +74,7 @@ module.exports = function(env, caller) {
 
         output: {
 
-            path: path.resolve(__dirname, 'dist/'),
+            path: path.resolve(__dirname, 'client/dist/'),
             filename: (isProduction) ? `js/[name].${version}.min.js` : 'js/[name].js',
             libraryTarget: 'var',
             library: namespace,
@@ -93,11 +93,11 @@ module.exports = function(env, caller) {
         module: {
 
             rules: [
-                {
-                    test: /\.(js|jsx)$/,
-                    loader: 'babel-loader',
-                    exclude: /node_modules/,
-                },
+                // {
+                //     test: /\.(js|jsx)$/,
+                //     loader: 'babel-loader',
+                //     exclude: /node_modules/,
+                // },
                 {
                     test: /\.tsx?$/,
                     use: 'ts-loader',
@@ -113,13 +113,13 @@ module.exports = function(env, caller) {
                                     sourceMap: !isProduction
                                 }
                             },
-                            {
-                                loader: 'postcss-loader',
-                                options: {
-                                    plugins: () => [require('autoprefixer')],
-                                    sourceMap: !isProduction
-                                }
-                            },
+                            // {
+                            //     loader: 'postcss-loader',
+                            //     options: {
+                            //         plugins: () => [require('autoprefixer')],
+                            //         sourceMap: !isProduction
+                            //     }
+                            // },
                             {
                                 loader: 'sass-loader',
                                 options: {
@@ -150,7 +150,7 @@ module.exports = function(env, caller) {
                             loader: "file-loader",
                             options: {
                                 name: '[path][name].[ext]',
-                                context: './src'
+                                context: './client/src'
                             },
                         },
                     ],

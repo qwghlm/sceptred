@@ -364,7 +364,7 @@ const TrackballControls = function ( object, domElement ) {
 
         if ( _state !== STATE.NONE ) {
 
-            return;
+            // return;
 
         } else if ( event.keyCode === _this.keys[ STATE.ROTATE ] && ! _this.noRotate ) {
 
@@ -625,6 +625,8 @@ const TrackballControls = function ( object, domElement ) {
 
 TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 TrackballControls.prototype.constructor = TrackballControls;
+
+THREE.TrackballControls = TrackballControls;
 
 module.exports = TrackballControls;
 

@@ -1,43 +1,38 @@
-const THREE = require('three');
+import * as THREE from 'three';
+
+interface MaterialsLookup {
+    [key: string] : (color: number) => THREE.Material
+}
 
 export const colors = {
     landColor : 0x116622,
     seaColor : 0x111144
 };
 
-export const materials = {
+export const materials: MaterialsLookup = {
 
-    phong(color) {
+    phong(color: number) {
         return new THREE.MeshPhongMaterial({
             color: color,
             side: THREE.DoubleSide
         });
     },
-    meshLambert(color) {
+    meshLambert(color: number) {
         return new THREE.MeshLambertMaterial({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
             transparent: true
         });
     },
-    meshWireFrame(color) {
+    meshWireFrame(color: number) {
         return new THREE.MeshBasicMaterial({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
+            transparent: true,
             wireframe: true,
-            transparent: true
         });
     },
-    meshBasic(color) {
+    meshBasic(color: number) {
         return new THREE.MeshBasicMaterial({
             color: color,
-            specular: 0x009900,
-            shininess: 30,
-            shading: THREE.SmoothShading,
             transparent: true
         });
     }
