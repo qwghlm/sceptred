@@ -25,7 +25,14 @@ module.exports = function(env, caller) {
     var plugins = [
         new ManifestPlugin({
             map: (obj) => {
-                if (obj.name.endsWith('.map')) {
+                var extension = obj.name.split('.').pop();
+                if (extension == 'js') {
+                    obj.name = "Script";
+                }
+                else if (extension == 'css') {
+                    obj.name = "Stylesheet";
+                }
+                else {
                     return false;
                 }
                 return obj;
