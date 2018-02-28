@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist/",
+    "outDir": "./client/dist/",
     "allowJs": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -10,6 +10,6 @@
     "target": "es2017",
   },
   "include": [
-    "./src/js/index.ts"
+    "./client/src/js/index.ts"
   ]
 }

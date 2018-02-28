@@ -3,6 +3,7 @@ module.exports = {
     // "verbose": true,
 
     "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
+    "projects": ["<rootDir>/client/js"],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
@@ -10,10 +11,10 @@ module.exports = {
 
     "collectCoverage": true,
     "collectCoverageFrom": [
-      // "src/js/*.ts",
-      "src/js/lib/*.ts"
+      // "client/src/js/*.ts",
+      "client/src/js/lib/*.ts"
     ],
-    "coverageDirectory": "./coverage",
+    "coverageDirectory": "./client/coverage",
     "coverageReporters": [
       "html",
       "text"

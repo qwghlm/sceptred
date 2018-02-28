@@ -1,4 +1,4 @@
-/// <reference path="../../node_modules/@types/three/three-core.d.ts" />
+/// <reference types="three" />
 import * as THREE from 'three';
 import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';

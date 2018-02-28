@@ -41872,7 +41872,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_scale__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_grid__ = __webpack_require__(8);
-/// <reference path="../../node_modules/@types/three/three-core.d.ts" />
+/// <reference types="three" />
 
 
 
