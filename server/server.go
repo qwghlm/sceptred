@@ -1,7 +1,7 @@
 package main
 
 import (
-    "fmt"
+    // "fmt"
     "encoding/json"
     "io/ioutil"
     "log"
@@ -17,20 +17,30 @@ func handler(w http.ResponseWriter, r *http.Request) {
     }
 
     // Load template
+    // TODO Error handling
     tmpl := template.Must(template.ParseFiles("templates/index.html"))
 
     // Load JSON
+    // TODO Error handling
     jsonFile, _ := ioutil.ReadFile("../client/dist/manifest.json")
     var metadata interface{}
     json.Unmarshal(jsonFile, &metadata)
-    fmt.Printf("%+v", metadata)
+
     // Complete template
     tmpl.Execute(w, metadata)
 }
 
 func main() {
+
+    // Handler for index
     http.HandleFunc("/", handler)
+
+    // Handle for static
+    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../client/dist/"))))
+
+    // Start serving
     log.Fatal(http.ListenAndServe(":3001", nil))
+
 } // TODO use PORT
 
-// TODO Serve on port 8000
+// TODO Serve on port 8000 via Gin/whatever

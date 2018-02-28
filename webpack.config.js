@@ -67,6 +67,7 @@ module.exports = function(env, caller) {
         output: {
 
             path: path.resolve(__dirname, 'client/dist/'),
+            publicPath: '/static/',
             filename: (isProduction) ? `js/[name].${version}.min.js` : 'js/[name].js',
             libraryTarget: 'var',
             library: namespace,
