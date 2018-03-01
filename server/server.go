@@ -1,7 +1,7 @@
 package main
 
 import (
-    // "fmt"
+    "fmt"
     "encoding/json"
     "io/ioutil"
     "log"
@@ -9,31 +9,47 @@ import (
     "html/template"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+type appHandler func(http.ResponseWriter, *http.Request) error
+
+func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+    if err := fn(w, r); err != nil {
+        fmt.Println(err.Error())
+        http.Error(w, "Application error", 500)
+    }
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) error {
 
     if r.URL.Path != "/" {
         http.NotFound(w, r)
-        return
+        return nil
     }
 
     // Load template
-    // TODO Error handling
-    tmpl := template.Must(template.ParseFiles("templates/index.html"))
+    indexTemplate, err := template.ParseFiles("templates/index.html")
+    if err != nil {
+        return err
+    }
 
     // Load JSON
-    // TODO Error handling
-    jsonFile, _ := ioutil.ReadFile("../client/dist/manifest.json")
     var metadata interface{}
-    json.Unmarshal(jsonFile, &metadata)
+    jsonFile, err := ioutil.ReadFile("../client/dist/manifest.json")
+    if err != nil {
+        return err
+    }
+    err = json.Unmarshal(jsonFile, &metadata)
+    if err != nil {
+        return err
+    }
 
     // Complete template
-    tmpl.Execute(w, metadata)
+    return indexTemplate.Execute(w, metadata)
 }
 
 func main() {
 
     // Handler for index
-    http.HandleFunc("/", handler)
+    http.Handle("/", appHandler(indexHandler))
 
     // Handle for static
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../client/dist/"))))
@@ -42,5 +58,3 @@ func main() {
     log.Fatal(http.ListenAndServe(":3001", nil))
 
 } // TODO use PORT
-
-// TODO Serve on port 8000 via Gin/whatever

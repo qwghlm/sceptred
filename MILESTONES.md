@@ -1,6 +1,6 @@
 # Rough list of milestones
 
-4. Setup server in Golang and get it working with static code; remove Express
+4. Use a framework because by God this is hard work
 5. Write server-side tests!
 5. Wrap server in Dockerfile
 6. Add CI integrations
