@@ -5,6 +5,7 @@
   "main": "js/index.js",
   "scripts": {
     "dist": "webpack -p",
+    "serve": "cd server && gin -p 8000 run",
     "watch": "webpack --watch",
     "test": "eslint ./src/js && jest"
   },
@@ -28,12 +29,10 @@
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
     "css-loader": "^0.28.9",
-    "express": "^4.16.2",
     "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.6",
     "handlebars": "^4.0.11",
     "handlebars-loader": "^1.6.0",
-    "html-webpack-plugin": "^2.30.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^22.2.2",
     "modernizr-loader": "^1.0.1",
@@ -44,7 +43,8 @@
     "ts-loader": "^3.5.0",
     "typescript": "^2.7.2",
     "webpack": "^3.11.0",
-    "webpack-livereload-plugin": "^1.0.0"
+    "webpack-livereload-plugin": "^1.0.0",
+    "webpack-manifest-plugin": "^2.0.0-rc.2"
   },
   "dependencies": {
     "@types/three": "^0.89.10",

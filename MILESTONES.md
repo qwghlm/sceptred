@@ -16,3 +16,4 @@
 2. Change resolution/stream bandwidth
 3. Service workers?
 4. Streambuffer optimisations
+5. Favicon

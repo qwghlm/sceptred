@@ -142,7 +142,7 @@ export class MapView {
 
         // Start loader here
 
-        fetch(`./data/${gridSquare}.json`)
+        fetch(`/static/data/${gridSquare}.json`)
             .then(response => response.json())
             .then(data => this.populateMap(data));
 

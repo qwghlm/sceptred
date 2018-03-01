@@ -1,10 +1,9 @@
 // Libraries
 var path = require('path');
-var express = require('express');
+var ManifestPlugin = require('webpack-manifest-plugin');
 
 // Webpack plugins
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
-var HtmlWebpackPlugin = require('html-webpack-plugin');
 var LiveReloadPlugin = require('webpack-livereload-plugin');
 
 // Constants used, can edit
@@ -24,34 +23,27 @@ module.exports = function(env, caller) {
     }, {});
 
     var plugins = [
+        new ManifestPlugin({
+            map: (obj) => {
+                var extension = obj.name.split('.').pop();
+                if (extension == 'js') {
+                    obj.name = "Script";
+                }
+                else if (extension == 'css') {
+                    obj.name = "Stylesheet";
+                }
+                else {
+                    return false;
+                }
+                return obj;
+            }
+        }),
         new ExtractTextPlugin({
             filename: isProduction ? `css/[name].${version}.min.css` : 'css/[name].css',
         }),
     ];
 
-    plugins = plugins.concat(entryNames.map((chunk) =>
-
-        new HtmlWebpackPlugin({
-            filename: chunk + '.html',
-            template: `./client/src/templates/${chunk}.hbs`,
-            inject: true,
-            chunks: [chunk],
-            params: {
-                chunkName: chunk,
-            },
-        })
-
-    ));
-
     if (isWatching) {
-
-        var app = express();
-        app.use(express.static('client/dist'));
-        app.get('/favicon.ico', (req, res) => res.sendStatus(204));
-        app.listen(8000, '0.0.0.0', function () {
-            console.log('Dev server listening on http://localhost:8000/'); // eslint-disable-line no-console
-        });
-
         plugins.push(new LiveReloadPlugin({
             ignore: /\.(js|map|html)$/,
         }));
@@ -75,6 +67,7 @@ module.exports = function(env, caller) {
         output: {
 
             path: path.resolve(__dirname, 'client/dist/'),
+            publicPath: '/static/',
             filename: (isProduction) ? `js/[name].${version}.min.js` : 'js/[name].js',
             libraryTarget: 'var',
             library: namespace,

@@ -58,7 +58,7 @@ var SCEPTRED =
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
+/******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 1);
@@ -41956,7 +41956,7 @@ class MapView {
     }
     loadData(gridSquare) {
         // Start loader here
-        fetch(`./data/${gridSquare}.json`)
+        fetch(`/static/data/${gridSquare}.json`)
             .then(response => response.json())
             .then(data => this.populateMap(data));
         // End loader here
