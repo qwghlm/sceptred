@@ -2,4 +2,7 @@ language: go
 
 go:
   - "1.10"
-script: go test ./server
+
+script:
+  - npm test
+  - go test ./server
