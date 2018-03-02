@@ -7,8 +7,9 @@
     "dist": "webpack -p",
     "serve": "cd server && fresh",
     "watch": "webpack --watch",
-    "test": "eslint ./src/js && jest",
-    "testServer": "cd server && go test -coverprofile=c.out"
+    "test": "jest",
+    "testServer": "go test ./server -coverprofile=c.out",
+    "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/c.out"
   },
   "repository": {
     "type": "git",
