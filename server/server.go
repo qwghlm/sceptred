@@ -2,10 +2,10 @@ package main
 
 import (
     "encoding/json"
+    "html/template"
     "io"
     "io/ioutil"
     "net/http"
-    "html/template"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
@@ -19,7 +19,7 @@ func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
     return r.templates.ExecuteTemplate(w, name, data)
 }
 
-func indexHandler(c echo.Context) error {
+func getIndex(c echo.Context) error {
 
     // Load JSON
     var metadata interface{}
@@ -36,7 +36,7 @@ func indexHandler(c echo.Context) error {
     return c.Render(http.StatusOK, "index", metadata)
 }
 
-func main() {
+func instance() *echo.Echo {
 
     // Setup Echo instance
     e := echo.New()
@@ -45,12 +45,18 @@ func main() {
     e.Renderer = &Renderer{
         templates: template.Must(template.ParseGlob("./templates/*.html")),
     }
+    return e
+}
+
+func main() {
+
+    e := instance()
 
     // Setup middleware
     e.Use(middleware.Logger())
 
     // Handler for index
-    e.GET("/", indexHandler)
+    e.GET("/", getIndex)
 
     // Handle for static
     e.Static("/static", "../client/dist/")
