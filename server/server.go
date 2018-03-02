@@ -45,6 +45,13 @@ func instance() *echo.Echo {
     e.Renderer = &Renderer{
         templates: template.Must(template.ParseGlob("./templates/*.html")),
     }
+
+    // Handler for index
+    e.GET("/", getIndex)
+
+    // Handle for static
+    e.Static("/static", "../client/dist/")
+
     return e
 }
 
@@ -54,12 +61,6 @@ func main() {
 
     // Setup middleware
     e.Use(middleware.Logger())
-
-    // Handler for index
-    e.GET("/", getIndex)
-
-    // Handle for static
-    e.Static("/static", "../client/dist/")
 
     // Start serving
     // TODO Set port in config/env

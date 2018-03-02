@@ -1,25 +1,34 @@
 package main
 
 import (
+    "io/ioutil"
     "net/http"
     "net/http/httptest"
     "testing"
 
-    "github.com/labstack/echo"
     "github.com/stretchr/testify/assert"
 )
+
+// https://www.netlify.com/blog/2016/10/20/building-a-restful-api-in-go/
+func request(t *testing.T, method, path string, body interface{}) (int, string) {
+
+    req := httptest.NewRequest(method, path, nil)
+    rsp := httptest.NewRecorder()
+
+    e := instance()
+    e.Logger.SetOutput(ioutil.Discard)
+    e.ServeHTTP(rsp, req)
+    return rsp.Code, rsp.Body.String()
+}
 
 func TestIndex(t *testing.T) {
 
     // Set up environment
-    e := instance()
+    code, _ := request(t, "GET", "/", nil)
+    assert.Equal(t, http.StatusOK, code)
+    // TODO Body assertion
 
-    // New context
-    req := httptest.NewRequest(echo.GET, "/", nil)
-    rec := httptest.NewRecorder()
-    c := e.NewContext(req, rec)
-
-    assert.NoError(t, getIndex(c))
-    assert.Equal(t, http.StatusOK, rec.Code)
+    code, _ = request(t, "GET", "/foo", nil)
+    assert.Equal(t, http.StatusNotFound, code)
 
 }
