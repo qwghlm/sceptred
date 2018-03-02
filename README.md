@@ -1,6 +1,6 @@
 # Sceptred
 
-![Build Status](https://travis-ci.org/qwghlm/sceptred.svg)](https://travis-ci.org/qwghlm/sceptred)
+[![Build Status](https://travis-ci.org/qwghlm/sceptred.svg?branch=master)](https://travis-ci.org/qwghlm/sceptred)
 ![GitHub package version](https://img.shields.io/github/package-json/v/qwghlm/sceptred.svg)
 
 _This royal throne of kings, this sceptred isle,_<br>
