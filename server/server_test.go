@@ -29,6 +29,6 @@ func TestIndex(t *testing.T) {
     // TODO Body assertion
 
     code, _ = request(t, "GET", "/foo", nil)
-    assert.Equal(t, http.StatusOK, code)
+    assert.Equal(t, http.StatusNotFound, code)
 
 }
