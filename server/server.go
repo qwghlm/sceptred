@@ -1,46 +1,70 @@
 package main
 
 import (
-    // "fmt"
     "encoding/json"
-    "io/ioutil"
-    "log"
-    "net/http"
     "html/template"
+    "io"
+    "io/ioutil"
+    "net/http"
+
+    "github.com/labstack/echo"
+    "github.com/labstack/echo/middleware"
 )
 
-func handler(w http.ResponseWriter, r *http.Request) {
+type Renderer struct {
+    templates *template.Template
+}
 
-    if r.URL.Path != "/" {
-        http.NotFound(w, r)
-        return
-    }
+func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+    return r.templates.ExecuteTemplate(w, name, data)
+}
 
-    // Load template
-    // TODO Error handling
-    tmpl := template.Must(template.ParseFiles("templates/index.html"))
+func getIndex(c echo.Context) error {
 
     // Load JSON
-    // TODO Error handling
-    jsonFile, _ := ioutil.ReadFile("../client/dist/manifest.json")
     var metadata interface{}
-    json.Unmarshal(jsonFile, &metadata)
+    jsonFile, err := ioutil.ReadFile("../client/dist/manifest.json")
+    if err != nil {
+        return err
+    }
+    err = json.Unmarshal(jsonFile, &metadata)
+    if err != nil {
+        return err
+    }
 
     // Complete template
-    tmpl.Execute(w, metadata)
+    return c.Render(http.StatusOK, "index", metadata)
+}
+
+func instance() *echo.Echo {
+
+    // Setup Echo instance
+    e := echo.New()
+
+    // Setup template renderer
+    e.Renderer = &Renderer{
+        templates: template.Must(template.ParseGlob("./templates/*.html")),
+    }
+
+    // Handler for index
+    e.GET("/", getIndex)
+
+    // Handle for static
+    e.Static("/static", "../client/dist/")
+
+    return e
 }
 
 func main() {
 
-    // Handler for index
-    http.HandleFunc("/", handler)
+    e := instance()
 
-    // Handle for static
-    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../client/dist/"))))
+    // Setup middleware
+    e.Use(middleware.Logger())
 
     // Start serving
-    log.Fatal(http.ListenAndServe(":3001", nil))
+    // TODO Set port in config/env
+    port := "8000"
+    e.Logger.Fatal(e.Start(":"+port))
 
-} // TODO use PORT
-
-// TODO Serve on port 8000 via Gin/whatever
+}

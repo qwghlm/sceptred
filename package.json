@@ -5,9 +5,12 @@
   "main": "js/index.js",
   "scripts": {
     "dist": "webpack -p",
-    "serve": "cd server && gin -p 8000 run",
+    "serve": "cd server && fresh",
     "watch": "webpack --watch",
-    "test": "eslint ./src/js && jest"
+    "test:js": "jest",
+    "test:go": "go test ./server -coverprofile=c.out",
+    "test": "npm run test:js && npm run test:go",
+    "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/c.out"
   },
   "repository": {
     "type": "git",
