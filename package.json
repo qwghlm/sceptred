@@ -7,8 +7,9 @@
     "dist": "webpack -p",
     "serve": "cd server && fresh",
     "watch": "webpack --watch",
-    "test": "jest",
-    "testServer": "go test ./server -coverprofile=c.out",
+    "test:js": "jest",
+    "test:go": "go test ./server -coverprofile=c.out",
+    "test": "npm run test:js && npm run test:go",
     "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/c.out"
   },
   "repository": {
