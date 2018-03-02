@@ -5,7 +5,7 @@
   "main": "js/index.js",
   "scripts": {
     "dist": "webpack -p",
-    "serve": "cd server && gin -p 8000 run",
+    "serve": "cd server && fresh",
     "watch": "webpack --watch",
     "test": "eslint ./src/js && jest"
   },

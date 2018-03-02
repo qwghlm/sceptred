@@ -6,13 +6,15 @@
 
 # Test binary, build with `go test -c`
 *.test
-gin-bin
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
+
+# Dev server
+server/tmp
 
 # Node
 node_modules

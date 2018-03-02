@@ -55,6 +55,9 @@ func main() {
     http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../client/dist/"))))
 
     // Start serving
-    log.Fatal(http.ListenAndServe(":3001", nil))
+    port := "8000"
+    fmt.Printf("Starting server on port %v", port)
+    log.Fatal(http.ListenAndServe(":"+port, nil))
 
-} // TODO use PORT
+}
+// TODO Set port in config/env

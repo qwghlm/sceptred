@@ -8,6 +8,7 @@
 7. (add caching)
 8. Make frontend fully dynamic, add controls & UI
 4. Add debugger if need be
+9. Reach 12F status
 10. Declare a release, deploy to a server as a demo
 
 ## Bonus extras
@@ -17,3 +18,4 @@
 3. Service workers?
 4. Streambuffer optimisations
 5. Favicon
+6
