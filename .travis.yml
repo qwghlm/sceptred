@@ -3,6 +3,9 @@ language: go
 go:
   - "1.10"
 
+before_script:
+  - npm install
+
 script:
   - npm test
   - go test ./server
