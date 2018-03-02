@@ -1,13 +1,13 @@
 # Rough list of milestones
 
-4. Use a framework because by God this is hard work
-5. Write server-side tests!
-5. Wrap server in Dockerfile
-6. Add CI integrations
-6. Create dynamic endpoint that parses data and outputs JSON
-7. (add caching)
-8. Make frontend fully dynamic, add controls & UI
-4. Add debugger if need be
+1. Write server-side tests!
+2. And get coverage!
+3. Add CI integrations?
+4. Wrap server in Dockerfile (probably need Makefile, etc.)
+5. Create dynamic endpoint that parses data and outputs JSON
+6. (add caching)
+7. Make frontend fully dynamic, add controls & UI
+8. Add debugger if need be
 9. Reach 12F status
 10. Declare a release, deploy to a server as a demo
 

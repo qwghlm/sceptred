@@ -1,35 +1,25 @@
 package main
 
 import (
-    "fmt"
     "encoding/json"
+    "io"
     "io/ioutil"
-    "log"
     "net/http"
     "html/template"
+
+    "github.com/labstack/echo"
+    "github.com/labstack/echo/middleware"
 )
 
-type appHandler func(http.ResponseWriter, *http.Request) error
-
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-    if err := fn(w, r); err != nil {
-        fmt.Println(err.Error())
-        http.Error(w, "Application error", 500)
-    }
+type Renderer struct {
+    templates *template.Template
 }
 
-func indexHandler(w http.ResponseWriter, r *http.Request) error {
+func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
+    return r.templates.ExecuteTemplate(w, name, data)
+}
 
-    if r.URL.Path != "/" {
-        http.NotFound(w, r)
-        return nil
-    }
-
-    // Load template
-    indexTemplate, err := template.ParseFiles("templates/index.html")
-    if err != nil {
-        return err
-    }
+func indexHandler(c echo.Context) error {
 
     // Load JSON
     var metadata interface{}
@@ -43,21 +33,31 @@ func indexHandler(w http.ResponseWriter, r *http.Request) error {
     }
 
     // Complete template
-    return indexTemplate.Execute(w, metadata)
+    return c.Render(http.StatusOK, "index", metadata)
 }
 
 func main() {
 
+    // Setup Echo instance
+    e := echo.New()
+
+    // Setup template renderer
+    e.Renderer = &Renderer{
+        templates: template.Must(template.ParseGlob("./templates/*.html")),
+    }
+
+    // Setup middleware
+    e.Use(middleware.Logger())
+
     // Handler for index
-    http.Handle("/", appHandler(indexHandler))
+    e.GET("/", indexHandler)
 
     // Handle for static
-    http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("../client/dist/"))))
+    e.Static("/static", "../client/dist/")
 
     // Start serving
+    // TODO Set port in config/env
     port := "8000"
-    fmt.Printf("Starting server on port %v", port)
-    log.Fatal(http.ListenAndServe(":"+port, nil))
+    e.Logger.Fatal(e.Start(":"+port))
 
 }
-// TODO Set port in config/env
