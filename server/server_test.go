@@ -28,6 +28,10 @@ func TestIndex(t *testing.T) {
     assert.Equal(t, http.StatusOK, code)
     // TODO Body assertion
 
+}
+
+func Test404(t *testing.T) {
+
     code, _ = request(t, "GET", "/foo", nil)
     assert.Equal(t, http.StatusNotFound, code)
 

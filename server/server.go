@@ -8,6 +8,9 @@ import (
     "io"
     "io/ioutil"
     "net/http"
+    "os"
+    "regexp"
+    "strings"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
@@ -40,6 +43,43 @@ func getIndex(c echo.Context) error {
     return c.Render(http.StatusOK, "index", metadata)
 }
 
+type GridDataMeta struct {
+    SquareSize int         `json:"squareSize"`
+    GridReference string   `json:"gridReference"`
+}
+type GridData struct {
+    Meta GridDataMeta      `json:"meta"`
+    Data [][]int           `json:"data"`
+}
+
+func getData(c echo.Context) error {
+
+    // Get the grid square required
+    gridSquare := strings.ToLower(c.Param("gridSquare"))
+
+    // Check for correct address
+    if match, _ := regexp.MatchString("[a-z]{2}[0-9]{2}", gridSquare); !match {
+        return c.JSON(http.StatusNotFound, nil)
+    }
+
+    // Check for path
+    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
+        gridSquare[0:2], gridSquare)
+    if _, err := os.Stat(dataPath); os.IsNotExist(err) {
+        return c.JSON(http.StatusNoContent, nil)
+    }
+
+    // TODO Open zip file
+    // TODO Parse zip file
+    // TODO Return the array of integers
+
+    // Value to return
+    ret := GridData{GridDataMeta{50, strings.ToUpper(gridSquare)}, [][]int{}}
+
+    return c.JSON(http.StatusOK, ret)
+
+}
+
 func instance() *echo.Echo {
 
     // Setup Echo instance
@@ -50,10 +90,9 @@ func instance() *echo.Echo {
         templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
     }
 
-    // Handler for index
+    // Handlers
     e.GET("/", getIndex)
-
-    // Handle for static
+    e.GET("/data/:gridSquare", getData)
     e.Static("/static", SRCPATH + "/client/dist/")
 
     return e
@@ -61,9 +100,14 @@ func instance() *echo.Echo {
 
 func main() {
 
-    e := instance()
+    // Check to see if data exists
+    if _, err := os.Stat(SRCPATH + "/terrain/data"); os.IsNotExist(err) {
+        fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
+        os.Exit(1)
+    }
 
-    // Setup middleware
+    // Setup instance and add logging middleware
+    e := instance()
     e.Use(middleware.Logger())
 
     // Start serving
