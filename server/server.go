@@ -2,6 +2,8 @@ package main
 
 import (
     "encoding/json"
+    "fmt"
+    "go/build"
     "html/template"
     "io"
     "io/ioutil"
@@ -10,6 +12,8 @@ import (
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
 )
+
+var SRCPATH = fmt.Sprintf("%v/src/sceptred", build.Default.GOPATH)
 
 type Renderer struct {
     templates *template.Template
@@ -23,7 +27,7 @@ func getIndex(c echo.Context) error {
 
     // Load JSON
     var metadata interface{}
-    jsonFile, err := ioutil.ReadFile("../client/dist/manifest.json")
+    jsonFile, err := ioutil.ReadFile(SRCPATH + "/client/dist/manifest.json")
     if err != nil {
         return err
     }
@@ -43,14 +47,14 @@ func instance() *echo.Echo {
 
     // Setup template renderer
     e.Renderer = &Renderer{
-        templates: template.Must(template.ParseGlob("./templates/*.html")),
+        templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
     }
 
     // Handler for index
     e.GET("/", getIndex)
 
     // Handle for static
-    e.Static("/static", "../client/dist/")
+    e.Static("/static", SRCPATH + "/client/dist/")
 
     return e
 }

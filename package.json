@@ -8,7 +8,7 @@
     "serve": "cd server && fresh",
     "watch": "webpack --watch",
     "test:js": "jest",
-    "test:go": "go test ./server -coverprofile=c.out",
+    "test:go": "go test ./server -coverprofile=./server/c.out",
     "test": "npm run test:js && npm run test:go",
     "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/c.out"
   },
