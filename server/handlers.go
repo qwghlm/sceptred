@@ -96,4 +96,5 @@ func parseZippedAsc(gridSquare string) ([][]float64, error) {
         ret[i] = retLine
     }
     return ret, nil
+
 }

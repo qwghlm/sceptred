@@ -13,8 +13,7 @@ import (
 
 // Constants
 
-// TODO Make this a const
-var SRCPATH = fmt.Sprintf("%v/src/sceptred", build.Default.GOPATH)
+var SRCPATH = build.Default.GOPATH + "/src/sceptred"
 
 // Renderer
 
@@ -37,7 +36,7 @@ func instance() *echo.Echo {
         templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
     }
 
-    // Handlers
+    // Handlers are in handlers.go
     e.GET("/", handleIndex)
     e.GET("/data/:gridSquare", handleData)
     e.Static("/static", SRCPATH + "/client/dist/")
@@ -55,12 +54,15 @@ func main() {
 
     // Setup instance and add logging middleware
     e := instance()
-    e.Use(middleware.Logger())
-    // TODO Better format of log
+    e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+      Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
+    }))
 
     // Start serving
-    // TODO Set port in config/env
-    port := "8000"
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8000"
+    }
     e.Logger.Fatal(e.Start(":"+port))
 
 }
