@@ -123,6 +123,10 @@ export class MapView {
         // Work out our origin
         var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
+        this.load(gridSquare);
+    }
+
+    load(gridSquare: string) {
         loadGridSquare(gridSquare)
             .then((json) => {
                 let geometry = parseGridSquare(json, this.scale);

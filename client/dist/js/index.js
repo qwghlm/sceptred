@@ -42022,6 +42022,9 @@ class MapView {
         // Work out our origin
         var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
+        this.load(gridSquare);
+    }
+    load(gridSquare) {
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
             .then((json) => {
             let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.scale);
