@@ -1,146 +1,31 @@
 package main
 
 import (
-    "archive/zip"
-    "bufio"
-    "encoding/json"
     "fmt"
     "go/build"
     "html/template"
     "io"
-    "io/ioutil"
-    "net/http"
     "os"
-    "regexp"
-    "strings"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
 )
 
+// Constants
+
 // TODO Make this a const
 var SRCPATH = fmt.Sprintf("%v/src/sceptred", build.Default.GOPATH)
+
+// Renderer
 
 type Renderer struct {
     templates *template.Template
 }
-
 func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
     return r.templates.ExecuteTemplate(w, name, data)
 }
 
-func getIndex(c echo.Context) error {
-
-    // Load JSON
-    var metadata interface{}
-    jsonFile, err := ioutil.ReadFile(SRCPATH + "/client/dist/manifest.json")
-    if err != nil {
-        return err
-    }
-    err = json.Unmarshal(jsonFile, &metadata)
-    if err != nil {
-        return err
-    }
-
-    // Complete template
-    return c.Render(http.StatusOK, "index", metadata)
-}
-
-type GridDataMeta struct {
-    SquareSize int         `json:"squareSize"`
-    GridReference string   `json:"gridReference"`
-}
-type GridData struct {
-    Meta GridDataMeta      `json:"meta"`
-    Data [][]int           `json:"data"`
-}
-
-func parseZip(zipPath string) (*zip.ReadCloser, error) {
-
-    // Check existence
-    _, err := os.Stat(zipPath)
-    if err != nil{
-        return nil, err
-    }
-
-    // Open zip file
-    r, err := zip.OpenReader(zipPath)
-    if err != nil {
-        return nil, err
-    }
-    return r, nil
-}
-
-func readLines(f *zip.File) []string {
-
-    fp, _ := f.Open()
-    reader := bufio.NewReader(fp)
-    lines := []string{}
-    for {
-        line, err := reader.ReadBytes('\n')
-        if err != nil {
-            break
-        }
-        lines = append(lines, string(line))
-    }
-    return lines
-
-}
-
-func getZippedAsc(gridSquare string) ([]string, error) {
-
-    lines := []string{}
-    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
-        gridSquare[0:2], gridSquare)
-
-    r, err := parseZip(dataPath)
-    if err != nil {
-        return lines, err
-    }
-    defer r.Close()
-
-    for _, f := range r.File {
-        if !strings.HasSuffix(f.Name, ".asc") {
-            continue
-        }
-        lines = readLines(f)
-        break
-    }
-    return lines, nil
-}
-
-func getData(c echo.Context) error {
-
-    // Get the grid square required
-    gridSquare := strings.ToLower(c.Param("gridSquare"))
-
-    // Validate
-    if match, _ := regexp.MatchString("[a-z]{2}[0-9]{2}", gridSquare); !match {
-        return c.JSON(http.StatusNotFound, nil)
-    }
-
-    // Check for path
-    lines, err := getZippedAsc(gridSquare)
-    if err != nil {
-        if os.IsNotExist(err) {
-            return c.JSON(http.StatusNoContent, nil)
-        } else {
-            return c.JSON(500, nil)
-        }
-    }
-
-    fmt.Println(string(lines[0]))
-
-    // TOOD Parse .asc file
-
-    // TODO Store parsed .asc file
-
-    // Value to return
-    ret := GridData{GridDataMeta{50, strings.ToUpper(gridSquare)}, [][]int{}}
-
-    return c.JSON(http.StatusOK, ret)
-
-}
+// Instance
 
 func instance() *echo.Echo {
 
@@ -153,8 +38,8 @@ func instance() *echo.Echo {
     }
 
     // Handlers
-    e.GET("/", getIndex)
-    e.GET("/data/:gridSquare", getData)
+    e.GET("/", handleIndex)
+    e.GET("/data/:gridSquare", handleData)
     e.Static("/static", SRCPATH + "/client/dist/")
 
     return e
