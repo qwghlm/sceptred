@@ -55,32 +55,56 @@ type GridData struct {
     Data [][]int           `json:"data"`
 }
 
+func parseZip(zipPath string) (*zip.ReadCloser, error) {
 
-func getZippedAsc(zipPath string) ([]string, error) {
+    // Check existence
+    _, err := os.Stat(zipPath)
+    if err != nil{
+        return nil, err
+    }
 
     // Open zip file
-    lines := []string{}
     r, err := zip.OpenReader(zipPath)
+    if err != nil {
+        return nil, err
+    }
+    return r, nil
+}
+
+func readLines(f *zip.File) []string {
+
+    fp, _ := f.Open()
+    reader := bufio.NewReader(fp)
+    lines := []string{}
+    for {
+        line, err := reader.ReadBytes('\n')
+        if err != nil {
+            break
+        }
+        lines = append(lines, string(line))
+    }
+    return lines
+
+}
+
+func getZippedAsc(gridSquare string) ([]string, error) {
+
+    lines := []string{}
+    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
+        gridSquare[0:2], gridSquare)
+
+    r, err := parseZip(dataPath)
     if err != nil {
         return lines, err
     }
     defer r.Close()
 
     for _, f := range r.File {
-
         if !strings.HasSuffix(f.Name, ".asc") {
             continue
         }
-        fp, _ := f.Open()
-        reader := bufio.NewReader(fp)
-
-        for {
-            line, err := reader.ReadBytes('\n')
-            if err != nil {
-                break
-            }
-            lines = append(lines, string(line))
-        }
+        lines = readLines(f)
+        break
     }
     return lines, nil
 }
@@ -96,13 +120,15 @@ func getData(c echo.Context) error {
     }
 
     // Check for path
-    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
-        gridSquare[0:2], gridSquare)
-    if _, err := os.Stat(dataPath); os.IsNotExist(err) {
-        return c.JSON(http.StatusNoContent, nil)
+    lines, err := getZippedAsc(gridSquare)
+    if err != nil {
+        if os.IsNotExist(err) {
+            return c.JSON(http.StatusNoContent, nil)
+        } else {
+            return c.JSON(500, nil)
+        }
     }
 
-    lines, _ := getZippedAsc(dataPath)
     fmt.Println(string(lines[0]))
 
     // TOOD Parse .asc file
