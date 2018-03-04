@@ -8,6 +8,7 @@ import (
     "os"
 )
 
+// Parses a ZIP files and returns a Read/Close interface
 func parseZip(zipPath string) (*zip.ReadCloser, error) {
 
     // Check existence
@@ -24,6 +25,7 @@ func parseZip(zipPath string) (*zip.ReadCloser, error) {
     return r, nil
 }
 
+// Reads lines of a zipped file and returns them as an array of strings
 func readLines(f *zip.File) []string {
 
     fp, _ := f.Open()
@@ -40,6 +42,7 @@ func readLines(f *zip.File) []string {
 
 }
 
+// Parses JSON and returns an interface
 func parseJSON(path string) (interface{}, error) {
 
     var ret interface{}

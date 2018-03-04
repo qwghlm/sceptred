@@ -56,6 +56,7 @@ func main() {
     // Setup instance and add logging middleware
     e := instance()
     e.Use(middleware.Logger())
+    // TODO Better format of log
 
     // Start serving
     // TODO Set port in config/env

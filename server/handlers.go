@@ -6,6 +6,7 @@ import (
     "os"
     "regexp"
     "strings"
+    "strconv"
 
     "github.com/labstack/echo"
 )
@@ -32,7 +33,7 @@ type GridDataMeta struct {
 }
 type GridData struct {
     Meta GridDataMeta      `json:"meta"`
-    Data [][]int           `json:"data"`
+    Data [][]float64       `json:"data"`
 }
 
 func handleData(c echo.Context) error {
@@ -41,45 +42,39 @@ func handleData(c echo.Context) error {
     gridSquare := strings.ToLower(c.Param("gridSquare"))
 
     // Validate
-    if match, _ := regexp.MatchString("[a-z]{2}[0-9]{2}", gridSquare); !match {
-        return c.JSON(http.StatusNotFound, nil)
+    if match, _ := regexp.MatchString("^[a-z]{2}[0-9]{2}$", gridSquare); !match {
+        return echo.NewHTTPError(http.StatusBadRequest)
     }
 
     // Check for path
-    lines, err := getZippedAsc(gridSquare)
+    squareSize := 50
+    lines, err := parseZippedAsc(gridSquare)
     if err != nil {
         if os.IsNotExist(err) {
-            return c.JSON(http.StatusNoContent, nil)
+            return echo.NewHTTPError(http.StatusNoContent)
         } else {
-            return c.JSON(500, nil)
+            return err
         }
     }
 
-    fmt.Println(string(lines[0]))
-
-    // TOOD Parse .asc file
-
-    // TODO Store parsed .asc file
-
     // Value to return
-    ret := GridData{GridDataMeta{50, strings.ToUpper(gridSquare)}, [][]int{}}
-
+    ret := GridData{GridDataMeta{squareSize, strings.ToUpper(gridSquare)}, lines}
     return c.JSON(http.StatusOK, ret)
 
 }
 
-func getZippedAsc(gridSquare string) ([]string, error) {
+func parseZippedAsc(gridSquare string) ([][]float64, error) {
 
-    lines := []string{}
     dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
         gridSquare[0:2], gridSquare)
 
     r, err := parseZip(dataPath)
     if err != nil {
-        return lines, err
+        return nil, err
     }
-    defer r.Close()
 
+    // Pull lines out of the ASC file
+    var lines []string
     for _, f := range r.File {
         if !strings.HasSuffix(f.Name, ".asc") {
             continue
@@ -87,5 +82,18 @@ func getZippedAsc(gridSquare string) ([]string, error) {
         lines = readLines(f)
         break
     }
-    return lines, nil
+    r.Close()
+
+    // Parse strings in file and turn into array of floats
+    lines = lines[5:]
+    ret := make([][]float64, len(lines))
+    for i:=0; i<len(lines); i++ {
+        line := strings.Fields(lines[i])
+        retLine := make([]float64, len(line))
+        for j:=0; j<len(line); j++ {
+            retLine[j], _ = strconv.ParseFloat(line[j], 64)
+        }
+        ret[i] = retLine
+    }
+    return ret, nil
 }

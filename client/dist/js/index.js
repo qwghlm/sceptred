@@ -42860,7 +42860,7 @@ function makeScale(xOrigin, yOrigin, heightFactor) {
 
 
 function loadGridSquare(id) {
-    return fetch(`/static/data/${id}.json`)
+    return fetch(`/data/${id}`)
         .then(response => response.json());
 }
 function parseGridSquare(data, scaleFunction) {

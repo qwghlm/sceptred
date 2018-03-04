@@ -14,7 +14,7 @@ interface GridData {
 }
 
 export function loadGridSquare(id: string) {
-    return fetch(`/static/data/${id}.json`)
+    return fetch(`/data/${id}`)
         .then(response => response.json())
 }
 
