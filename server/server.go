@@ -1,6 +1,8 @@
 package main
 
 import (
+    "archive/zip"
+    "bufio"
     "encoding/json"
     "fmt"
     "go/build"
@@ -16,6 +18,7 @@ import (
     "github.com/labstack/echo/middleware"
 )
 
+// TODO Make this a const
 var SRCPATH = fmt.Sprintf("%v/src/sceptred", build.Default.GOPATH)
 
 type Renderer struct {
@@ -52,12 +55,42 @@ type GridData struct {
     Data [][]int           `json:"data"`
 }
 
+
+func getZippedAsc(zipPath string) ([]string, error) {
+
+    // Open zip file
+    lines := []string{}
+    r, err := zip.OpenReader(zipPath)
+    if err != nil {
+        return lines, err
+    }
+    defer r.Close()
+
+    for _, f := range r.File {
+
+        if !strings.HasSuffix(f.Name, ".asc") {
+            continue
+        }
+        fp, _ := f.Open()
+        reader := bufio.NewReader(fp)
+
+        for {
+            line, err := reader.ReadBytes('\n')
+            if err != nil {
+                break
+            }
+            lines = append(lines, string(line))
+        }
+    }
+    return lines, nil
+}
+
 func getData(c echo.Context) error {
 
     // Get the grid square required
     gridSquare := strings.ToLower(c.Param("gridSquare"))
 
-    // Check for correct address
+    // Validate
     if match, _ := regexp.MatchString("[a-z]{2}[0-9]{2}", gridSquare); !match {
         return c.JSON(http.StatusNotFound, nil)
     }
@@ -69,9 +102,12 @@ func getData(c echo.Context) error {
         return c.JSON(http.StatusNoContent, nil)
     }
 
-    // TODO Open zip file
-    // TODO Parse zip file
-    // TODO Return the array of integers
+    lines, _ := getZippedAsc(dataPath)
+    fmt.Println(string(lines[0]))
+
+    // TOOD Parse .asc file
+
+    // TODO Store parsed .asc file
 
     // Value to return
     ret := GridData{GridDataMeta{50, strings.ToUpper(gridSquare)}, [][]int{}}

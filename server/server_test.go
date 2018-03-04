@@ -32,7 +32,7 @@ func TestIndex(t *testing.T) {
 
 func Test404(t *testing.T) {
 
-    code, _ = request(t, "GET", "/foo", nil)
+    code, _ := request(t, "GET", "/foo", nil)
     assert.Equal(t, http.StatusNotFound, code)
 
 }
