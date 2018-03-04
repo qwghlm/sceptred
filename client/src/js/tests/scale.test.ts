@@ -1,11 +1,13 @@
-import { linearScale } from '../lib/scale';
+import { makeScale } from '../lib/scale';
 
-test('Test linearScale', () => {
+// Test our scaling function (meters -> pixels) works
 
-    const scale = linearScale(0, 10, 2);
+test('Test makeScale', () => {
 
-    expect(scale(0)).toBe(10);
-    expect(scale(1)).toBe(12);
-    expect(scale(-1)).toBe(8);
+    const scale = makeScale(1000, 1000, 5);
+
+    expect(scale(1000, 1000, 0)).toEqual([0, 0, 0]);
+    expect(scale(1000, 1000, 5)).toEqual([0, 0, 0.5]);
+    expect(scale(0, 0, 5)).toEqual([-20, 20, 0.5]);
 
 });

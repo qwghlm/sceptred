@@ -1,7 +1,5 @@
 import { gridrefToCoords, coordsToGridref } from '../lib/grid';
 
-// TODO Fix red squiggles
-
 test('gridrefToCoords() works properly', () => {
 
     expect(gridrefToCoords('TL27'))
@@ -39,6 +37,5 @@ test('coordsToGridref() raises errors properly', () => {
     expect(() => coordsToGridref(520000, 270000, 3)).toThrow(/Invalid/)
 
     expect(() => coordsToGridref(-520000, 270000, 4)).toThrow(/not within/)
-
 
 });
