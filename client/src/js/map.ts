@@ -3,13 +3,13 @@ import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
-import { makeScale } from './lib/scale';
+import { makeTransform } from './lib/scale';
 import { loadGridSquare, parseGridSquare } from './lib/data';
 import { coordsToGridref, gridrefToCoords } from './lib/grid';
 
 interface Config {
     origin: number[],
-    heightFactor: number,
+    heightFactor: number, // TODO
     debug: boolean,
 }
 
@@ -32,7 +32,7 @@ export class MapView {
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
 
-    scale: (x: number, y: number, z: number) => number[]
+    transform: THREE.Matrix4;
 
     constructor(wrapper: HTMLElement, config: Config) {
 
@@ -43,8 +43,7 @@ export class MapView {
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
 
-        // Setup scale and load in
-        this.scale = makeScale(config.origin[0], config.origin[1], config.heightFactor);
+        this.initializeTransform();
         this.initializeLoad();
 
         // Render the map
@@ -119,26 +118,28 @@ export class MapView {
 
     }
 
+    // Setup transform from global to screen coordinates
+    initializeTransform() {
+        const metresPerPixel = 50; // TODO
+        var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
+        var modelOrigin = new THREE.Vector3(0, 0, 0);
+        var scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, this.config.heightFactor/metresPerPixel);
+        this.transform = makeTransform(worldOrigin, modelOrigin, scale);
+    }
+
     initializeLoad() {
 
         // Work out our origin
         var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
         this.load(gridSquare);
-        this.load('NT26');
-        this.load('NT28');
-        this.load('NT16');
-        this.load('NT17');
-        this.load('NT18');
-        this.load('NT36');
-        this.load('NT37');
-        this.load('NT38');
+
     }
 
     load(gridSquare: string) {
         loadGridSquare(gridSquare)
             .then((json) => {
-                let geometry = parseGridSquare(json, this.scale);
+                let geometry = parseGridSquare(json, this.transform);
                 this.geometries[gridSquare] = geometry;
                 this.addToMap(geometry);
             });

@@ -16,7 +16,7 @@ export function loadGridSquare(id: string) {
         .then(response => response.json())
 }
 
-export function parseGridSquare(data: GridData, scaleFunction: (x:number, y:number, z:number) => number[]) {
+export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
     const squareSize = data.meta.squareSize;
@@ -31,13 +31,20 @@ export function parseGridSquare(data: GridData, scaleFunction: (x:number, y:numb
 
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
+
+    // TODO Convert this into pure array and run matrix math on the whole lot at once?
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
 
-        var coords = scaleFunction(
+        var coords = new Float32Array([
             tileOrigin[0] + x*squareSize,
             tileOrigin[1] + y*squareSize,
-            z);
-        vertices.push(new THREE.Vector3(...coords));
+            z
+        ]);
+        var buffer = new THREE.BufferAttribute(coords, coords.length);
+
+        var v = new THREE.Vector3;
+        v.fromBufferAttribute(transform.applyToBufferAttribute(buffer), 0)
+        vertices.push(v);
 
         // If this point can form top-left of a square, add the two
         // triangles that are formed by that square

@@ -46135,8 +46135,7 @@ class MapView {
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
-        // Setup scale and load in
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeScale */])(config.origin[0], config.origin[1], config.heightFactor);
+        this.initializeTransform();
         this.initializeLoad();
         // Render the map
         this.renderMap();
@@ -46193,6 +46192,14 @@ class MapView {
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
     }
+    // Setup transform from global to screen coordinates
+    initializeTransform() {
+        const metresPerPixel = 50; // TODO
+        var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
+        var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
+        var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+    }
     initializeLoad() {
         // Work out our origin
         var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
@@ -46202,10 +46209,14 @@ class MapView {
     load(gridSquare) {
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
             .then((json) => {
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.scale);
+            let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.transform);
             this.geometries[gridSquare] = geometry;
             this.addToMap(geometry);
         });
+        var seaObj = new __WEBPACK_IMPORTED_MODULE_0_three__["Plane"](new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, -1), 0.01);
+        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](10000, 10000);
+        var seaMaterial = new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({ color: 0x000033 });
+        this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, seaMaterial));
     }
     addToMap(geometry, material = 'phong', color = __WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor) {
         // Compute geometry
@@ -46213,14 +46224,6 @@ class MapView {
         geometry.computeVertexNormals();
         const mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](color));
         this.scene.add(mesh);
-        // TODO Add sea in a meaningful way
-        // Sea geometry
-        // const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
-        // const topRight = this.scale(tileOrigin[0] + gridWidth*squareSize,
-        //     tileOrigin[1] + gridHeight*squareSize, 0);
-        // var seaGeometry = new THREE.PlaneGeometry(topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
-        // var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
-        // this.scene.add(seaMesh);
         this.renderMap();
     }
     renderMap() {
@@ -46232,13 +46235,19 @@ class MapView {
         this.controls.update();
     }
     doCheck() {
-        // var raycaster = new THREE.Raycaster();
-        // var mouse = new THREE.Vector2(0, 0);
-        // raycaster.setFromCamera( mouse, this.camera );
-        // var plane = new THREE.Plane(new THREE.Vector3(0, 0, -1));
-        // var helper = new THREE.PlaneHelper( plane, 1, 0xffff00 );
-        // var intersects = raycaster.intersectObject(helper);
-        // console.log(intersects);
+        // TODO Debounce this function
+        var raycaster = new __WEBPACK_IMPORTED_MODULE_0_three__["Raycaster"]();
+        var extremes = [
+            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](1, 1),
+            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](1, -1),
+            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, -1),
+            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, 1),
+        ];
+        extremes.forEach(v => {
+            raycaster.setFromCamera(v, this.camera);
+            var intersects = raycaster.intersectObject(this.scene.children[3], false);
+            // TODO Inverse the scale
+        });
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
@@ -47016,22 +47025,18 @@ const materials = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
-// Simple function that returns a linear scale
-function linearScale(fromOrigin, toOrigin, scaleFactor) {
-    function scale(n) {
-        return toOrigin + (n - fromOrigin) * scaleFactor;
-    }
-    return scale;
-}
-function makeScale(xOrigin, yOrigin, heightFactor) {
-    const metresPerPixel = 50;
-    var xScale = linearScale(xOrigin, 0, 1 / metresPerPixel);
-    var yScale = linearScale(yOrigin, 0, 1 / metresPerPixel);
-    var zScale = linearScale(0, 0, heightFactor / metresPerPixel);
-    return (x, y, z) => {
-        return [xScale(x), yScale(y), zScale(z)];
-    };
+/* harmony export (immutable) */ __webpack_exports__["a"] = makeTransform;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+// Scaling function - from the origin, scale up by scale, and then translate to the origin
+function makeTransform(fOrigin, tOrigin, scale) {
+    var mStart = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
+    mStart.makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
+    var mMiddle = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
+    mMiddle.makeScale(scale.x, scale.y, scale.z);
+    var mEnd = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
+    mEnd.makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    return mEnd.multiply(mMiddle).multiply(mStart);
 }
 
 
@@ -47051,7 +47056,7 @@ function loadGridSquare(id) {
     return fetch(`/data/${id}`)
         .then(response => response.json());
 }
-function parseGridSquare(data, scaleFunction) {
+function parseGridSquare(data, transform) {
     const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["b" /* gridrefToCoords */])(data.meta.gridReference);
     const squareSize = data.meta.squareSize;
     const grid = data.data;
@@ -47062,9 +47067,17 @@ function parseGridSquare(data, scaleFunction) {
     var faces = [];
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
+    // TODO Convert this into pure array and run matrix math on the whole lot at once?
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
-        var coords = scaleFunction(tileOrigin[0] + x * squareSize, tileOrigin[1] + y * squareSize, z);
-        vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...coords));
+        var coords = new Float32Array([
+            tileOrigin[0] + x * squareSize,
+            tileOrigin[1] + y * squareSize,
+            z
+        ]);
+        var buffer = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](coords, coords.length);
+        var v = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"];
+        v.fromBufferAttribute(transform.applyToBufferAttribute(buffer), 0);
+        vertices.push(v);
         // If this point can form top-left of a square, add the two
         // triangles that are formed by that square
         if (x < gridWidth - 1 && y < gridHeight - 1) {

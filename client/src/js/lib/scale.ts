@@ -1,20 +1,17 @@
-// Simple function that returns a linear scale
-function linearScale(fromOrigin: number, toOrigin: number, scaleFactor: number) {
-    function scale(n: number) {
-        return toOrigin + (n - fromOrigin) * scaleFactor;
-    }
-    return scale;
-}
+import * as THREE from 'three';
 
-export function makeScale(xOrigin: number, yOrigin: number, heightFactor: number) {
+// Scaling function - from the origin, scale up by scale, and then translate to the origin
+export function makeTransform(fOrigin: THREE.Vector3, tOrigin: THREE.Vector3, scale: THREE.Vector3) {
 
-    const metresPerPixel = 50;
-    var xScale = linearScale(xOrigin, 0, 1/metresPerPixel);
-    var yScale = linearScale(yOrigin, 0, 1/metresPerPixel);
-    var zScale = linearScale(0, 0, heightFactor/metresPerPixel);
+    var mStart = new THREE.Matrix4();
+    mStart.makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
 
-    return (x: number, y: number, z: number) => {
-        return [xScale(x), yScale(y), zScale(z)];
-    };
+    var mMiddle = new THREE.Matrix4();
+    mMiddle.makeScale(scale.x, scale.y, scale.z);
+
+    var mEnd = new THREE.Matrix4();
+    mEnd.makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+
+    return mEnd.multiply(mMiddle).multiply(mStart);
 
 }
