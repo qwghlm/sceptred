@@ -50,6 +50,7 @@ export class MapView {
 
         // Render the map
         this.renderMap();
+        this.animateMap();
 
     }
 
@@ -73,7 +74,7 @@ export class MapView {
         }
 
         // Setup camera
-        var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.1, 10000);
+        var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
         camera.position.z = Math.min(this.width, this.height);
 
         // Setup trackball controls
@@ -88,6 +89,7 @@ export class MapView {
 
         // Shift+ drag to zoom, Ctrl+ drag to pan
         controls.keys = [-1, 16, 17];
+        controls.addEventListener('change', this.renderMap.bind(this));
 
         // Setup scene
         var scene = this.scene = new THREE.Scene();
@@ -156,12 +158,31 @@ export class MapView {
         // var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
         // this.scene.add(seaMesh);
 
+        this.renderMap();
+
     }
 
     renderMap() {
-        requestAnimationFrame(this.renderMap.bind(this));
         this.renderer.render(this.scene, this.camera);
+        this.doCheck();
+    }
+
+    animateMap() {
+        requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
     }
+
+
+    doCheck() {
+        // var raycaster = new THREE.Raycaster();
+        // var mouse = new THREE.Vector2(0, 0);
+        // raycaster.setFromCamera( mouse, this.camera );
+        // var plane = new THREE.Plane(new THREE.Vector3(0, 0, -1));
+        // var helper = new THREE.PlaneHelper( plane, 1, 0xffff00 );
+
+        // var intersects = raycaster.intersectObject(helper);
+        // console.log(intersects);
+    }
+
 
 }
