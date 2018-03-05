@@ -1,5 +1,3 @@
-/// <reference types="three" />
-
 // Functions for data parsing
 
 import * as THREE from 'three';

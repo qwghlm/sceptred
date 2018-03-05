@@ -1,4 +1,3 @@
-/// <reference types="three" />
 import * as THREE from 'three';
 import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
@@ -126,6 +125,14 @@ export class MapView {
         var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
         this.load(gridSquare);
+        this.load('NT26');
+        this.load('NT28');
+        this.load('NT16');
+        this.load('NT17');
+        this.load('NT18');
+        this.load('NT36');
+        this.load('NT37');
+        this.load('NT38');
     }
 
     load(gridSquare: string) {
@@ -135,6 +142,11 @@ export class MapView {
                 this.geometries[gridSquare] = geometry;
                 this.addToMap(geometry);
             });
+
+        var seaObj = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.01);
+        var seaGeometry = new THREE.PlaneGeometry(10000, 10000)
+        var seaMaterial = new THREE.MeshBasicMaterial( {color: 0x000033 } )
+        this.scene.add(new THREE.Mesh(seaGeometry, seaMaterial));
 
     }
 
@@ -146,17 +158,6 @@ export class MapView {
 
         const mesh = new THREE.Mesh(geometry, materials[material](color));
         this.scene.add(mesh);
-
-        // TODO Add sea in a meaningful way
-
-        // Sea geometry
-        // const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
-        // const topRight = this.scale(tileOrigin[0] + gridWidth*squareSize,
-        //     tileOrigin[1] + gridHeight*squareSize, 0);
-        // var seaGeometry = new THREE.PlaneGeometry(topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
-
-        // var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
-        // this.scene.add(seaMesh);
 
         this.renderMap();
 
@@ -174,14 +175,24 @@ export class MapView {
 
 
     doCheck() {
-        // var raycaster = new THREE.Raycaster();
-        // var mouse = new THREE.Vector2(0, 0);
-        // raycaster.setFromCamera( mouse, this.camera );
-        // var plane = new THREE.Plane(new THREE.Vector3(0, 0, -1));
-        // var helper = new THREE.PlaneHelper( plane, 1, 0xffff00 );
 
-        // var intersects = raycaster.intersectObject(helper);
-        // console.log(intersects);
+        // TODO Debounce this function
+
+        var raycaster = new THREE.Raycaster();
+
+        var extremes = [
+            new THREE.Vector2(1, 1),
+            new THREE.Vector2(1, -1),
+            new THREE.Vector2(-1, -1),
+            new THREE.Vector2(-1, 1),
+        ]
+
+        extremes.forEach(v => {
+            raycaster.setFromCamera(v, this.camera );
+            var intersects = raycaster.intersectObject(this.scene.children[3], false);
+
+            // TODO Inverse the scale
+        });
     }
 
 

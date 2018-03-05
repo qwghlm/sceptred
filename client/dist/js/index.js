@@ -46121,7 +46121,6 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_scale__ = __webpack_require__(8);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_data__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_grid__ = __webpack_require__(1);
-/// <reference types="three" />
 
 
 
@@ -47045,7 +47044,6 @@ function makeScale(xOrigin, yOrigin, heightFactor) {
 /* harmony export (immutable) */ __webpack_exports__["b"] = parseGridSquare;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(1);
-/// <reference types="three" />
 // Functions for data parsing
 
 
