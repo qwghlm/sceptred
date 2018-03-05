@@ -42840,7 +42840,7 @@ function linearScale(fromOrigin, toOrigin, scaleFactor) {
 function makeScale(xOrigin, yOrigin, heightFactor) {
     const metresPerPixel = 50;
     var xScale = linearScale(xOrigin, 0, 1 / metresPerPixel);
-    var yScale = linearScale(yOrigin, 0, -1 / metresPerPixel);
+    var yScale = linearScale(yOrigin, 0, 1 / metresPerPixel);
     var zScale = linearScale(0, 0, heightFactor / metresPerPixel);
     return (x, y, z) => {
         return [xScale(x), yScale(y), zScale(z)];
@@ -42875,7 +42875,9 @@ function parseGridSquare(data, scaleFunction) {
     // Convert grid into vertices and faces
     var vertices = [];
     var faces = [];
-    grid.forEach((row, y) => row.forEach((z, x) => {
+    // Grid data starts in north-west while Ordnance Survey origin is in south-west
+    // so we reverse the rows first
+    grid.reverse().forEach((row, y) => row.forEach((z, x) => {
         var coords = scaleFunction(tileOrigin[0] + x * squareSize, tileOrigin[1] + y * squareSize, z);
         vertices.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](...coords));
         // If this point can form top-left of a square, add the two

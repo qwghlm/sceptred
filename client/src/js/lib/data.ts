@@ -30,7 +30,10 @@ export function parseGridSquare(data: GridData, scaleFunction: (x:number, y:numb
     // Convert grid into vertices and faces
     var vertices: THREE.Vector3[] = [];
     var faces: THREE.Face3[] = [];
-    grid.forEach((row, y) => row.forEach((z, x) => {
+
+    // Grid data starts in north-west while Ordnance Survey origin is in south-west
+    // so we reverse the rows first
+    grid.reverse().forEach((row, y) => row.forEach((z, x) => {
 
         var coords = scaleFunction(
             tileOrigin[0] + x*squareSize,
