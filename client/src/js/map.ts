@@ -178,6 +178,8 @@ export class MapView {
     doCheck() {
 
         // TODO Debounce this function
+        var inverseTransform = new THREE.Matrix4();
+        inverseTransform.getInverse(this.transform);
 
         var raycaster = new THREE.Raycaster();
 
@@ -188,12 +190,27 @@ export class MapView {
             new THREE.Vector2(-1, 1),
         ]
 
-        extremes.forEach(v => {
+        var corners = extremes.map(v => {
+
+            // Work out where each corner intersects the plane
             raycaster.setFromCamera(v, this.camera );
             var intersects = raycaster.intersectObject(this.scene.children[3], false);
 
-            // TODO Inverse the scale
+            if (intersects.length === 0) {
+                // Er...
+                return false;
+            }
+            else {
+                var coords = new Float32Array([
+                    intersects[0].point.x,
+                    intersects[0].point.y,
+                    intersects[0].point.z,
+                ]);
+                var buffer = new THREE.BufferAttribute(coords, coords.length);
+                return inverseTransform.applyToBufferAttribute(buffer).array.slice(0, 2);
+            }
         });
+        console.log(corners);
     }
 
 

@@ -46236,6 +46236,8 @@ class MapView {
     }
     doCheck() {
         // TODO Debounce this function
+        var inverseTransform = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
+        inverseTransform.getInverse(this.transform);
         var raycaster = new __WEBPACK_IMPORTED_MODULE_0_three__["Raycaster"]();
         var extremes = [
             new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](1, 1),
@@ -46243,11 +46245,25 @@ class MapView {
             new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, -1),
             new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, 1),
         ];
-        extremes.forEach(v => {
+        var corners = extremes.map(v => {
+            // Work out where each corner intersects the plane
             raycaster.setFromCamera(v, this.camera);
             var intersects = raycaster.intersectObject(this.scene.children[3], false);
-            // TODO Inverse the scale
+            if (intersects.length === 0) {
+                // Er...
+                return false;
+            }
+            else {
+                var coords = new Float32Array([
+                    intersects[0].point.x,
+                    intersects[0].point.y,
+                    intersects[0].point.z,
+                ]);
+                var buffer = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](coords, coords.length);
+                return inverseTransform.applyToBufferAttribute(buffer).array.slice(0, 2);
+            }
         });
+        console.log(corners);
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
