@@ -16,8 +16,9 @@ module.exports = {
     ],
     "coverageDirectory": "./client/coverage",
     "coverageReporters": [
+      "text",
       "html",
-      "text"
+      "lcovonly" // For codecov
     ],
 
     "moduleNameMapper": {
