@@ -1,7 +1,9 @@
+import * as THREE from 'three';
+
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
 
-// Converts a grid reference (e.g. TL27) to Easting/Northings [520000, 270000]
+// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
 // Grid reference can have spaces, but no commas
 export function gridrefToCoords(gridref: string) {
 
@@ -24,13 +26,15 @@ export function gridrefToCoords(gridref: string) {
 
     // Get number pair out
     var numbers = gridref.slice(2);
-    var eastingsNorthings = [ numbers.slice(0, numbers.length/2), numbers.slice(numbers.length/2) ];
+    var eastingsNorthings = [ numbers.slice(0, numbers.length/2), numbers.slice(numbers.length/2)];
 
     // Standardise to 10-digit refs (metres)
-    eastingsNorthings[0] = e100km + eastingsNorthings[0].padEnd(5, '0');
-    eastingsNorthings[1] = n100km + eastingsNorthings[1].padEnd(5, '0');
-
-    return eastingsNorthings.map(s => parseInt(s));
+    var vector = new THREE.Vector3(
+        parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')),
+        parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')),
+        0
+    );
+    return vector;
 }
 
 // Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)

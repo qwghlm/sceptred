@@ -34,8 +34,8 @@ export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
 
         // Assign vertices
-        vertices[n] = tileOrigin[0] + x*squareSize;
-        vertices[n+1] = tileOrigin[1] + y*squareSize;
+        vertices[n] = tileOrigin.x + x*squareSize;
+        vertices[n+1] = tileOrigin.y + y*squareSize;
         vertices[n+2] = z;
         n += 3;
 

@@ -46013,9 +46013,11 @@ function LensFlare() {
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["b"] = gridrefToCoords;
 /* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
-// Converts a grid reference (e.g. TL27) to Easting/Northings [520000, 270000]
+// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
 // Grid reference can have spaces, but no commas
 function gridrefToCoords(gridref) {
     gridref = gridref.replace(/ +/g, "");
@@ -46035,9 +46037,8 @@ function gridrefToCoords(gridref) {
     var numbers = gridref.slice(2);
     var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
     // Standardise to 10-digit refs (metres)
-    eastingsNorthings[0] = e100km + eastingsNorthings[0].padEnd(5, '0');
-    eastingsNorthings[1] = n100km + eastingsNorthings[1].padEnd(5, '0');
-    return eastingsNorthings.map(s => parseInt(s));
+    var vector = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
+    return vector;
 }
 // Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)
 function coordsToGridref(eastings, northings, digits = 10) {
@@ -46062,6 +46063,7 @@ function coordsToGridref(eastings, northings, digits = 10) {
     const northingsString = northings.toString().padStart(digits, '0');
     return `${gridSquare}${eastingsString}${northingsString}`;
 }
+// TODO Function for getting surrounding squares
 // Utils
 // Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
 function letterToNumber(letter) {
@@ -46198,74 +46200,56 @@ class MapView {
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
+        this.scale = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
         this.transform = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
         // Work out our origin
         var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
-        this.geometries = {};
         this.load(gridSquare);
-        this.load('NT26');
-        this.load('NT28');
-        this.load('NT16');
-        this.load('NT17');
-        this.load('NT18');
+        this.loadEmpty('NT26');
+        this.loadEmpty('NT28');
+        this.loadEmpty('NT16');
+        this.loadEmpty('NT17');
+        this.loadEmpty('NT18');
+        this.loadEmpty('NT36');
+        this.loadEmpty('NT37');
+        this.loadEmpty('NT38');
     }
     load(gridSquare) {
-        var seaObj = new __WEBPACK_IMPORTED_MODULE_0_three__["Plane"](new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, -1), 0.01);
-        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](10000, 10000);
-        var seaMaterial = new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({ color: 0x000033 });
-        this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, seaMaterial));
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
             .then((json) => {
             let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.transform);
-            // this.geometries[gridSquare] = geometry;
-            this.addToMap(geometry);
+            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
+            this.addToMap(mesh);
         });
     }
-    addToMap(geometry, material = 'phong', color = __WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor) {
-        const mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](color));
+    loadEmpty(gridSquare) {
+        // Construct a vector for the square, based on the accuracy (i.e. length) of the reference
+        var accuracy = (12 - gridSquare.length) / 2;
+        var squareSize = Math.pow(10, accuracy);
+        var square = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0).applyMatrix4(this.scale);
+        // Calculate position of square
+        // The half-square addition at the end is to take into account PlaneGeometry
+        // is created around the centre of the square and we want it to be bottom-left
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
+        geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+        // Create a mesh out of it
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        this.addToMap(mesh);
+    }
+    addToMap(mesh) {
         this.scene.add(mesh);
         this.renderMap();
     }
     renderMap() {
         this.renderer.render(this.scene, this.camera);
-        this.doCheck();
+        // this.doCheck();
     }
     animateMap() {
         requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
-    }
-    doCheck() {
-        // TODO Debounce this function
-        var inverseTransform = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
-        inverseTransform.getInverse(this.transform);
-        var raycaster = new __WEBPACK_IMPORTED_MODULE_0_three__["Raycaster"]();
-        var extremes = [
-            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](1, 1),
-            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](1, -1),
-            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, -1),
-            new __WEBPACK_IMPORTED_MODULE_0_three__["Vector2"](-1, 1),
-        ];
-        var corners = extremes.map(v => {
-            // Work out where each corner intersects the plane
-            raycaster.setFromCamera(v, this.camera);
-            var intersects = raycaster.intersectObject(this.scene.children[3], false);
-            if (intersects.length === 0) {
-                // Er...
-                return false;
-            }
-            else {
-                var coords = new Float32Array([
-                    intersects[0].point.x,
-                    intersects[0].point.y,
-                    intersects[0].point.z,
-                ]);
-                var buffer = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](coords, coords.length);
-                return inverseTransform.applyToBufferAttribute(buffer).array;
-            }
-        });
-        console.log(corners);
     }
 }
 /* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
@@ -47087,8 +47071,8 @@ function parseGridSquare(data, transform) {
     var n = 0;
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
         // Assign vertices
-        vertices[n] = tileOrigin[0] + x * squareSize;
-        vertices[n + 1] = tileOrigin[1] + y * squareSize;
+        vertices[n] = tileOrigin.x + x * squareSize;
+        vertices[n + 1] = tileOrigin.y + y * squareSize;
         vertices[n + 2] = z;
         n += 3;
         // If this point can form top-left of a square, add the two
