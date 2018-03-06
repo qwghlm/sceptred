@@ -50,7 +50,7 @@
     "webpack-manifest-plugin": "^2.0.0-rc.2"
   },
   "dependencies": {
-    "@types/three": "^0.89.10",
+    "@types/three": "^0.89.11",
     "modernizr": "^3.3.1",
     "normalize.css": "^8.0.0",
     "spectre.css": "^0.5.0",
