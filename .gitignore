@@ -16,6 +16,9 @@
 # Dev server
 server/tmp
 
+# Terrain data
+terrain/data
+
 # Node
 node_modules
 

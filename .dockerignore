@@ -1,0 +1,11 @@
+# No node pls
+node_modules
+
+# No coverage or source TS
+client/coverage
+client/src
+**/*.map
+
+# No tmp files
+server/tmp
+**/*.out

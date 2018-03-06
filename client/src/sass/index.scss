@@ -1,5 +1,26 @@
 @import "~spectre.css/src/spectre";
-// @import "~normalize.css/normalize.css";
+
+body {
+    font-family: Roboto, sans-serif;
+}
+
+header {
+    padding: 1rem 0 1rem 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #333;
+
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-size: 0.5rem;
+    font-weight: bold;
+}
+
+footer {
+    padding-bottom: 2rem;
+    margin-top: 2rem;
+    font-size: 0.6rem;
+    text-align: center;
+}
 
 #map-view-wrapper {
     max-width: 640px;

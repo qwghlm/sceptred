@@ -1,24 +1,21 @@
-/// <reference types="three" />
 import * as THREE from 'three';
 import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
-import { linearScale } from './lib/scale';
-import { coordsToGridref, gridrefToCoords } from './lib/grid';
+import { makeTransform, makeScale } from './lib/scale';
+import { loadGridSquare, parseGridSquare } from './lib/data';
+import { coordsToGridref, gridrefToCoords,
+    getGridSquareSize, getSurroundingSquares} from './lib/grid';
 
 interface Config {
     origin: number[],
-    heightFactor: number,
+    heightFactor: number, // TODO
     debug: boolean,
 }
 
-interface GridData {
-    meta: {
-        squareSize: number,
-        gridReference: string
-    },
-    data: number[][],
+interface Geometries {
+    [propName: string]: THREE.Geometry;
 }
 
 export class MapView {
@@ -29,13 +26,15 @@ export class MapView {
     height: number;
 
     wrapper: HTMLElement;
+    geometries: Geometries;
 
     camera: THREE.PerspectiveCamera;
     controls: THREE.TrackballControls;
     scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
 
-    scale: (x: number, y: number, z: number) => number[]
+    scale: THREE.Matrix4;
+    transform: THREE.Matrix4;
 
     constructor(wrapper: HTMLElement, config: Config) {
 
@@ -46,8 +45,8 @@ export class MapView {
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
 
-        // Setup scale and load in
-        this.initializeScale();
+        this.initializeTransform();
+        this.initializeLoad();
 
         // Render the map
         this.renderMap();
@@ -75,7 +74,7 @@ export class MapView {
         }
 
         // Setup camera
-        var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 0.1, 10000);
+        var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
         camera.position.z = Math.min(this.width, this.height);
 
         // Setup trackball controls
@@ -121,107 +120,63 @@ export class MapView {
 
     }
 
-    initializeScale() {
+    // Setup transform from global to screen coordinates
+    initializeTransform() {
+        const metresPerPixel = 50; // TODO
 
-        const metresPerPixel = 50;
+        // Calculate the world origin (i.e. where the world is centred),
+        // the model origin (i.e (0, 0, 0))
+        // and the scale to get from one to the other
+        var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
+        var modelOrigin = new THREE.Vector3(0, 0, 0);
+        var scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, this.config.heightFactor/metresPerPixel);
 
-        var xScale = linearScale(this.config.origin[0], 0, 1/metresPerPixel);
-        var yScale = linearScale(this.config.origin[1], 0, -1/metresPerPixel);
-        var zScale = linearScale(0, 0, this.config.heightFactor/metresPerPixel);
+        this.scale = makeScale(scale);
+        this.transform = makeTransform(worldOrigin, modelOrigin, scale);
+    }
 
-        this.scale = (x: number, y: number, z: number) => {
-            return [xScale(x), yScale(y), zScale(z)];
-        };
+    initializeLoad() {
 
-        var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
-        this.loadData(gridSquare);
+        // Work out our origin
+        var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
+        var gridSquare = coordsToGridref(coords, 2);
+        this.load(gridSquare);
+        getSurroundingSquares(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
 
     }
 
-    loadData(gridSquare: string) {
+    load(gridSquare: string) {
 
-        // Start loader here
-
-        fetch(`/static/data/${gridSquare}.json`)
-            .then(response => response.json())
-            .then(data => this.populateMap(data));
-
-        // End loader here
+        loadGridSquare(gridSquare)
+            .then((json) => {
+                let geometry = parseGridSquare(json, this.transform);
+                let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
+                this.addToMap(mesh);
+            });
 
     }
 
-    populateMap(data: GridData) {
+    loadEmpty(gridSquare: string) {
 
-        // Start parser here
+        // Get this grid square, scaled down to local size
+        let square = getGridSquareSize(gridSquare).applyMatrix4(this.scale);
 
-        // Filter out the many many points
-        const resolution = 1;
-        const filter = (n: any, i: number) => i%resolution === 0;
-        var grid = data.data.filter(filter).map(row => row.filter(filter));
+        // Calculate position of square
+        // The half-square addition at the end is to take into account PlaneGeometry
+        // is created around the centre of the square and we want it to be bottom-left
+        let coords = gridrefToCoords(gridSquare).applyMatrix4(this.transform);
+        let geometry = new THREE.PlaneGeometry(square.x, square.y);
+        geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z)
 
-        // End parser here
+        // Create a mesh out of it and add to map
+        let mesh = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
+        this.addToMap(mesh);
 
-        const tileOrigin = gridrefToCoords(data.meta.gridReference);
-        const squareSize = data.meta.squareSize;
+    }
 
-        // Start scaler here
-
-        var gridHeight = grid.length;
-        var gridWidth = grid[0].length;
-
-        // Convert grid into vertices and faces
-        var faces: THREE.Face3[] = [];
-        var vertices: THREE.Vector3[] = [];
-
-        grid.forEach((row, y) => row.forEach((z, x) => {
-
-            var coords = this.scale(
-                tileOrigin[0] + x*squareSize,
-                tileOrigin[1] + y*squareSize,
-                z);
-
-            vertices.push(new THREE.Vector3(...coords));
-
-            // If this point can form top-left of a square, add the two
-            // triangles that are formed by that square
-            if (x < gridWidth - 1 && y < gridHeight - 1) {
-
-                // Work out index of this point in the vertices array
-                var i = x + gridWidth*y;
-
-                // First triangle: top-left, top-right, bottom-left
-                faces.push(new THREE.Face3(i, i+1, i+gridWidth));
-
-                // Second triangle: top-right, bottom-right, bottom-left
-                faces.push(new THREE.Face3(i+1, i+gridWidth+1, i+gridWidth));
-            }
-
-        }));
-
-        // End scaler here
-
-        // Setup land geometry
-        var landGeometry = new THREE.Geometry();
-        landGeometry.vertices = vertices;
-        landGeometry.faces = faces;
-        landGeometry.computeFaceNormals();
-        landGeometry.computeVertexNormals();
-
-        // Sea geometry
-        const bottomLeft = this.scale(tileOrigin[0], tileOrigin[1], 0);
-        const topRight = this.scale(tileOrigin[0] + gridWidth*squareSize,
-            tileOrigin[1] + gridHeight*squareSize, 0);
-
-        var seaGeometry = new THREE.PlaneGeometry(topRight[0] - bottomLeft[0], topRight[1] - bottomLeft[1], 0);
-
-        var material = 'phong';
-        var landMesh = new THREE.Mesh( landGeometry, materials[material](colors.landColor) );
-        this.scene.add(landMesh);
-
-        var seaMesh = new THREE.Mesh( seaGeometry, materials[material](colors.seaColor) );
-        this.scene.add(seaMesh);
-
-        requestAnimationFrame(this.renderMap.bind(this));
+    addToMap(mesh: THREE.Mesh) {
+        this.scene.add(mesh);
+        this.renderMap();
     }
 
     renderMap() {
@@ -232,5 +187,45 @@ export class MapView {
         requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
     }
+
+
+    // doCheck() {
+
+    //     // TODO Debounce this function
+    //     var inverseTransform = new THREE.Matrix4();
+    //     inverseTransform.getInverse(this.transform);
+
+    //     var raycaster = new THREE.Raycaster();
+
+    //     var extremes = [
+    //         new THREE.Vector2(1, 1),
+    //         new THREE.Vector2(1, -1),
+    //         new THREE.Vector2(-1, -1),
+    //         new THREE.Vector2(-1, 1),
+    //     ]
+
+    //     var corners = extremes.map(v => {
+
+    //         // Work out where each corner intersects the plane
+    //         raycaster.setFromCamera(v, this.camera );
+    //         var intersects = raycaster.intersectObject(this.scene.children[3], false);
+
+    //         if (intersects.length === 0) {
+    //             // Er...
+    //             return false;
+    //         }
+    //         else {
+    //             var coords = new Float32Array([
+    //                 intersects[0].point.x,
+    //                 intersects[0].point.y,
+    //                 intersects[0].point.z,
+    //             ]);
+    //             var buffer = new THREE.BufferAttribute(coords, coords.length);
+    //             return inverseTransform.applyToBufferAttribute(buffer).array;
+    //         }
+    //     });
+    //     console.log(corners);
+    // }
+
 
 }

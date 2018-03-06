@@ -8,9 +8,9 @@
     "serve": "cd server && fresh",
     "watch": "webpack --watch",
     "test:js": "jest",
-    "test:go": "go test ./server -coverprofile=c.out",
+    "test:go": "go test ./server -coverprofile=./server/cover.out",
     "test": "npm run test:js && npm run test:go",
-    "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/c.out"
+    "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/cover.out"
   },
   "repository": {
     "type": "git",
@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/qwghlm/sceptred#readme",
   "devDependencies": {
+    "@types/jest": "^22.1.4",
+    "@types/three": "^0.89.10",
     "babel-core": "^6.26.0",
     "babel-jest": "^22.4.0",
     "babel-loader": "^7.1.2",
@@ -50,10 +52,9 @@
     "webpack-manifest-plugin": "^2.0.0-rc.2"
   },
   "dependencies": {
-    "@types/three": "^0.89.10",
     "modernizr": "^3.3.1",
     "normalize.css": "^8.0.0",
     "spectre.css": "^0.5.0",
-    "three.js": "^0.77.1"
+    "three": "^0.90.0"
   }
 }

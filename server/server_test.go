@@ -24,11 +24,39 @@ func request(t *testing.T, method, path string, body interface{}) (int, string) 
 func TestIndex(t *testing.T) {
 
     // Set up environment
-    code, _ := request(t, "GET", "/", nil)
+    code, body := request(t, "GET", "/", nil)
     assert.Equal(t, http.StatusOK, code)
-    // TODO Body assertion
+    assert.Contains(t, body, "Sceptred")
 
-    code, _ = request(t, "GET", "/foo", nil)
+}
+
+func Test404(t *testing.T) {
+
+    code, _ := request(t, "GET", "/foo", nil)
     assert.Equal(t, http.StatusNotFound, code)
 
 }
+
+// FIXME: Tests do not work yet in CI!
+//
+// func TestData(t *testing.T) {
+
+//     code, body := request(t, "GET", "/data/nt27", nil)
+//     assert.Equal(t, http.StatusOK, code)
+//     assert.Contains(t, body, "-2.1,-2.1")
+
+// }
+
+// func TestInvalidData(t *testing.T) {
+
+//     code, _ := request(t, "GET", "/data/xxxx", nil)
+//     assert.Equal(t, http.StatusBadRequest, code)
+
+// }
+
+// func TestMissingSquare(t *testing.T) {
+
+//     code, _ := request(t, "GET", "/data/aa00", nil)
+//     assert.Equal(t, http.StatusNoContent, code)
+
+// }

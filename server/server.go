@@ -1,40 +1,30 @@
 package main
 
 import (
-    "encoding/json"
+    "fmt"
+    "go/build"
     "html/template"
     "io"
-    "io/ioutil"
-    "net/http"
+    "os"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
 )
 
+// Constants
+
+var SRCPATH = build.Default.GOPATH + "/src/sceptred"
+
+// Renderer
+
 type Renderer struct {
     templates *template.Template
 }
-
 func (r *Renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
     return r.templates.ExecuteTemplate(w, name, data)
 }
 
-func getIndex(c echo.Context) error {
-
-    // Load JSON
-    var metadata interface{}
-    jsonFile, err := ioutil.ReadFile("../client/dist/manifest.json")
-    if err != nil {
-        return err
-    }
-    err = json.Unmarshal(jsonFile, &metadata)
-    if err != nil {
-        return err
-    }
-
-    // Complete template
-    return c.Render(http.StatusOK, "index", metadata)
-}
+// Instance
 
 func instance() *echo.Echo {
 
@@ -43,28 +33,36 @@ func instance() *echo.Echo {
 
     // Setup template renderer
     e.Renderer = &Renderer{
-        templates: template.Must(template.ParseGlob("./templates/*.html")),
+        templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
     }
 
-    // Handler for index
-    e.GET("/", getIndex)
-
-    // Handle for static
-    e.Static("/static", "../client/dist/")
+    // Handlers are in handlers.go
+    e.GET("/", handleIndex)
+    e.GET("/data/:gridSquare", handleData)
+    e.Static("/static", SRCPATH + "/client/dist/")
 
     return e
 }
 
 func main() {
 
-    e := instance()
+    // Check to see if data exists
+    if _, err := os.Stat(SRCPATH + "/terrain/data"); os.IsNotExist(err) {
+        fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
+        os.Exit(1)
+    }
 
-    // Setup middleware
-    e.Use(middleware.Logger())
+    // Setup instance and add logging middleware
+    e := instance()
+    e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+      Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
+    }))
 
     // Start serving
-    // TODO Set port in config/env
-    port := "8000"
+    port := os.Getenv("PORT")
+    if port == "" {
+        port = "8000"
+    }
     e.Logger.Fatal(e.Start(":"+port))
 
 }

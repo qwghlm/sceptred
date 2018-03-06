@@ -2,13 +2,17 @@ language: go
 
 go:
   - "1.10"
+go_import_path: sceptred
 
 before_script:
   - npm install
 
 script:
   - npm run test:js
-  - go test ./server
+  - go test ./server -coverprofile=./server/cover.out -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
 
 notifications:
   email: false
