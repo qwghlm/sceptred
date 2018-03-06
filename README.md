@@ -1,5 +1,7 @@
 # Sceptred
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/qwghlm/sceptred.svg)](https://greenkeeper.io/)
+
 _This royal throne of kings, this sceptred isle,_<br>
 _This earth of majesty, this seat of Mars,_<br>
 _This other Eden, demi-paradise,_<br>
