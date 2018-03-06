@@ -3,9 +3,10 @@ import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
-import { makeTransform } from './lib/scale';
+import { makeTransform, makeScale } from './lib/scale';
 import { loadGridSquare, parseGridSquare } from './lib/data';
-import { coordsToGridref, gridrefToCoords } from './lib/grid';
+import { coordsToGridref, gridrefToCoords,
+    getGridSquareSize, getSurroundingSquares} from './lib/grid';
 
 interface Config {
     origin: number[],
@@ -122,27 +123,25 @@ export class MapView {
     // Setup transform from global to screen coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
+
+        // Calculate the world origin (i.e. where the world is centred),
+        // the model origin (i.e (0, 0, 0))
+        // and the scale to get from one to the other
         var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new THREE.Vector3(0, 0, 0);
         var scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, this.config.heightFactor/metresPerPixel);
 
-        this.scale = (new THREE.Matrix4()).makeScale(scale.x, scale.y, scale.z);
+        this.scale = makeScale(scale);
         this.transform = makeTransform(worldOrigin, modelOrigin, scale);
     }
 
     initializeLoad() {
 
         // Work out our origin
-        var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
+        var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
+        var gridSquare = coordsToGridref(coords, 2);
         this.load(gridSquare);
-        this.loadEmpty('NT26');
-        this.loadEmpty('NT28');
-        this.loadEmpty('NT16');
-        this.loadEmpty('NT17');
-        this.loadEmpty('NT18');
-        this.loadEmpty('NT36');
-        this.loadEmpty('NT37');
-        this.loadEmpty('NT38');
+        getSurroundingSquares(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
 
     }
 
@@ -159,10 +158,8 @@ export class MapView {
 
     loadEmpty(gridSquare: string) {
 
-        // Construct a vector for the square, based on the accuracy (i.e. length) of the reference
-        var accuracy = (12 - gridSquare.length)/2;
-        var squareSize = Math.pow(10, accuracy);
-        var square = new THREE.Vector3(squareSize, squareSize, 0).applyMatrix4(this.scale);
+        // Get this grid square, scaled down to local size
+        let square = getGridSquareSize(gridSquare).applyMatrix4(this.scale);
 
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
@@ -171,7 +168,7 @@ export class MapView {
         let geometry = new THREE.PlaneGeometry(square.x, square.y);
         geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z)
 
-        // Create a mesh out of it
+        // Create a mesh out of it and add to map
         let mesh = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
         this.addToMap(mesh);
 
@@ -184,7 +181,6 @@ export class MapView {
 
     renderMap() {
         this.renderer.render(this.scene, this.camera);
-        // this.doCheck();
     }
 
     animateMap() {

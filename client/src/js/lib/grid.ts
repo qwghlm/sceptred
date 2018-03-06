@@ -37,14 +37,16 @@ export function gridrefToCoords(gridref: string) {
     return vector;
 }
 
-// Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)
-export function coordsToGridref(eastings: number, northings: number, digits=10) {
+// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
+export function coordsToGridref(coords: THREE.Vector3, digits=10) {
 
     if (digits%2!==0 || digits < 0 || digits > 16) {
         throw new RangeError('Invalid precision ‘'+digits+'’');
     }
 
     // Get the 100km-grid indices
+    let eastings = coords.x;
+    let northings = coords.y;
     var e100k = Math.floor(eastings/100000), n100k = Math.floor(northings/100000);
 
     if (e100k<0 || e100k>6 || n100k<0 || n100k>12) {
@@ -68,7 +70,43 @@ export function coordsToGridref(eastings: number, northings: number, digits=10) 
 
 }
 
-// TODO Function for getting surrounding squares
+export function getGridSquareSize(gridref: string) {
+    // Construct a vector for the grid square size, based on the accuracy
+    // (i.e. string length) of the reference, in meters
+    var accuracy = (12 - gridref.length)/2;
+    var squareSize = Math.pow(10, accuracy);
+    return new THREE.Vector3(squareSize, squareSize, 0);
+}
+
+export function getSurroundingSquares(gridref: string, radius: number) {
+
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+
+    // Get X and Y vectors for one square along and one up
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
+
+    // Go for radius around in both X and Y directions
+    let squares = [];
+    for (var x=-radius; x<=radius; x++) {
+        for (var y=-radius; y<=radius; y++) {
+
+            // Skip the centre
+            if (x === 0 && y === 0) {
+                continue;
+            }
+
+            // Calculate the origin of the square X and Y steps away from the origin
+            // i.e. C = O + xX + yY
+            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+
+            // Convert back into gridref
+            squares.push(coordsToGridref(coords, 2));
+        }
+    }
+    return squares
+}
 
 // Utils
 

@@ -46011,8 +46011,10 @@ function LensFlare() {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["b"] = gridrefToCoords;
+/* harmony export (immutable) */ __webpack_exports__["d"] = gridrefToCoords;
 /* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
+/* harmony export (immutable) */ __webpack_exports__["b"] = getGridSquareSize;
+/* harmony export (immutable) */ __webpack_exports__["c"] = getSurroundingSquares;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 
 // Grid conversion functions are based upon
@@ -46040,12 +46042,14 @@ function gridrefToCoords(gridref) {
     var vector = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
     return vector;
 }
-// Converts an Easting/Northings [520000, 270000] to grid reference (e.g. TL27)
-function coordsToGridref(eastings, northings, digits = 10) {
+// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
+function coordsToGridref(coords, digits = 10) {
     if (digits % 2 !== 0 || digits < 0 || digits > 16) {
         throw new RangeError('Invalid precision ‘' + digits + '’');
     }
     // Get the 100km-grid indices
+    let eastings = coords.x;
+    let northings = coords.y;
     var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
     if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
         throw new Error("Co-ordinates are not within UK National Grid");
@@ -46063,7 +46067,36 @@ function coordsToGridref(eastings, northings, digits = 10) {
     const northingsString = northings.toString().padStart(digits, '0');
     return `${gridSquare}${eastingsString}${northingsString}`;
 }
-// TODO Function for getting surrounding squares
+function getGridSquareSize(gridref) {
+    // Construct a vector for the grid square size, based on the accuracy
+    // (i.e. string length) of the reference, in meters
+    var accuracy = (12 - gridref.length) / 2;
+    var squareSize = Math.pow(10, accuracy);
+    return new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0);
+}
+function getSurroundingSquares(gridref, radius) {
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+    // Get X and Y vectors for one square along and one up
+    var xStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, getGridSquareSize(gridref).y, 0);
+    // Go for radius around in both X and Y directions
+    let squares = [];
+    for (var x = -radius; x <= radius; x++) {
+        for (var y = -radius; y <= radius; y++) {
+            // Skip the centre
+            if (x === 0 && y === 0) {
+                continue;
+            }
+            // Calculate the origin of the square X and Y steps away from the origin
+            // i.e. C = O + xX + yY
+            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+            // Convert back into gridref
+            squares.push(coordsToGridref(coords, 2));
+        }
+    }
+    return squares;
+}
 // Utils
 // Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
 function letterToNumber(letter) {
@@ -46197,24 +46230,21 @@ class MapView {
     // Setup transform from global to screen coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
+        // Calculate the world origin (i.e. where the world is centred),
+        // the model origin (i.e (0, 0, 0))
+        // and the scale to get from one to the other
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+        this.scale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeScale */])(scale);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
         // Work out our origin
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
+        var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
-        this.loadEmpty('NT26');
-        this.loadEmpty('NT28');
-        this.loadEmpty('NT16');
-        this.loadEmpty('NT17');
-        this.loadEmpty('NT18');
-        this.loadEmpty('NT36');
-        this.loadEmpty('NT37');
-        this.loadEmpty('NT38');
+        Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
     }
     load(gridSquare) {
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
@@ -46225,17 +46255,15 @@ class MapView {
         });
     }
     loadEmpty(gridSquare) {
-        // Construct a vector for the square, based on the accuracy (i.e. length) of the reference
-        var accuracy = (12 - gridSquare.length) / 2;
-        var squareSize = Math.pow(10, accuracy);
-        var square = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0).applyMatrix4(this.scale);
+        // Get this grid square, scaled down to local size
+        let square = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
         // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-        // Create a mesh out of it
+        // Create a mesh out of it and add to map
         let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
         this.addToMap(mesh);
     }
@@ -46245,7 +46273,6 @@ class MapView {
     }
     renderMap() {
         this.renderer.render(this.scene, this.camera);
-        // this.doCheck();
     }
     animateMap() {
         requestAnimationFrame(this.animateMap.bind(this));
@@ -47027,18 +47054,21 @@ const materials = {
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = makeTransform;
+/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
+/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 
 // Scaling function - from the origin, scale up by scale, and then translate to the origin
 function makeTransform(fOrigin, tOrigin, scale) {
-    var mStart = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
-    mStart.makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
-    var mMiddle = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
-    mMiddle.makeScale(scale.x, scale.y, scale.z);
-    var mEnd = new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]();
-    mEnd.makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    // Reverse translate from, then scale, then translate to
+    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
+    var mMiddle = makeScale(scale);
+    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    // Reverse order as per rules of matrix multiplication
     return mEnd.multiply(mMiddle).multiply(mStart);
+}
+function makeScale(scale) {
+    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
 }
 
 
@@ -47051,15 +47081,17 @@ function makeTransform(fOrigin, tOrigin, scale) {
 /* harmony export (immutable) */ __webpack_exports__["b"] = parseGridSquare;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(1);
-// Functions for data parsing
+// Functions for parsing data from the API
 
 
+// Simple loader with fetch()
 function loadGridSquare(id) {
     return fetch(`/data/${id}`)
         .then(response => response.json());
 }
+// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 function parseGridSquare(data, transform) {
-    const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["b" /* gridrefToCoords */])(data.meta.gridReference);
+    const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["d" /* gridrefToCoords */])(data.meta.gridReference);
     const squareSize = data.meta.squareSize;
     const grid = data.data;
     var gridHeight = grid.length;

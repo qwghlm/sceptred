@@ -1,8 +1,8 @@
-// Functions for data parsing
-
+// Functions for parsing data from the API
 import * as THREE from 'three';
 import { gridrefToCoords } from './grid';
 
+// Represents the grid data object we get back from the API
 interface GridData {
     meta: {
         squareSize: number,
@@ -11,11 +11,13 @@ interface GridData {
     data: number[][],
 }
 
+// Simple loader with fetch()
 export function loadGridSquare(id: string) {
     return fetch(`/data/${id}`)
         .then(response => response.json())
 }
 
+// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
