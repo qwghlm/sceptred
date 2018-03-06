@@ -64,6 +64,8 @@ export function coordsToGridref(eastings: number, northings: number, digits=10) 
 
 }
 
+// TODO Function for getting surrounding squares
+
 // Utils
 
 // Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
