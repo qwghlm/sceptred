@@ -140,7 +140,7 @@ export class MapView {
         loadGridSquare(gridSquare)
             .then((json) => {
                 let geometry = parseGridSquare(json, this.transform);
-                this.geometries[gridSquare] = geometry;
+                // this.geometries[gridSquare] = geometry;
                 this.addToMap(geometry);
             });
 
@@ -151,15 +151,10 @@ export class MapView {
 
     }
 
-    addToMap(geometry: THREE.Geometry, material='phong', color=colors.landColor) {
-
-        // Compute geometry
-        geometry.computeFaceNormals();
-        geometry.computeVertexNormals();
+    addToMap(geometry: THREE.BufferGeometry, material='phong', color=colors.landColor) {
 
         const mesh = new THREE.Mesh(geometry, materials[material](color));
         this.scene.add(mesh);
-
         this.renderMap();
 
     }
@@ -207,7 +202,7 @@ export class MapView {
                     intersects[0].point.z,
                 ]);
                 var buffer = new THREE.BufferAttribute(coords, coords.length);
-                return inverseTransform.applyToBufferAttribute(buffer).array.slice(0, 2);
+                return inverseTransform.applyToBufferAttribute(buffer).array;
             }
         });
         console.log(corners);

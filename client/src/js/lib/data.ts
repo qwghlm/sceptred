@@ -25,26 +25,17 @@ export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
 
-    // Convert grid into vertices and faces
-    var vertices: THREE.Vector3[] = [];
-    var faces: THREE.Face3[] = [];
-
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
 
-    // TODO Convert this into pure array and run matrix math on the whole lot at once?
+    var vertices = new Float32Array(3*gridHeight*gridWidth);
+    var faces: number[] = [];
+    var n = 0;
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
-
-        var coords = new Float32Array([
-            tileOrigin[0] + x*squareSize,
-            tileOrigin[1] + y*squareSize,
-            z
-        ]);
-        var buffer = new THREE.BufferAttribute(coords, coords.length);
-
-        var v = new THREE.Vector3;
-        v.fromBufferAttribute(transform.applyToBufferAttribute(buffer), 0)
-        vertices.push(v);
+        vertices[n] = tileOrigin[0] + x*squareSize;
+        vertices[n+1] = tileOrigin[1] + y*squareSize;
+        vertices[n+2] = z;
+        n += 3;
 
         // If this point can form top-left of a square, add the two
         // triangles that are formed by that square
@@ -54,17 +45,21 @@ export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
             var i = x + gridWidth*y;
 
             // First triangle: top-left, top-right, bottom-left
-            faces.push(new THREE.Face3(i, i+1, i+gridWidth));
+            faces.push(i, i+1, i+gridWidth);
 
             // Second triangle: top-right, bottom-right, bottom-left
-            faces.push(new THREE.Face3(i+1, i+gridWidth+1, i+gridWidth));
+            faces.push(i+1, i+gridWidth+1, i+gridWidth);
         }
+
 
     }));
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices = vertices;
-    geometry.faces = faces;
+    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
+    // TODO OnUpload?
+    var geometry = new THREE.BufferGeometry();
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.setIndex(faces);
+    geometry.computeVertexNormals();
     return geometry;
 
 }

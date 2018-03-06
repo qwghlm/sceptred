@@ -46210,7 +46210,7 @@ class MapView {
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
             .then((json) => {
             let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.transform);
-            this.geometries[gridSquare] = geometry;
+            // this.geometries[gridSquare] = geometry;
             this.addToMap(geometry);
         });
         var seaObj = new __WEBPACK_IMPORTED_MODULE_0_three__["Plane"](new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, -1), 0.01);
@@ -46219,9 +46219,6 @@ class MapView {
         this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, seaMaterial));
     }
     addToMap(geometry, material = 'phong', color = __WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor) {
-        // Compute geometry
-        geometry.computeFaceNormals();
-        geometry.computeVertexNormals();
         const mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](color));
         this.scene.add(mesh);
         this.renderMap();
@@ -46260,7 +46257,7 @@ class MapView {
                     intersects[0].point.z,
                 ]);
                 var buffer = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](coords, coords.length);
-                return inverseTransform.applyToBufferAttribute(buffer).array.slice(0, 2);
+                return inverseTransform.applyToBufferAttribute(buffer).array;
             }
         });
         console.log(corners);
@@ -47078,36 +47075,33 @@ function parseGridSquare(data, transform) {
     const grid = data.data;
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
-    // Convert grid into vertices and faces
-    var vertices = [];
-    var faces = [];
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
-    // TODO Convert this into pure array and run matrix math on the whole lot at once?
+    var vertices = new Float32Array(3 * gridHeight * gridWidth);
+    var faces = [];
+    var n = 0;
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
-        var coords = new Float32Array([
-            tileOrigin[0] + x * squareSize,
-            tileOrigin[1] + y * squareSize,
-            z
-        ]);
-        var buffer = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](coords, coords.length);
-        var v = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"];
-        v.fromBufferAttribute(transform.applyToBufferAttribute(buffer), 0);
-        vertices.push(v);
+        vertices[n] = tileOrigin[0] + x * squareSize;
+        vertices[n + 1] = tileOrigin[1] + y * squareSize;
+        vertices[n + 2] = z;
+        n += 3;
         // If this point can form top-left of a square, add the two
         // triangles that are formed by that square
         if (x < gridWidth - 1 && y < gridHeight - 1) {
             // Work out index of this point in the vertices array
             var i = x + gridWidth * y;
             // First triangle: top-left, top-right, bottom-left
-            faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i, i + 1, i + gridWidth));
+            faces.push(i, i + 1, i + gridWidth);
             // Second triangle: top-right, bottom-right, bottom-left
-            faces.push(new __WEBPACK_IMPORTED_MODULE_0_three__["Face3"](i + 1, i + gridWidth + 1, i + gridWidth));
+            faces.push(i + 1, i + gridWidth + 1, i + gridWidth);
         }
     }));
-    var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["Geometry"]();
-    geometry.vertices = vertices;
-    geometry.faces = faces;
+    var verticesBuffer = transform.applyToBufferAttribute(new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](vertices, 3));
+    // TODO OnUpload?
+    var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferGeometry"]();
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.setIndex(faces);
+    geometry.computeVertexNormals();
     return geometry;
 }
 
