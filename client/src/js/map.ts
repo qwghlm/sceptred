@@ -133,21 +133,27 @@ export class MapView {
         var gridSquare = coordsToGridref(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
         this.load(gridSquare);
+        this.load('NT26')
+        this.load('NT28')
+        this.load('NT16')
+        this.load('NT17')
+        this.load('NT18')
 
     }
 
     load(gridSquare: string) {
+
+        var seaObj = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.01);
+        var seaGeometry = new THREE.PlaneGeometry(10000, 10000)
+        var seaMaterial = new THREE.MeshBasicMaterial( {color: 0x000033 } )
+        this.scene.add(new THREE.Mesh(seaGeometry, seaMaterial));
+
         loadGridSquare(gridSquare)
             .then((json) => {
                 let geometry = parseGridSquare(json, this.transform);
                 // this.geometries[gridSquare] = geometry;
                 this.addToMap(geometry);
             });
-
-        var seaObj = new THREE.Plane(new THREE.Vector3(0, 0, -1), 0.01);
-        var seaGeometry = new THREE.PlaneGeometry(10000, 10000)
-        var seaMaterial = new THREE.MeshBasicMaterial( {color: 0x000033 } )
-        this.scene.add(new THREE.Mesh(seaGeometry, seaMaterial));
 
     }
 

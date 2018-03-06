@@ -32,6 +32,8 @@ export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
     var faces: number[] = [];
     var n = 0;
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
+
+        // Assign vertices
         vertices[n] = tileOrigin[0] + x*squareSize;
         vertices[n+1] = tileOrigin[1] + y*squareSize;
         vertices[n+2] = z;
@@ -44,11 +46,13 @@ export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {
             // Work out index of this point in the vertices array
             var i = x + gridWidth*y;
 
-            // First triangle: top-left, top-right, bottom-left
-            faces.push(i, i+1, i+gridWidth);
+            faces.push(
+                // First triangle: top-left, top-right, bottom-left
+                i, i+1, i+gridWidth,
 
-            // Second triangle: top-right, bottom-right, bottom-left
-            faces.push(i+1, i+gridWidth+1, i+gridWidth);
+                // Second triangle: top-right, bottom-right, bottom-left
+                i+1, i+gridWidth+1, i+gridWidth);
+
         }
 
 

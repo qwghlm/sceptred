@@ -46205,18 +46205,23 @@ class MapView {
         var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(this.config.origin[0], this.config.origin[1], 2);
         this.geometries = {};
         this.load(gridSquare);
+        this.load('NT26');
+        this.load('NT28');
+        this.load('NT16');
+        this.load('NT17');
+        this.load('NT18');
     }
     load(gridSquare) {
+        var seaObj = new __WEBPACK_IMPORTED_MODULE_0_three__["Plane"](new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, -1), 0.01);
+        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](10000, 10000);
+        var seaMaterial = new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({ color: 0x000033 });
+        this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, seaMaterial));
         Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
             .then((json) => {
             let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.transform);
             // this.geometries[gridSquare] = geometry;
             this.addToMap(geometry);
         });
-        var seaObj = new __WEBPACK_IMPORTED_MODULE_0_three__["Plane"](new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, -1), 0.01);
-        var seaGeometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](10000, 10000);
-        var seaMaterial = new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({ color: 0x000033 });
-        this.scene.add(new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](seaGeometry, seaMaterial));
     }
     addToMap(geometry, material = 'phong', color = __WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor) {
         const mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */][material](color));
@@ -47081,6 +47086,7 @@ function parseGridSquare(data, transform) {
     var faces = [];
     var n = 0;
     grid.reverse().forEach((row, y) => row.forEach((z, x) => {
+        // Assign vertices
         vertices[n] = tileOrigin[0] + x * squareSize;
         vertices[n + 1] = tileOrigin[1] + y * squareSize;
         vertices[n + 2] = z;
@@ -47090,10 +47096,11 @@ function parseGridSquare(data, transform) {
         if (x < gridWidth - 1 && y < gridHeight - 1) {
             // Work out index of this point in the vertices array
             var i = x + gridWidth * y;
+            faces.push(
             // First triangle: top-left, top-right, bottom-left
-            faces.push(i, i + 1, i + gridWidth);
+            i, i + 1, i + gridWidth, 
             // Second triangle: top-right, bottom-right, bottom-left
-            faces.push(i + 1, i + gridWidth + 1, i + gridWidth);
+            i + 1, i + gridWidth + 1, i + gridWidth);
         }
     }));
     var verticesBuffer = transform.applyToBufferAttribute(new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](vertices, 3));
