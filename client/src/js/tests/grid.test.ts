@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { gridrefToCoords, coordsToGridref } from '../lib/grid';
+import { gridrefToCoords, coordsToGridref, getGridSquareSize, getSurroundingSquares } from '../lib/grid';
 
 test('gridrefToCoords() works properly', () => {
 
@@ -38,5 +38,29 @@ test('coordsToGridref() raises errors properly', () => {
     expect(() => coordsToGridref(new THREE.Vector3(520000, 270000, 0), 3)).toThrow(/Invalid/)
 
     expect(() => coordsToGridref(new THREE.Vector3(-520000, 270000, 0), 4)).toThrow(/not within/)
+
+});
+
+
+test('getGridSquareSize() raises errors properly', () => {
+
+    expect(getGridSquareSize("NT").x).toEqual(100000);
+    expect(getGridSquareSize("NT27").x).toEqual(10000);
+    expect(getGridSquareSize("NT2070").x).toEqual(1000);
+    expect(getGridSquareSize("NT200700").x).toEqual(100);
+    expect(getGridSquareSize("NT20007000").x).toEqual(10);
+    expect(getGridSquareSize("NT2000070000").x).toEqual(1);
+
+});
+
+test('getSurroundingSquares() raises errors properly', () => {
+
+    expect(getSurroundingSquares("NT27", 0)).toEqual([]);
+    expect(getSurroundingSquares("NT27", 1))
+        .toEqual(["NT16", "NT17", "NT18", "NT26", "NT28", "NT36", "NT37", "NT38"]);
+    expect(getSurroundingSquares("NT200700", 1))
+        .toEqual(["NT199699", "NT199700", "NT199701", "NT200699",
+                  "NT200701", "NT201699", "NT201700", "NT201701"]);
+
 
 });

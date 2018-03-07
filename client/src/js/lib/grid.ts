@@ -70,14 +70,15 @@ export function coordsToGridref(coords: THREE.Vector3, digits=10) {
 
 }
 
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
 export function getGridSquareSize(gridref: string) {
-    // Construct a vector for the grid square size, based on the accuracy
-    // (i.e. string length) of the reference, in meters
     var accuracy = (12 - gridref.length)/2;
     var squareSize = Math.pow(10, accuracy);
     return new THREE.Vector3(squareSize, squareSize, 0);
 }
 
+// Return an array of grid references for the squares surrounding this one
 export function getSurroundingSquares(gridref: string, radius: number) {
 
     // Origin of this square
@@ -102,7 +103,7 @@ export function getSurroundingSquares(gridref: string, radius: number) {
             let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
 
             // Convert back into gridref
-            squares.push(coordsToGridref(coords, 2));
+            squares.push(coordsToGridref(coords, gridref.length - 2));
         }
     }
     return squares
