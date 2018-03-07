@@ -3,10 +3,12 @@ import * as Detector from 'three/examples/js/Detector';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
+import { parseGridSquare } from './lib/data';
+import { Loader } from './lib/loader';
 import { makeTransform, makeScale } from './lib/scale';
-import { loadGridSquare, parseGridSquare } from './lib/data';
 import { coordsToGridref, gridrefToCoords,
     getGridSquareSize, getSurroundingSquares} from './lib/grid';
+import { debounce } from './lib/utils';
 
 interface Config {
     origin: number[],
@@ -26,6 +28,7 @@ export class MapView {
     height: number;
 
     wrapper: HTMLElement;
+    loader: Loader;
     geometries: Geometries;
 
     camera: THREE.PerspectiveCamera;
@@ -40,6 +43,8 @@ export class MapView {
 
         // Setup config
         this.config = config;
+
+        this.updateMap = debounce(this.updateMap.bind(this), 500);
 
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
@@ -137,20 +142,31 @@ export class MapView {
 
     initializeLoad() {
 
+        this.loader = new Loader();
+
         // Work out our origin
         var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
         var gridSquare = coordsToGridref(coords, 2);
         this.load(gridSquare);
-        getSurroundingSquares(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
+        getSurroundingSquares(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
 
     }
 
     load(gridSquare: string) {
 
-        loadGridSquare(gridSquare)
+        var url = `/data/${gridSquare}`;
+        if (this.loader.isLoading(url)) {
+            return;
+        }
+
+        this.loader.load(url)
             .then((json) => {
+
+                this.replaceEmpty(gridSquare);
+
                 let geometry = parseGridSquare(json, this.transform);
                 let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
+                mesh.name = 'filled-'+gridSquare;
                 this.addToMap(mesh);
             });
 
@@ -170,7 +186,17 @@ export class MapView {
 
         // Create a mesh out of it and add to map
         let mesh = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
+        mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
+
+    }
+
+    replaceEmpty(gridSquare: string) {
+
+        var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == "empty-" + gridSquare);
+        if (toReplace.length) {
+            toReplace.forEach(d => this.scene.remove(d));
+        }
 
     }
 
@@ -181,6 +207,7 @@ export class MapView {
 
     renderMap() {
         this.renderer.render(this.scene, this.camera);
+        this.updateMap();
     }
 
     animateMap() {
@@ -188,44 +215,17 @@ export class MapView {
         this.controls.update();
     }
 
+    updateMap() {
 
-    // doCheck() {
+        var emptyMeshes = this.scene.children
+            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty');
 
-    //     // TODO Debounce this function
-    //     var inverseTransform = new THREE.Matrix4();
-    //     inverseTransform.getInverse(this.transform);
+        emptyMeshes.forEach(d => {
+            var id = d.name.split('-')[1];
+            this.load(id);
+        })
 
-    //     var raycaster = new THREE.Raycaster();
-
-    //     var extremes = [
-    //         new THREE.Vector2(1, 1),
-    //         new THREE.Vector2(1, -1),
-    //         new THREE.Vector2(-1, -1),
-    //         new THREE.Vector2(-1, 1),
-    //     ]
-
-    //     var corners = extremes.map(v => {
-
-    //         // Work out where each corner intersects the plane
-    //         raycaster.setFromCamera(v, this.camera );
-    //         var intersects = raycaster.intersectObject(this.scene.children[3], false);
-
-    //         if (intersects.length === 0) {
-    //             // Er...
-    //             return false;
-    //         }
-    //         else {
-    //             var coords = new Float32Array([
-    //                 intersects[0].point.x,
-    //                 intersects[0].point.y,
-    //                 intersects[0].point.z,
-    //             ]);
-    //             var buffer = new THREE.BufferAttribute(coords, coords.length);
-    //             return inverseTransform.applyToBufferAttribute(buffer).array;
-    //         }
-    //     });
-    //     console.log(corners);
-    // }
+    }
 
 
 }

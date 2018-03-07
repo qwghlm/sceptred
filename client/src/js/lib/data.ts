@@ -3,18 +3,12 @@ import * as THREE from 'three';
 import { gridrefToCoords } from './grid';
 
 // Represents the grid data object we get back from the API
-interface GridData {
+export interface GridData {
     meta: {
         squareSize: number,
         gridReference: string
     },
     data: number[][],
-}
-
-// Simple loader with fetch()
-export function loadGridSquare(id: string) {
-    return fetch(`/data/${id}`)
-        .then(response => response.json())
 }
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
