@@ -8,8 +8,9 @@ _This fortress built by Nature for her self_<br>
 
 _Sceptred_ is a project to model the island of Great Britain in 3D, using open-source data.
 
-[![Build Status](https://travis-ci.org/qwghlm/sceptred.svg?branch=master)](https://travis-ci.org/qwghlm/sceptred)
 ![GitHub package version](https://img.shields.io/github/package-json/v/qwghlm/sceptred.svg)
+[![Build Status](https://travis-ci.org/qwghlm/sceptred.svg?branch=master)](https://travis-ci.org/qwghlm/sceptred)
+[![codecov](https://codecov.io/gh/qwghlm/sceptred/branch/master/graph/badge.svg)](https://codecov.io/gh/qwghlm/sceptred)
 
 ## Overview
 
