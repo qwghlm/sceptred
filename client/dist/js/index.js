@@ -46173,9 +46173,11 @@ class MapView {
         // Setup config
         this.config = config;
         this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
-        // Initialize the wrapper
+        // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
-        this.initializeCanvas();
+        this.initializeWorld();
+        this.initializeRenderer();
+        // Initialize the transforms within the world, and load
         this.initializeTransform();
         this.initializeLoad();
         // Render the map
@@ -46189,7 +46191,7 @@ class MapView {
         this.wrapper = wrapper;
         // TODO: Auto-resize on window resize
     }
-    initializeCanvas() {
+    initializeWorld() {
         // Add WebGL message...
         if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
             __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
@@ -46222,6 +46224,8 @@ class MapView {
         scene.add(spotLight);
         var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
         scene.add(ambientLight);
+    }
+    initializeRenderer() {
         // Renderer
         var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
             antialias: true,
@@ -46233,7 +46237,7 @@ class MapView {
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
     }
-    // Setup transform from global to screen coordinates
+    // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
         // Calculate the world origin (i.e. where the world is centred),
@@ -46262,12 +46266,19 @@ class MapView {
             .then((json) => {
             this.replaceEmpty(gridSquare);
             let geometry = Object(__WEBPACK_IMPORTED_MODULE_4__lib_data__["a" /* parseGridSquare */])(json, this.transform);
+            geometry.computeBoundingBox();
+            // Add mesh for this
             let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
-            mesh.name = 'filled-' + gridSquare;
+            mesh.name = 'land-' + gridSquare;
             this.addToMap(mesh);
+            if (geometry.boundingBox.min.z < 0) {
+                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
+                sea.name = 'sea-' + gridSquare;
+                this.addToMap(sea);
+            }
         });
     }
-    loadEmpty(gridSquare) {
+    makeSquare(gridSquare) {
         // Get this grid square, scaled down to local size
         let square = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
@@ -46276,8 +46287,12 @@ class MapView {
         let coords = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+        geometry.computeBoundingBox();
+        return geometry;
+    }
+    loadEmpty(gridSquare) {
         // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
     }
@@ -46310,7 +46325,6 @@ class MapView {
             .filter(d => {
             var geometry = d.geometry;
             if (geometry) {
-                geometry.computeBoundingBox();
                 return frustum.intersectsBox(geometry.boundingBox);
             }
             return false;
@@ -47059,8 +47073,8 @@ module.exports = TrackballControls;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 
 const colors = {
-    landColor: 0x116622,
-    seaColor: 0x111144
+    landColor: 0x105520,
+    seaColor: 0x082044
 };
 /* harmony export (immutable) */ __webpack_exports__["a"] = colors;
 

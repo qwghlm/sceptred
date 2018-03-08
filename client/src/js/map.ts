@@ -48,10 +48,12 @@ export class MapView {
 
         this.updateMap = debounce(this._updateMap.bind(this), 500);
 
-        // Initialize the wrapper
+        // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
-        this.initializeCanvas();
+        this.initializeWorld();
+        this.initializeRenderer();
 
+        // Initialize the transforms within the world, and load
         this.initializeTransform();
         this.initializeLoad();
 
@@ -72,7 +74,7 @@ export class MapView {
         // TODO: Auto-resize on window resize
     }
 
-    initializeCanvas() {
+    initializeWorld() {
 
         // Add WebGL message...
         if (!Detector.webgl) {
@@ -114,6 +116,10 @@ export class MapView {
         var ambientLight = new THREE.AmbientLight(0x080808);
         scene.add(ambientLight);
 
+    }
+
+    initializeRenderer() {
+
         // Renderer
         var renderer = this.renderer = new THREE.WebGLRenderer({
             antialias: true,
@@ -127,7 +133,7 @@ export class MapView {
 
     }
 
-    // Setup transform from global to screen coordinates
+    // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
 
@@ -165,14 +171,23 @@ export class MapView {
             .then((json) => {
                 this.replaceEmpty(gridSquare);
                 let geometry = parseGridSquare(json, this.transform);
-                let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
-                mesh.name = 'filled-'+gridSquare;
-                this.addToMap(mesh);
-            });
+                geometry.computeBoundingBox();
 
+                // Add mesh for this
+                let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
+                mesh.name = 'land-'+gridSquare;
+                this.addToMap(mesh);
+
+                if (geometry.boundingBox.min.z < 0) {
+                    let sea = new THREE.Mesh(this.makeSquare(gridSquare),
+                        materials.meshLambert(colors.seaColor));
+                    sea.name = 'sea-' + gridSquare;
+                    this.addToMap(sea);
+                }
+            });
     }
 
-    loadEmpty(gridSquare: string) {
+    makeSquare(gridSquare:string) {
 
         // Get this grid square, scaled down to local size
         let square = getGridSquareSize(gridSquare).applyMatrix4(this.scale);
@@ -183,9 +198,15 @@ export class MapView {
         let coords = gridrefToCoords(gridSquare).applyMatrix4(this.transform);
         let geometry = new THREE.PlaneGeometry(square.x, square.y);
         geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z)
+        geometry.computeBoundingBox();
+        return geometry;
+
+    }
+
+    loadEmpty(gridSquare: string) {
 
         // Create a mesh out of it and add to map
-        let mesh = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
+        let mesh = new THREE.Mesh(this.makeSquare(gridSquare), materials.meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
 
@@ -229,7 +250,6 @@ export class MapView {
             .filter(d => {
                 var geometry = (<THREE.Mesh>d).geometry;
                 if (geometry) {
-                    geometry.computeBoundingBox();
                     return frustum.intersectsBox(geometry.boundingBox);
                 }
                 return false;
