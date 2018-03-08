@@ -46158,7 +46158,7 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_loader__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_scale__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__lib_grid__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__lib_utils__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__lib_utils__ = __webpack_require__(11);
 
 
 
@@ -46172,7 +46172,7 @@ class MapView {
     constructor(wrapper, config) {
         // Setup config
         this.config = config;
-        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__lib_utils__["a" /* debounce */])(this.updateMap.bind(this), 500);
+        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
         this.initializeCanvas();
@@ -46197,7 +46197,7 @@ class MapView {
         }
         // Setup camera
         var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 1, 10000);
-        camera.position.z = Math.min(this.width, this.height);
+        camera.position.z = Math.min(this.width, this.height) * 0.75;
         // Setup trackball controls
         var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"](camera, this.wrapper);
         controls.rotateSpeed = 1.0;
@@ -46299,9 +46299,26 @@ class MapView {
         requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
     }
-    updateMap() {
+    // Not usually called directly, but called by debounced version
+    _updateMap() {
+        // Calculate the frustum of this camera
+        var frustum = new __WEBPACK_IMPORTED_MODULE_0_three__["Frustum"]();
+        frustum.setFromMatrix(new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+        // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.scene.children
-            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty');
+            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty')
+            .filter(d => {
+            var geometry = d.geometry;
+            if (geometry) {
+                geometry.computeBoundingBox();
+                return frustum.intersectsBox(geometry.boundingBox);
+            }
+            return false;
+        });
+        // TODO Get where centre of view intersects z=0 plane and
+        // measure distance from there
+        const getDistance = (d) => d.geometry.boundingSphere.center.length();
+        emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
         emptyMeshes.forEach(d => {
             var id = d.name.split('-')[1];
             this.load(id);
@@ -47186,8 +47203,7 @@ function makeScale(scale) {
 
 
 /***/ }),
-/* 11 */,
-/* 12 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

@@ -39,12 +39,14 @@ export class MapView {
     scale: THREE.Matrix4;
     transform: THREE.Matrix4;
 
+    updateMap: () => void;
+
     constructor(wrapper: HTMLElement, config: Config) {
 
         // Setup config
         this.config = config;
 
-        this.updateMap = debounce(this.updateMap.bind(this), 500);
+        this.updateMap = debounce(this._updateMap.bind(this), 500);
 
         // Initialize the wrapper
         this.initializeWrapper(wrapper);
@@ -80,7 +82,7 @@ export class MapView {
 
         // Setup camera
         var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
-        camera.position.z = Math.min(this.width, this.height);
+        camera.position.z = Math.min(this.width, this.height)*0.75;
 
         // Setup trackball controls
         var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
@@ -161,9 +163,7 @@ export class MapView {
 
         this.loader.load(url)
             .then((json) => {
-
                 this.replaceEmpty(gridSquare);
-
                 let geometry = parseGridSquare(json, this.transform);
                 let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
                 mesh.name = 'filled-'+gridSquare;
@@ -215,17 +215,35 @@ export class MapView {
         this.controls.update();
     }
 
-    updateMap() {
+    // Not usually called directly, but called by debounced version
+    _updateMap() {
 
+        // Calculate the frustum of this camera
+        var frustum = new THREE.Frustum();
+        frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
+            this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+
+        // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.scene.children
-            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty');
+            .filter(d => d.type == "Mesh" && (<THREE.Mesh>d).geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty')
+            .filter(d => {
+                var geometry = (<THREE.Mesh>d).geometry;
+                if (geometry) {
+                    geometry.computeBoundingBox();
+                    return frustum.intersectsBox(geometry.boundingBox);
+                }
+                return false;
+            });
+
+        // TODO Get where centre of view intersects z=0 plane and
+        // measure distance from there
+
+        const getDistance = (d: THREE.Object3D) => (<THREE.Mesh>d).geometry.boundingSphere.center.length();
+        emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
 
         emptyMeshes.forEach(d => {
             var id = d.name.split('-')[1];
             this.load(id);
-        })
-
+        });
     }
-
-
 }
