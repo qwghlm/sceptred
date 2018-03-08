@@ -27,13 +27,14 @@ func handleIndex(c echo.Context) error {
 
 // Data
 
-type GridDataMeta struct {
+type gridData struct {
+    Meta gridDataMeta      `json:"meta"`
+    Data [][]float64       `json:"data"`
+}
+
+type gridDataMeta struct {
     SquareSize int         `json:"squareSize"`
     GridReference string   `json:"gridReference"`
-}
-type GridData struct {
-    Meta GridDataMeta      `json:"meta"`
-    Data [][]float64       `json:"data"`
 }
 
 func handleData(c echo.Context) error {
@@ -52,13 +53,12 @@ func handleData(c echo.Context) error {
     if err != nil {
         if os.IsNotExist(err) {
             return echo.NewHTTPError(http.StatusNoContent)
-        } else {
-            return err
         }
+        return err
     }
 
     // Value to return
-    ret := GridData{GridDataMeta{squareSize, strings.ToUpper(gridSquare)}, lines}
+    ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, lines}
     return c.JSON(http.StatusOK, ret)
 
 }
