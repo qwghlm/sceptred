@@ -40,6 +40,7 @@
     "handlebars-loader": "^1.6.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^22.2.2",
+    "jest-fetch-mock": "^1.4.2",
     "modernizr-loader": "^1.0.1",
     "node-sass": "^4.7.2",
     "postcss-loader": "^2.1.0",

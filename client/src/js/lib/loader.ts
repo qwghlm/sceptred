@@ -1,5 +1,5 @@
 // Loader
-import { GridData } from './data';
+import { GridData } from './types';
 
 // Constant we use further down
 const STATUS_LOADING = 0;

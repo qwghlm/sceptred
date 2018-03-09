@@ -11,7 +11,7 @@ module.exports = {
 
     "collectCoverage": true,
     "collectCoverageFrom": [
-      // "client/src/js/*.ts",
+      "client/src/js/*.ts",
       "client/src/js/lib/*.ts"
     ],
     "coverageDirectory": "./client/coverage",

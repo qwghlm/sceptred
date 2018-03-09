@@ -1,15 +1,7 @@
 // Functions for parsing data from the API
 import * as THREE from 'three';
 import { gridrefToCoords } from './grid';
-
-// Represents the grid data object we get back from the API
-export interface GridData {
-    meta: {
-        squareSize: number,
-        gridReference: string
-    },
-    data: number[][],
-}
+import { GridData } from './types';
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 export function parseGridSquare(data: GridData, transform: THREE.Matrix4) {

@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 import { parseGridSquare } from '../lib/data';
 
+jest.mock('../lib/grid', () => ({
+    gridrefToCoords: jest.fn(() => ({x:520000, y:270000}))
+}));
+
 test('parseGridSquare() works properly', () => {
 
     var transform = new THREE.Matrix4().identity();
