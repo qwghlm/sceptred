@@ -46129,7 +46129,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 document.addEventListener("DOMContentLoaded", function (e) {
     let element = document.querySelector('#map-view-wrapper');
-    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
+    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* Map */](element, {
         origin: [325000, 675000],
         heightFactor: 2,
         debug: true,
@@ -46149,16 +46149,58 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_data__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_loader__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_scale__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__lib_grid__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__lib_utils__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map_base__ = __webpack_require__(5);
+
+
+
+class Map extends __WEBPACK_IMPORTED_MODULE_2__map_base__["a" /* BaseMap */] {
+    initializeWorld() {
+        // Add WebGL message...
+        // TODO Maybe a less shonky way of this
+        if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
+            __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
+            throw Error("Cannot creat a WebGL instance, quitting");
+            // TODO Catch this result properly
+        }
+        super.initializeWorld();
+    }
+    initializeRenderer() {
+        // Renderer
+        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(this.width, this.height);
+        renderer.setClearColor(0x444444);
+        renderer.shadowMap.enabled = true;
+        this.wrapper.appendChild(renderer.domElement);
+    }
+    renderMap() {
+        this.renderer.render(this.scene, this.camera);
+        super.renderMap();
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Map;
+
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_constants__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_data__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_loader__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_scale__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_grid__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__lib_utils__ = __webpack_require__(12);
 
 
 
@@ -46167,12 +46209,11 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 
 
-
-class MapView {
+class BaseMap {
     constructor(wrapper, config) {
         // Setup config
         this.config = config;
-        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
+        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_7__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
         // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
         this.initializeWorld();
@@ -46192,11 +46233,6 @@ class MapView {
         // TODO: Auto-resize on window resize
     }
     initializeWorld() {
-        // Add WebGL message...
-        if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
-            __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
-            return; // TODO Raise an exception?
-        }
         // Setup camera
         var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 1, 10000);
         camera.position.z = Math.min(this.width, this.height) * 0.75;
@@ -46226,16 +46262,8 @@ class MapView {
         scene.add(ambientLight);
     }
     initializeRenderer() {
-        // Renderer
-        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
-            antialias: true,
-            alpha: true,
-        });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.width, this.height);
-        renderer.setClearColor(0x444444);
-        renderer.shadowMap.enabled = true;
-        this.wrapper.appendChild(renderer.domElement);
+        // This must be overridden
+        console.warn("initializeRenderer must be overridden");
     }
     // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
@@ -46246,16 +46274,16 @@ class MapView {
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_6__lib_scale__["a" /* makeScale */])(scale);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_6__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+        this.scale = Object(__WEBPACK_IMPORTED_MODULE_5__lib_scale__["a" /* makeScale */])(scale);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_5__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
-        this.loader = new __WEBPACK_IMPORTED_MODULE_5__lib_loader__["a" /* Loader */]();
+        this.loader = new __WEBPACK_IMPORTED_MODULE_4__lib_loader__["a" /* Loader */]();
         // Work out our origin
         var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["a" /* coordsToGridref */])(coords, 2);
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
-        Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+        Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
     }
     load(gridSquare) {
         var url = `/data/${gridSquare}`;
@@ -46265,14 +46293,14 @@ class MapView {
         this.loader.load(url)
             .then((json) => {
             this.replaceEmpty(gridSquare);
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_4__lib_data__["a" /* parseGridSquare */])(json, this.transform);
+            let geometry = Object(__WEBPACK_IMPORTED_MODULE_3__lib_data__["a" /* parseGridSquare */])(json, this.transform);
             geometry.computeBoundingBox();
             // Add mesh for this
-            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
+            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_2__lib_constants__["a" /* colors */].landColor));
             mesh.name = 'land-' + gridSquare;
             this.addToMap(mesh);
             if (geometry.boundingBox.min.z < 0) {
-                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
+                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_2__lib_constants__["a" /* colors */].seaColor));
                 sea.name = 'sea-' + gridSquare;
                 this.addToMap(sea);
             }
@@ -46280,11 +46308,11 @@ class MapView {
     }
     makeSquare(gridSquare) {
         // Get this grid square, scaled down to local size
-        let square = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
+        let square = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
         // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
         geometry.computeBoundingBox();
@@ -46292,7 +46320,7 @@ class MapView {
     }
     loadEmpty(gridSquare) {
         // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
     }
@@ -46307,7 +46335,6 @@ class MapView {
         this.renderMap();
     }
     renderMap() {
-        this.renderer.render(this.scene, this.camera);
         this.updateMap();
     }
     animateMap() {
@@ -46339,12 +46366,12 @@ class MapView {
         });
     }
 }
-/* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
+/* harmony export (immutable) */ __webpack_exports__["a"] = BaseMap;
 
 
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -46428,7 +46455,7 @@ if ( true ) {
 
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -47066,7 +47093,7 @@ module.exports = TrackballControls;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47110,7 +47137,7 @@ const materials = {
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47161,7 +47188,7 @@ function parseGridSquare(data, transform) {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47194,7 +47221,7 @@ class Loader {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47217,7 +47244,7 @@ function makeScale(scale) {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
