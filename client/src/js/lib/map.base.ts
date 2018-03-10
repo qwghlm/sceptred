@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import * as Stats from 'stats.js';
-import './vendor/TrackballControls';
+import '../vendor/TrackballControls';
 
-import { materials, colors } from './lib/constants';
-import { parseGridSquare } from './lib/data';
-import { Loader } from './lib/loader';
-import { makeTransform, makeScale } from './lib/scale';
+import { materials, colors } from './constants';
+import { parseGridSquare } from './data';
 import { coordsToGridref, gridrefToCoords,
-    getGridSquareSize, getSurroundingSquares} from './lib/grid';
-import { debounce } from './lib/utils';
+    getGridSquareSize, getSurroundingSquares} from './grid';
+import { Loader } from './loader';
+import { makeTransform, makeScale } from './scale';
+import { debounce } from './utils';
 
 interface Config {
     origin: number[],
@@ -18,14 +18,6 @@ interface Config {
 
 interface Geometries {
     [propName: string]: THREE.Geometry;
-}
-
-class DummyStats {
-    dom : null;
-
-    begin() {}
-    end() {}
-    showPanel() {}
 }
 
 export class BaseMap {
@@ -44,7 +36,6 @@ export class BaseMap {
     camera: THREE.PerspectiveCamera;
     controls: THREE.TrackballControls;
     scene: THREE.Scene;
-    stats: Stats | DummyStats;
 
     scale: THREE.Matrix4;
     transform: THREE.Matrix4;
@@ -128,21 +119,12 @@ export class BaseMap {
 
     }
 
-
     initializeRenderer() {
         // This must be overridden
-        console.warn("initializeRenderer must be overridden");
     }
 
     initializeDebugger() {
-        if (this.config.debug) {
-            this.stats = new Stats();
-            this.stats.showPanel(1);
-            (<HTMLElement>this.wrapper.parentNode).appendChild( this.stats.dom );
-        }
-        else {
-            this.stats = new DummyStats();
-        }
+        // This must be overridden
     }
 
 

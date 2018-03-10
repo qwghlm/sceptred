@@ -2,11 +2,20 @@ import * as THREE from 'three';
 import * as Modernizr from 'modernizr';
 
 // TODO Fix import error
-import { BaseMap } from './map.base';
+import { BaseMap } from './lib/map.base';
+
+class DummyStats {
+    dom : null;
+
+    begin() {}
+    end() {}
+    showPanel() {}
+}
 
 export class Map extends BaseMap {
 
     renderer: THREE.WebGLRenderer;
+    stats: Stats | DummyStats;
 
     initializeRenderer() {
 
@@ -28,6 +37,17 @@ export class Map extends BaseMap {
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
 
+    }
+
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new Stats();
+            this.stats.showPanel(1);
+            (<HTMLElement>this.wrapper.parentNode).appendChild( this.stats.dom );
+        }
+        else {
+            this.stats = new DummyStats();
+        }
     }
 
     onWindowResize() {

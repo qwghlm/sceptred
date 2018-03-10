@@ -20,6 +20,7 @@ export function gridrefToCoords(gridref: string) {
     // Convert grid letters into 100km-square indexes from false origin (grid square SV):
     var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
     var n100km = (19-Math.floor(letter1/5)*5) - Math.floor(letter2/5);
+
     if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
         throw new Error('Grid reference outside of UK');
     }
@@ -103,7 +104,13 @@ export function getSurroundingSquares(gridref: string, radius: number) {
             let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
 
             // Convert back into gridref
-            squares.push(coordsToGridref(coords, gridref.length - 2));
+            try {
+                let neighbor = coordsToGridref(coords, gridref.length - 2)
+                squares.push(neighbor);
+            }
+            catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
+            }
         }
     }
     return squares
