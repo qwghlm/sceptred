@@ -2702,7 +2702,12 @@ footer {
   text-align: center; }
 
 #map-view-wrapper {
-  max-width: 640px;
   margin: 0 auto; }
+  @media only screen and (max-width: 640px) {
+    #map-view-wrapper {
+      width: 100%; } }
+  @media only screen and (min-width: 641px) {
+    #map-view-wrapper {
+      max-width: 640px; } }
 
 /*# sourceMappingURL=index.css.map*/

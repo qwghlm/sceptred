@@ -46153,7 +46153,8 @@ document.addEventListener("DOMContentLoaded", function (e) {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_modernizr__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map_base__ = __webpack_require__(6);
 
- // TODO Fix error
+
+// TODO Fix import error
 
 class Map extends __WEBPACK_IMPORTED_MODULE_2__map_base__["a" /* BaseMap */] {
     initializeRenderer() {
@@ -46175,7 +46176,9 @@ class Map extends __WEBPACK_IMPORTED_MODULE_2__map_base__["a" /* BaseMap */] {
         this.wrapper.appendChild(renderer.domElement);
     }
     renderMap() {
+        this.stats.begin();
         this.renderer.render(this.scene, this.camera);
+        this.stats.end();
         super.renderMap();
     }
 }
@@ -46458,14 +46461,16 @@ else { delete window.Modernizr; }
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_constants__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_data__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_loader__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_scale__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_grid__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__lib_utils__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js__ = __webpack_require__(7);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_stats_js__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_data__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_loader__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_scale__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__lib_grid__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__lib_utils__ = __webpack_require__(13);
 
 
 
@@ -46474,12 +46479,18 @@ else { delete window.Modernizr; }
 
 
 
+
+class DummyStats {
+    begin() { }
+    end() { }
+    showPanel() { }
+}
 class BaseMap {
     constructor(wrapper, config) {
         // Setup config
         this.config = config;
         this.loaded = false;
-        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_7__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
+        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__lib_utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
         // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
         this.initializeWorld();
@@ -46490,6 +46501,7 @@ class BaseMap {
             console.error("Error initialising renderer, aborting load");
             return;
         }
+        this.initializeDebugger();
         // Initialize the transforms within the world, and load
         this.initializeTransform();
         this.initializeLoad();
@@ -46538,6 +46550,16 @@ class BaseMap {
         // This must be overridden
         console.warn("initializeRenderer must be overridden");
     }
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new __WEBPACK_IMPORTED_MODULE_1_stats_js__();
+            this.stats.showPanel(1);
+            this.wrapper.parentNode.appendChild(this.stats.dom);
+        }
+        else {
+            this.stats = new DummyStats();
+        }
+    }
     // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
@@ -46547,16 +46569,16 @@ class BaseMap {
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_5__lib_scale__["a" /* makeScale */])(scale);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_5__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+        this.scale = Object(__WEBPACK_IMPORTED_MODULE_6__lib_scale__["a" /* makeScale */])(scale);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_6__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
-        this.loader = new __WEBPACK_IMPORTED_MODULE_4__lib_loader__["a" /* Loader */]();
+        this.loader = new __WEBPACK_IMPORTED_MODULE_5__lib_loader__["a" /* Loader */]();
         // Work out our origin
         var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(coords, 2);
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
-        Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+        Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
     }
     load(gridSquare) {
         var url = `/data/${gridSquare}`;
@@ -46566,14 +46588,14 @@ class BaseMap {
         this.loader.load(url)
             .then((json) => {
             this.replaceEmpty(gridSquare);
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_3__lib_data__["a" /* parseGridSquare */])(json, this.transform);
+            let geometry = Object(__WEBPACK_IMPORTED_MODULE_4__lib_data__["a" /* parseGridSquare */])(json, this.transform);
             geometry.computeBoundingBox();
             // Add mesh for this
-            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_2__lib_constants__["a" /* colors */].landColor));
+            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
             mesh.name = 'land-' + gridSquare;
             this.addToMap(mesh);
             if (geometry.boundingBox.min.z < 0) {
-                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_2__lib_constants__["a" /* colors */].seaColor));
+                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].seaColor));
                 sea.name = 'sea-' + gridSquare;
                 this.addToMap(sea);
             }
@@ -46581,11 +46603,11 @@ class BaseMap {
     }
     makeSquare(gridSquare) {
         // Get this grid square, scaled down to local size
-        let square = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
+        let square = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
         // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
         geometry.computeBoundingBox();
@@ -46593,7 +46615,7 @@ class BaseMap {
     }
     loadEmpty(gridSquare) {
         // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
     }
@@ -46645,6 +46667,17 @@ class BaseMap {
 
 /***/ }),
 /* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// stats.js - http://github.com/mrdoob/stats.js
+(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
+u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
+1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
+b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
+
+
+/***/ }),
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -47282,7 +47315,7 @@ module.exports = TrackballControls;
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47326,7 +47359,7 @@ const materials = {
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47377,7 +47410,7 @@ function parseGridSquare(data, transform) {
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47410,7 +47443,7 @@ class Loader {
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47433,7 +47466,7 @@ function makeScale(scale) {
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";

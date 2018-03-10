@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import * as Stats from 'stats.js';
 import './vendor/TrackballControls';
 
 import { materials, colors } from './lib/constants';
@@ -19,6 +20,14 @@ interface Geometries {
     [propName: string]: THREE.Geometry;
 }
 
+class DummyStats {
+    dom : null;
+
+    begin() {}
+    end() {}
+    showPanel() {}
+}
+
 export class BaseMap {
 
     config: Config;
@@ -35,6 +44,7 @@ export class BaseMap {
     camera: THREE.PerspectiveCamera;
     controls: THREE.TrackballControls;
     scene: THREE.Scene;
+    stats: Stats | DummyStats;
 
     scale: THREE.Matrix4;
     transform: THREE.Matrix4;
@@ -59,6 +69,7 @@ export class BaseMap {
             console.error("Error initialising renderer, aborting load");
             return;
         }
+        this.initializeDebugger();
 
         // Initialize the transforms within the world, and load
         this.initializeTransform();
@@ -124,6 +135,18 @@ export class BaseMap {
         // This must be overridden
         console.warn("initializeRenderer must be overridden");
     }
+
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new Stats();
+            this.stats.showPanel(1);
+            (<HTMLElement>this.wrapper.parentNode).appendChild( this.stats.dom );
+        }
+        else {
+            this.stats = new DummyStats();
+        }
+    }
+
 
     // Setup transform from real-world to 3D world coordinates
     initializeTransform() {

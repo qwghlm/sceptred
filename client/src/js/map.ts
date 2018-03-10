@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import * as Modernizr from 'modernizr'; // TODO Fix error
+import * as Modernizr from 'modernizr';
+
+// TODO Fix import error
 import { BaseMap } from './map.base';
 
 export class Map extends BaseMap {
@@ -29,7 +31,9 @@ export class Map extends BaseMap {
     }
 
     renderMap() {
+        this.stats.begin();
         this.renderer.render(this.scene, this.camera);
+        this.stats.end();
         super.renderMap();
     }
 
