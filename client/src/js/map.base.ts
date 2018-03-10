@@ -84,13 +84,8 @@ export class BaseMap {
 
     initializeWrapper(wrapper: HTMLElement) {
 
-        var width = this.width = (wrapper.offsetWidth === 0) ? (<HTMLElement> wrapper.parentNode).offsetWidth : wrapper.offsetWidth;
-        var height = this.height = 0.8*width;
-
-        wrapper.style.height = height + 'px';
         this.wrapper = wrapper;
-
-        // TODO: Auto-resize on window resize
+        this.sizeWrapper();
     }
 
     initializeWorld() {
@@ -129,7 +124,10 @@ export class BaseMap {
         var ambientLight = new THREE.AmbientLight(0x080808);
         scene.add(ambientLight);
 
+        window.addEventListener('resize', this.onWindowResize.bind(this), false);
+
     }
+
 
     initializeRenderer() {
         // This must be overridden
@@ -173,6 +171,18 @@ export class BaseMap {
         this.load(gridSquare);
         getSurroundingSquares(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
 
+    }
+
+    sizeWrapper() {
+        var width = this.width = (this.wrapper.offsetWidth === 0) ? (<HTMLElement>this.wrapper.parentNode).offsetWidth : this.wrapper.offsetWidth;
+        var height = this.height = 0.8*width;
+        this.wrapper.style.height = height + 'px';
+    }
+
+    onWindowResize() {
+        this.sizeWrapper();
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
     }
 
     load(gridSquare: string) {

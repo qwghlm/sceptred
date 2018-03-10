@@ -46175,6 +46175,10 @@ class Map extends __WEBPACK_IMPORTED_MODULE_2__map_base__["a" /* BaseMap */] {
         renderer.shadowMap.enabled = true;
         this.wrapper.appendChild(renderer.domElement);
     }
+    onWindowResize() {
+        super.onWindowResize();
+        this.renderer.setSize(this.width, this.height);
+    }
     renderMap() {
         this.stats.begin();
         this.renderer.render(this.scene, this.camera);
@@ -46511,11 +46515,8 @@ class BaseMap {
         this.loaded = true;
     }
     initializeWrapper(wrapper) {
-        var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
-        var height = this.height = 0.8 * width;
-        wrapper.style.height = height + 'px';
         this.wrapper = wrapper;
-        // TODO: Auto-resize on window resize
+        this.sizeWrapper();
     }
     initializeWorld() {
         // Setup camera
@@ -46545,6 +46546,7 @@ class BaseMap {
         scene.add(spotLight);
         var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
         scene.add(ambientLight);
+        window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
     initializeRenderer() {
         // This must be overridden
@@ -46579,6 +46581,16 @@ class BaseMap {
         var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
         Object(__WEBPACK_IMPORTED_MODULE_7__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+    }
+    sizeWrapper() {
+        var width = this.width = (this.wrapper.offsetWidth === 0) ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
+        var height = this.height = 0.8 * width;
+        this.wrapper.style.height = height + 'px';
+    }
+    onWindowResize() {
+        this.sizeWrapper();
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
     }
     load(gridSquare) {
         var url = `/data/${gridSquare}`;

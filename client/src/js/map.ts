@@ -30,6 +30,11 @@ export class Map extends BaseMap {
 
     }
 
+    onWindowResize() {
+        super.onWindowResize();
+        this.renderer.setSize(this.width, this.height);
+    }
+
     renderMap() {
         this.stats.begin();
         this.renderer.render(this.scene, this.camera);
