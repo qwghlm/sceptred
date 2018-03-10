@@ -41,7 +41,7 @@ func instance() *echo.Echo {
     e.GET("/", handleIndex)
     e.GET("/data/:gridSquare", handleData)
     e.Static("/static", SRCPATH + "/client/dist/")
-
+    e.File("/favicon.ico", SRCPATH + "/client/dist/favicon.ico")
     return e
 }
 

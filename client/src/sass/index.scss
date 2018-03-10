@@ -5,7 +5,11 @@ body {
 }
 
 header {
-    padding: 1rem 0 1rem 1rem;
+
+    background: url(../img/logo.svg) 5px 5px no-repeat;
+    background-size: 46px 46px;
+
+    padding: 1rem 0 1rem 56px;
     margin-bottom: 2rem;
     border-bottom: 1px solid #333;
 

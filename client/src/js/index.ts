@@ -1,4 +1,5 @@
 import '../sass/index.scss';
+import '../favicon.ico';
 import { Map } from './map';
 
 document.addEventListener("DOMContentLoaded", function(e) {
@@ -8,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function(e) {
         {
             origin : [325000, 675000],
             heightFactor: 2,
-            debug : true,
+            debug : false,
         }
     );
 });
