@@ -1,26 +1,19 @@
 import * as THREE from 'three';
-import * as Detector from 'three/examples/js/Detector';
+import * as Modernizr from 'modernizr'; // TODO Fix error
 import { BaseMap } from './map.base';
 
 export class Map extends BaseMap {
 
     renderer: THREE.WebGLRenderer;
 
-    initializeWorld() {
-
-        // Add WebGL message...
-        // TODO Maybe a less shonky way of this
-        if (!Detector.webgl) {
-            Detector.addGetWebGLMessage();
-            throw Error("Cannot creat a WebGL instance, quitting")
-            // TODO Catch this result properly
-        }
-
-        super.initializeWorld()
-
-    }
-
     initializeRenderer() {
+
+        // Add WebGL error message...
+        if (!Modernizr.webgl) {
+            this.wrapper.removeAttribute("style")
+            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>"
+            throw Error("Cannot create a WebGL instance, quitting")
+        }
 
         // Renderer
         var renderer = this.renderer = new THREE.WebGLRenderer({

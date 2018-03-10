@@ -26,6 +26,8 @@ export class BaseMap {
     width: number;
     height: number;
 
+    loaded: boolean;
+
     wrapper: HTMLElement;
     loader: Loader;
     geometries: Geometries;
@@ -43,13 +45,20 @@ export class BaseMap {
 
         // Setup config
         this.config = config;
+        this.loaded = false;
 
         this.updateMap = debounce(this._updateMap.bind(this), 500);
 
         // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
         this.initializeWorld();
-        this.initializeRenderer();
+        try {
+            this.initializeRenderer();
+        }
+        catch (error) {
+            console.error("Error initialising renderer, aborting load");
+            return;
+        }
 
         // Initialize the transforms within the world, and load
         this.initializeTransform();
@@ -58,6 +67,7 @@ export class BaseMap {
         // Render the map
         this.renderMap();
         this.animateMap();
+        this.loaded = true;
 
     }
 
