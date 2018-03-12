@@ -46067,13 +46067,14 @@ function coordsToGridref(coords, digits = 10) {
     const northingsString = northings.toString().padStart(digits, '0');
     return `${gridSquare}${eastingsString}${northingsString}`;
 }
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
 function getGridSquareSize(gridref) {
-    // Construct a vector for the grid square size, based on the accuracy
-    // (i.e. string length) of the reference, in meters
     var accuracy = (12 - gridref.length) / 2;
     var squareSize = Math.pow(10, accuracy);
     return new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0);
 }
+// Return an array of grid references for the squares surrounding this one
 function getSurroundingSquares(gridref, radius) {
     // Origin of this square
     var origin = gridrefToCoords(gridref);
@@ -46092,7 +46093,13 @@ function getSurroundingSquares(gridref, radius) {
             // i.e. C = O + xX + yY
             let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
             // Convert back into gridref
-            squares.push(coordsToGridref(coords, 2));
+            try {
+                let neighbor = coordsToGridref(coords, gridref.length - 2);
+                squares.push(neighbor);
+            }
+            catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
+            }
         }
     }
     return squares;
@@ -46123,15 +46130,18 @@ function numberToLetter(n) {
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__sass_index_scss__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__map__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__favicon_ico__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map__ = __webpack_require__(5);
+
 
 
 document.addEventListener("DOMContentLoaded", function (e) {
     let element = document.querySelector('#map-view-wrapper');
-    new __WEBPACK_IMPORTED_MODULE_1__map__["a" /* MapView */](element, {
+    new __WEBPACK_IMPORTED_MODULE_2__map__["a" /* Map */](element, {
         origin: [325000, 675000],
         heightFactor: 2,
-        debug: true,
+        debug: false,
     });
 });
 
@@ -46144,18 +46154,355 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 /***/ }),
 /* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__lib_constants__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__lib_scale__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__lib_data__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__lib_grid__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_modernizr__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_map_base__ = __webpack_require__(7);
+
+
+// TODO Fix import error
+
+class DummyStats {
+    begin() { }
+    end() { }
+    showPanel() { }
+}
+class Map extends __WEBPACK_IMPORTED_MODULE_2__lib_map_base__["a" /* BaseMap */] {
+    initializeRenderer() {
+        // Add WebGL error message...
+        if (!__WEBPACK_IMPORTED_MODULE_1_modernizr__["webgl"]) {
+            this.wrapper.removeAttribute("style");
+            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
+            throw Error("Cannot create a WebGL instance, quitting");
+        }
+        // Renderer
+        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(this.width, this.height);
+        renderer.setClearColor(0x444444);
+        renderer.shadowMap.enabled = true;
+        this.wrapper.appendChild(renderer.domElement);
+    }
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new Stats();
+            this.stats.showPanel(1);
+            this.wrapper.parentNode.appendChild(this.stats.dom);
+        }
+        else {
+            this.stats = new DummyStats();
+        }
+    }
+    onWindowResize() {
+        super.onWindowResize();
+        this.renderer.setSize(this.width, this.height);
+    }
+    renderMap() {
+        this.stats.begin();
+        this.renderer.render(this.scene, this.camera);
+        this.stats.end();
+        super.renderMap();
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Map;
+
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports) {
+
+;(function(window){
+var hadGlobal = 'Modernizr' in window;
+var oldGlobal = window.Modernizr;
+/*!
+ * modernizr v3.5.0
+ * Build https://modernizr.com/download?-webgl-dontmin
+ *
+ * Copyright (c)
+ *  Faruk Ates
+ *  Paul Irish
+ *  Alex Sexton
+ *  Ryan Seddon
+ *  Patrick Kettner
+ *  Stu Cox
+ *  Richard Herrera
+
+ * MIT License
+ */
+
+/*
+ * Modernizr tests which native CSS3 and HTML5 features are available in the
+ * current UA and makes the results available to you in two ways: as properties on
+ * a global `Modernizr` object, and as classes on the `<html>` element. This
+ * information allows you to progressively enhance your pages with a granular level
+ * of control over the experience.
+*/
+
+;(function(window, document, undefined){
+  var tests = [];
+  
+
+  /**
+   *
+   * ModernizrProto is the constructor for Modernizr
+   *
+   * @class
+   * @access public
+   */
+
+  var ModernizrProto = {
+    // The current version, dummy
+    _version: '3.5.0',
+
+    // Any settings that don't work as separate modules
+    // can go in here as configuration.
+    _config: {
+      'classPrefix': '',
+      'enableClasses': true,
+      'enableJSClass': true,
+      'usePrefixes': true
+    },
+
+    // Queue of tests
+    _q: [],
+
+    // Stub these for people who are listening
+    on: function(test, cb) {
+      // I don't really think people should do this, but we can
+      // safe guard it a bit.
+      // -- NOTE:: this gets WAY overridden in src/addTest for actual async tests.
+      // This is in case people listen to synchronous tests. I would leave it out,
+      // but the code to *disallow* sync tests in the real version of this
+      // function is actually larger than this.
+      var self = this;
+      setTimeout(function() {
+        cb(self[test]);
+      }, 0);
+    },
+
+    addTest: function(name, fn, options) {
+      tests.push({name: name, fn: fn, options: options});
+    },
+
+    addAsyncTest: function(fn) {
+      tests.push({name: null, fn: fn});
+    }
+  };
+
+  
+
+  // Fake some of Object.create so we can force non test results to be non "own" properties.
+  var Modernizr = function() {};
+  Modernizr.prototype = ModernizrProto;
+
+  // Leak modernizr globally when you `require` it rather than force it here.
+  // Overwrite name so constructor name is nicer :D
+  Modernizr = new Modernizr();
+
+  
+
+  var classes = [];
+  
+
+  /**
+   * is returns a boolean if the typeof an obj is exactly type.
+   *
+   * @access private
+   * @function is
+   * @param {*} obj - A thing we want to check the type of
+   * @param {string} type - A string to compare the typeof against
+   * @returns {boolean}
+   */
+
+  function is(obj, type) {
+    return typeof obj === type;
+  }
+  ;
+
+  /**
+   * Run through all tests and detect their support in the current UA.
+   *
+   * @access private
+   */
+
+  function testRunner() {
+    var featureNames;
+    var feature;
+    var aliasIdx;
+    var result;
+    var nameIdx;
+    var featureName;
+    var featureNameSplit;
+
+    for (var featureIdx in tests) {
+      if (tests.hasOwnProperty(featureIdx)) {
+        featureNames = [];
+        feature = tests[featureIdx];
+        // run the test, throw the return value into the Modernizr,
+        // then based on that boolean, define an appropriate className
+        // and push it into an array of classes we'll join later.
+        //
+        // If there is no name, it's an 'async' test that is run,
+        // but not directly added to the object. That should
+        // be done with a post-run addTest call.
+        if (feature.name) {
+          featureNames.push(feature.name.toLowerCase());
+
+          if (feature.options && feature.options.aliases && feature.options.aliases.length) {
+            // Add all the aliases into the names list
+            for (aliasIdx = 0; aliasIdx < feature.options.aliases.length; aliasIdx++) {
+              featureNames.push(feature.options.aliases[aliasIdx].toLowerCase());
+            }
+          }
+        }
+
+        // Run the test, or use the raw value if it's not a function
+        result = is(feature.fn, 'function') ? feature.fn() : feature.fn;
+
+
+        // Set each of the names on the Modernizr object
+        for (nameIdx = 0; nameIdx < featureNames.length; nameIdx++) {
+          featureName = featureNames[nameIdx];
+          // Support dot properties as sub tests. We don't do checking to make sure
+          // that the implied parent tests have been added. You must call them in
+          // order (either in the test, or make the parent test a dependency).
+          //
+          // Cap it to TWO to make the logic simple and because who needs that kind of subtesting
+          // hashtag famous last words
+          featureNameSplit = featureName.split('.');
+
+          if (featureNameSplit.length === 1) {
+            Modernizr[featureNameSplit[0]] = result;
+          } else {
+            // cast to a Boolean, if not one already
+            if (Modernizr[featureNameSplit[0]] && !(Modernizr[featureNameSplit[0]] instanceof Boolean)) {
+              Modernizr[featureNameSplit[0]] = new Boolean(Modernizr[featureNameSplit[0]]);
+            }
+
+            Modernizr[featureNameSplit[0]][featureNameSplit[1]] = result;
+          }
+
+          classes.push((result ? '' : 'no-') + featureNameSplit.join('-'));
+        }
+      }
+    }
+  }
+  ;
+
+  /**
+   * docElement is a convenience wrapper to grab the root element of the document
+   *
+   * @access private
+   * @returns {HTMLElement|SVGElement} The root element of the document
+   */
+
+  var docElement = document.documentElement;
+  
+
+  /**
+   * A convenience helper to check if the document we are running in is an SVG document
+   *
+   * @access private
+   * @returns {boolean}
+   */
+
+  var isSVG = docElement.nodeName.toLowerCase() === 'svg';
+  
+
+  /**
+   * createElement is a convenience wrapper around document.createElement. Since we
+   * use createElement all over the place, this allows for (slightly) smaller code
+   * as well as abstracting away issues with creating elements in contexts other than
+   * HTML documents (e.g. SVG documents).
+   *
+   * @access private
+   * @function createElement
+   * @returns {HTMLElement|SVGElement} An HTML or SVG element
+   */
+
+  function createElement() {
+    if (typeof document.createElement !== 'function') {
+      // This is the case in IE7, where the type of createElement is "object".
+      // For this reason, we cannot call apply() as Object is not a Function.
+      return document.createElement(arguments[0]);
+    } else if (isSVG) {
+      return document.createElementNS.call(document, 'http://www.w3.org/2000/svg', arguments[0]);
+    } else {
+      return document.createElement.apply(document, arguments);
+    }
+  }
+
+  ;
+/*!
+{
+  "name": "WebGL",
+  "property": "webgl",
+  "caniuse": "webgl",
+  "tags": ["webgl", "graphics"],
+  "polyfills": ["jebgl", "cwebgl", "iewebgl"]
+}
+!*/
+
+  Modernizr.addTest('webgl', function() {
+    var canvas = createElement('canvas');
+    var supports = 'probablySupportsContext' in canvas ? 'probablySupportsContext' :  'supportsContext';
+    if (supports in canvas) {
+      return canvas[supports]('webgl') || canvas[supports]('experimental-webgl');
+    }
+    return 'WebGLRenderingContext' in window;
+  });
+
+
+  // Run each test
+  testRunner();
+
+  delete ModernizrProto.addTest;
+  delete ModernizrProto.addAsyncTest;
+
+  // Run the things that are supposed to run after the tests
+  for (var i = 0; i < Modernizr._q.length; i++) {
+    Modernizr._q[i]();
+  }
+
+  // Leak Modernizr namespace
+  window.Modernizr = Modernizr;
+
+
+;
+
+})(window, document);
+module.exports = window.Modernizr;
+if (hadGlobal) { window.Modernizr = oldGlobal; }
+else { delete window.Modernizr; }
+})(window);
+
+/***/ }),
+/* 7 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__data__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__grid__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__loader__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__scale__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__utils__ = __webpack_require__(13);
 
 
 
@@ -46163,35 +46510,40 @@ document.addEventListener("DOMContentLoaded", function (e) {
 
 
 
-class MapView {
+
+class BaseMap {
     constructor(wrapper, config) {
         // Setup config
         this.config = config;
-        // Initialize the wrapper
+        this.loaded = false;
+        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_7__utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
+        // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
-        this.initializeCanvas();
+        this.initializeWorld();
+        try {
+            this.initializeRenderer();
+        }
+        catch (error) {
+            console.error("Error initialising renderer, aborting load");
+            return;
+        }
+        this.initializeDebugger();
+        // Initialize the transforms within the world, and load
         this.initializeTransform();
         this.initializeLoad();
         // Render the map
         this.renderMap();
         this.animateMap();
+        this.loaded = true;
     }
     initializeWrapper(wrapper) {
-        var width = this.width = (wrapper.offsetWidth === 0) ? wrapper.parentNode.offsetWidth : wrapper.offsetWidth;
-        var height = this.height = 0.8 * width;
-        wrapper.style.height = height + 'px';
         this.wrapper = wrapper;
-        // TODO: Auto-resize on window resize
+        this.sizeWrapper();
     }
-    initializeCanvas() {
-        // Add WebGL message...
-        if (!__WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["webgl"]) {
-            __WEBPACK_IMPORTED_MODULE_1_three_examples_js_Detector__["addGetWebGLMessage"]();
-            return; // TODO Raise an exception?
-        }
+    initializeWorld() {
         // Setup camera
         var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 1, 10000);
-        camera.position.z = Math.min(this.width, this.height);
+        camera.position.z = Math.min(this.width, this.height) * 0.75;
         // Setup trackball controls
         var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"](camera, this.wrapper);
         controls.rotateSpeed = 1.0;
@@ -46216,18 +46568,15 @@ class MapView {
         scene.add(spotLight);
         var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
         scene.add(ambientLight);
-        // Renderer
-        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
-            antialias: true,
-            alpha: true,
-        });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.width, this.height);
-        renderer.setClearColor(0x444444);
-        renderer.shadowMap.enabled = true;
-        this.wrapper.appendChild(renderer.domElement);
+        window.addEventListener('resize', this.onWindowResize.bind(this), false);
     }
-    // Setup transform from global to screen coordinates
+    initializeRenderer() {
+        // This must be overridden
+    }
+    initializeDebugger() {
+        // This must be overridden
+    }
+    // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
         const metresPerPixel = 50; // TODO
         // Calculate the world origin (i.e. where the world is centred),
@@ -46236,139 +46585,114 @@ class MapView {
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["a" /* makeScale */])(scale);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_4__lib_scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+        this.scale = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["a" /* makeScale */])(scale);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
+        this.loader = new __WEBPACK_IMPORTED_MODULE_5__loader__["a" /* Loader */]();
         // Work out our origin
         var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["a" /* coordsToGridref */])(coords, 2);
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
-        Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["c" /* getSurroundingSquares */])(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
+        Object(__WEBPACK_IMPORTED_MODULE_4__grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+    }
+    sizeWrapper() {
+        var width = this.width = (this.wrapper.offsetWidth === 0) ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
+        var height = this.height = 0.8 * width;
+        this.wrapper.style.height = height + 'px';
+    }
+    onWindowResize() {
+        this.sizeWrapper();
+        this.camera.aspect = this.width / this.height;
+        this.camera.updateProjectionMatrix();
     }
     load(gridSquare) {
-        Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["a" /* loadGridSquare */])(gridSquare)
+        var url = `/data/${gridSquare}`;
+        if (this.loader.isLoading(url)) {
+            return;
+        }
+        this.loader.load(url)
             .then((json) => {
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_5__lib_data__["b" /* parseGridSquare */])(json, this.transform);
-            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__lib_constants__["a" /* colors */].landColor));
+            this.replaceEmpty(gridSquare);
+            let geometry = Object(__WEBPACK_IMPORTED_MODULE_3__data__["a" /* parseGridSquare */])(json, this.transform);
+            geometry.computeBoundingBox();
+            // Add mesh for this
+            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].landColor));
+            mesh.name = 'land-' + gridSquare;
             this.addToMap(mesh);
+            if (geometry.boundingBox.min.z < 0) {
+                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].seaColor));
+                sea.name = 'sea-' + gridSquare;
+                this.addToMap(sea);
+            }
         });
     }
-    loadEmpty(gridSquare) {
+    makeSquare(gridSquare) {
         // Get this grid square, scaled down to local size
-        let square = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
+        let square = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
         // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_6__lib_grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+        geometry.computeBoundingBox();
+        return geometry;
+    }
+    loadEmpty(gridSquare) {
         // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__lib_constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
+    }
+    replaceEmpty(gridSquare) {
+        var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == "empty-" + gridSquare);
+        if (toReplace.length) {
+            toReplace.forEach(d => this.scene.remove(d));
+        }
     }
     addToMap(mesh) {
         this.scene.add(mesh);
         this.renderMap();
     }
     renderMap() {
-        this.renderer.render(this.scene, this.camera);
+        this.updateMap();
     }
     animateMap() {
         requestAnimationFrame(this.animateMap.bind(this));
         this.controls.update();
     }
+    // Not usually called directly, but called by debounced version
+    _updateMap() {
+        // Calculate the frustum of this camera
+        var frustum = new __WEBPACK_IMPORTED_MODULE_0_three__["Frustum"]();
+        frustum.setFromMatrix(new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+        // Find every empty mesh on screen that is displayed in the camera
+        var emptyMeshes = this.scene.children
+            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty')
+            .filter(d => {
+            var geometry = d.geometry;
+            if (geometry) {
+                return frustum.intersectsBox(geometry.boundingBox);
+            }
+            return false;
+        });
+        // TODO Get where centre of view intersects z=0 plane and
+        // measure distance from there
+        const getDistance = (d) => d.geometry.boundingSphere.center.length();
+        emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
+        emptyMeshes.forEach(d => {
+            var id = d.name.split('-')[1];
+            this.load(id);
+        });
+    }
 }
-/* harmony export (immutable) */ __webpack_exports__["a"] = MapView;
+/* harmony export (immutable) */ __webpack_exports__["a"] = BaseMap;
 
 
 
 /***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * @author alteredq / http://alteredqualia.com/
- * @author mr.doob / http://mrdoob.com/
- */
-
-var Detector = {
-
-	canvas: !! window.CanvasRenderingContext2D,
-	webgl: ( function () {
-
-		try {
-
-			var canvas = document.createElement( 'canvas' ); return !! ( window.WebGLRenderingContext && ( canvas.getContext( 'webgl' ) || canvas.getContext( 'experimental-webgl' ) ) );
-
-		} catch ( e ) {
-
-			return false;
-
-		}
-
-	} )(),
-	workers: !! window.Worker,
-	fileapi: window.File && window.FileReader && window.FileList && window.Blob,
-
-	getWebGLErrorMessage: function () {
-
-		var element = document.createElement( 'div' );
-		element.id = 'webgl-error-message';
-		element.style.fontFamily = 'monospace';
-		element.style.fontSize = '13px';
-		element.style.fontWeight = 'normal';
-		element.style.textAlign = 'center';
-		element.style.background = '#fff';
-		element.style.color = '#000';
-		element.style.padding = '1.5em';
-		element.style.width = '400px';
-		element.style.margin = '5em auto 0';
-
-		if ( ! this.webgl ) {
-
-			element.innerHTML = window.WebGLRenderingContext ? [
-				'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
-				'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.'
-			].join( '\n' ) : [
-				'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
-				'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.'
-			].join( '\n' );
-
-		}
-
-		return element;
-
-	},
-
-	addGetWebGLMessage: function ( parameters ) {
-
-		var parent, id, element;
-
-		parameters = parameters || {};
-
-		parent = parameters.parent !== undefined ? parameters.parent : document.body;
-		id = parameters.id !== undefined ? parameters.id : 'oldie';
-
-		element = Detector.getWebGLErrorMessage();
-		element.id = id;
-
-		parent.appendChild( element );
-
-	}
-
-};
-
-// browserify support
-if ( true ) {
-
-	module.exports = Detector;
-
-}
-
-
-/***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -47006,15 +47330,15 @@ module.exports = TrackballControls;
 
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 
 const colors = {
-    landColor: 0x116622,
-    seaColor: 0x111144
+    landColor: 0x105520,
+    seaColor: 0x082044
 };
 /* harmony export (immutable) */ __webpack_exports__["a"] = colors;
 
@@ -47050,45 +47374,16 @@ const materials = {
 
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
-/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-
-// Scaling function - from the origin, scale up by scale, and then translate to the origin
-function makeTransform(fOrigin, tOrigin, scale) {
-    // Reverse translate from, then scale, then translate to
-    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
-    var mMiddle = makeScale(scale);
-    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
-    // Reverse order as per rules of matrix multiplication
-    return mEnd.multiply(mMiddle).multiply(mStart);
-}
-function makeScale(scale) {
-    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
-}
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = loadGridSquare;
-/* harmony export (immutable) */ __webpack_exports__["b"] = parseGridSquare;
+/* harmony export (immutable) */ __webpack_exports__["a"] = parseGridSquare;
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(1);
 // Functions for parsing data from the API
 
 
-// Simple loader with fetch()
-function loadGridSquare(id) {
-    return fetch(`/data/${id}`)
-        .then(response => response.json());
-}
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 function parseGridSquare(data, transform) {
     const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["d" /* gridrefToCoords */])(data.meta.gridReference);
@@ -47126,6 +47421,109 @@ function parseGridSquare(data, transform) {
     geometry.setIndex(faces);
     geometry.computeVertexNormals();
     return geometry;
+}
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// Constant we use further down
+const STATUS_LOADING = 0;
+const STATUS_LOADED = 1;
+const STATUS_MISSING = -1;
+const STATUS_EMPTY = -2;
+class Loader {
+    constructor() {
+        this.status = {};
+    }
+    isLoading(url) {
+        return url in this.status && this.status[url] === STATUS_LOADING;
+    }
+    load(url) {
+        // Update status for this URL
+        this.status[url] = STATUS_LOADING;
+        //
+        return fetch(url)
+            .then((response) => {
+            this.status[url] = STATUS_LOADED; // TODO After the promise?
+            return response.json();
+        });
+        // TODO Additional handling of empty or missing response?
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Loader;
+
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
+/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+// Scaling function - from the origin, scale up by scale, and then translate to the origin
+function makeTransform(fOrigin, tOrigin, scale) {
+    // Reverse translate from, then scale, then translate to
+    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
+    var mMiddle = makeScale(scale);
+    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    // Reverse order as per rules of matrix multiplication
+    return mEnd.multiply(mMiddle).multiply(mStart);
+}
+function makeScale(scale) {
+    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
+}
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* unused harmony export isMobile */
+/* unused harmony export isTouch */
+/* unused harmony export isRetina */
+/* unused harmony export extend */
+/* harmony export (immutable) */ __webpack_exports__["a"] = debounce;
+// Feature detection
+/* istanbul ignore next */
+function isMobile() {
+    return window.matchMedia("(max-width: 640px)").matches;
+}
+/* istanbul ignore next */
+function isTouch() {
+    return 'ontouchstart' in window || !!navigator.maxTouchPoints;
+}
+/* istanbul ignore next */
+function isRetina() {
+    return window.devicePixelRatio && window.devicePixelRatio > 1.3;
+}
+// http://youmightnotneedjquery.com/
+function extend(...args) {
+    let out = args[0] || {};
+    for (var i = 1; i < args.length; i++) {
+        if (!args[i])
+            continue;
+        for (var key in args[i]) {
+            /* istanbul ignore else  */
+            if (args[i].hasOwnProperty(key)) {
+                out[key] = args[i][key];
+            }
+        }
+    }
+    return out;
+}
+function debounce(func, wait = 50) {
+    let h;
+    return () => {
+        clearTimeout(h);
+        h = setTimeout(() => func(), wait);
+    };
 }
 
 

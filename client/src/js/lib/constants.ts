@@ -5,8 +5,8 @@ interface MaterialsLookup {
 }
 
 export const colors = {
-    landColor : 0x116622,
-    seaColor : 0x111144
+    landColor : 0x105520,
+    seaColor : 0x082044
 };
 
 export const materials: MaterialsLookup = {

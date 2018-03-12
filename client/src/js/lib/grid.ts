@@ -20,6 +20,7 @@ export function gridrefToCoords(gridref: string) {
     // Convert grid letters into 100km-square indexes from false origin (grid square SV):
     var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
     var n100km = (19-Math.floor(letter1/5)*5) - Math.floor(letter2/5);
+
     if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
         throw new Error('Grid reference outside of UK');
     }
@@ -70,14 +71,15 @@ export function coordsToGridref(coords: THREE.Vector3, digits=10) {
 
 }
 
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
 export function getGridSquareSize(gridref: string) {
-    // Construct a vector for the grid square size, based on the accuracy
-    // (i.e. string length) of the reference, in meters
     var accuracy = (12 - gridref.length)/2;
     var squareSize = Math.pow(10, accuracy);
     return new THREE.Vector3(squareSize, squareSize, 0);
 }
 
+// Return an array of grid references for the squares surrounding this one
 export function getSurroundingSquares(gridref: string, radius: number) {
 
     // Origin of this square
@@ -102,7 +104,13 @@ export function getSurroundingSquares(gridref: string, radius: number) {
             let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
 
             // Convert back into gridref
-            squares.push(coordsToGridref(coords, 2));
+            try {
+                let neighbor = coordsToGridref(coords, gridref.length - 2)
+                squares.push(neighbor);
+            }
+            catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
+            }
         }
     }
     return squares

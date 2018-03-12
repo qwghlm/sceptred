@@ -30,3 +30,11 @@ export function extend(...args: any[]) {
   }
   return out;
 }
+
+export function debounce(func: () => void, wait = 50) {
+  let h: number;
+  return () => {
+    clearTimeout(h);
+    h = setTimeout(() => func(), wait);
+  };
+}

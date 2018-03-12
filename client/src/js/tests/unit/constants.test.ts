@@ -1,4 +1,4 @@
-import {colors, materials} from '../lib/constants';
+import {colors, materials} from '../../lib/constants';
 
 test('Test materials', () => {
     expect(materials.phong(0xffffff).type).toBe('MeshPhongMaterial');

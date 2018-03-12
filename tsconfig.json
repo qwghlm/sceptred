@@ -8,6 +8,7 @@
     "strictFunctionTypes": true,
     "module": "es6",
     "target": "es2017",
+    "moduleResolution": "node",
   },
   "include": [
     "./client/src/js/index.ts"

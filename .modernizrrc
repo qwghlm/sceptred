@@ -1,0 +1,6 @@
+{
+  "options": [
+
+  ],
+  "feature-detects": ["webgl"]
+}

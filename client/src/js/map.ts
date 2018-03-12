@@ -1,111 +1,29 @@
 import * as THREE from 'three';
-import * as Detector from 'three/examples/js/Detector';
-import './vendor/TrackballControls';
+import * as Modernizr from 'modernizr';
 
-import { materials, colors } from './lib/constants';
-import { makeTransform, makeScale } from './lib/scale';
-import { loadGridSquare, parseGridSquare } from './lib/data';
-import { coordsToGridref, gridrefToCoords,
-    getGridSquareSize, getSurroundingSquares} from './lib/grid';
+// TODO Fix import error
+import { BaseMap } from './lib/map.base';
 
-interface Config {
-    origin: number[],
-    heightFactor: number, // TODO
-    debug: boolean,
+class DummyStats {
+    dom : null;
+    begin() {}
+    end() {}
+    showPanel() {}
 }
 
-interface Geometries {
-    [propName: string]: THREE.Geometry;
-}
+export class Map extends BaseMap {
 
-export class MapView {
-
-    config: Config;
-
-    width: number;
-    height: number;
-
-    wrapper: HTMLElement;
-    geometries: Geometries;
-
-    camera: THREE.PerspectiveCamera;
-    controls: THREE.TrackballControls;
-    scene: THREE.Scene;
     renderer: THREE.WebGLRenderer;
+    stats: Stats | DummyStats;
 
-    scale: THREE.Matrix4;
-    transform: THREE.Matrix4;
+    initializeRenderer() {
 
-    constructor(wrapper: HTMLElement, config: Config) {
-
-        // Setup config
-        this.config = config;
-
-        // Initialize the wrapper
-        this.initializeWrapper(wrapper);
-        this.initializeCanvas();
-
-        this.initializeTransform();
-        this.initializeLoad();
-
-        // Render the map
-        this.renderMap();
-        this.animateMap();
-
-    }
-
-    initializeWrapper(wrapper: HTMLElement) {
-
-        var width = this.width = (wrapper.offsetWidth === 0) ? (<HTMLElement> wrapper.parentNode).offsetWidth : wrapper.offsetWidth;
-        var height = this.height = 0.8*width;
-
-        wrapper.style.height = height + 'px';
-        this.wrapper = wrapper;
-
-        // TODO: Auto-resize on window resize
-    }
-
-    initializeCanvas() {
-
-        // Add WebGL message...
-        if (!Detector.webgl) {
-            Detector.addGetWebGLMessage();
-            return; // TODO Raise an exception?
+        // Add WebGL error message...
+        if (!Modernizr.webgl) {
+            this.wrapper.removeAttribute("style")
+            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>"
+            throw Error("Cannot create a WebGL instance, quitting")
         }
-
-        // Setup camera
-        var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
-        camera.position.z = Math.min(this.width, this.height);
-
-        // Setup trackball controls
-        var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
-        controls.rotateSpeed = 1.0;
-        controls.zoomSpeed = 1.2;
-        controls.panSpeed = 0.8;
-        controls.noZoom = false;
-        controls.noPan = false;
-        controls.staticMoving = true;
-        controls.dynamicDampingFactor = 0.3;
-
-        // Shift+ drag to zoom, Ctrl+ drag to pan
-        controls.keys = [-1, 16, 17];
-        controls.addEventListener('change', this.renderMap.bind(this));
-
-        // Setup scene
-        var scene = this.scene = new THREE.Scene();
-
-        // Lights
-        var light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(1, 1, 1);
-        scene.add(light);
-
-        var spotLight = new THREE.SpotLight(0xffffff);
-        spotLight.position.set(-1000, -1000, 1000);
-        spotLight.castShadow = true;
-        scene.add(spotLight);
-
-        var ambientLight = new THREE.AmbientLight(0x080808);
-        scene.add(ambientLight);
 
         // Renderer
         var renderer = this.renderer = new THREE.WebGLRenderer({
@@ -120,112 +38,27 @@ export class MapView {
 
     }
 
-    // Setup transform from global to screen coordinates
-    initializeTransform() {
-        const metresPerPixel = 50; // TODO
-
-        // Calculate the world origin (i.e. where the world is centred),
-        // the model origin (i.e (0, 0, 0))
-        // and the scale to get from one to the other
-        var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-        var modelOrigin = new THREE.Vector3(0, 0, 0);
-        var scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, this.config.heightFactor/metresPerPixel);
-
-        this.scale = makeScale(scale);
-        this.transform = makeTransform(worldOrigin, modelOrigin, scale);
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new Stats();
+            this.stats.showPanel(1);
+            (<HTMLElement>this.wrapper.parentNode).appendChild( this.stats.dom );
+        }
+        else {
+            this.stats = new DummyStats();
+        }
     }
 
-    initializeLoad() {
-
-        // Work out our origin
-        var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
-        var gridSquare = coordsToGridref(coords, 2);
-        this.load(gridSquare);
-        getSurroundingSquares(gridSquare, 1).forEach(gridref => this.loadEmpty(gridref));
-
-    }
-
-    load(gridSquare: string) {
-
-        loadGridSquare(gridSquare)
-            .then((json) => {
-                let geometry = parseGridSquare(json, this.transform);
-                let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
-                this.addToMap(mesh);
-            });
-
-    }
-
-    loadEmpty(gridSquare: string) {
-
-        // Get this grid square, scaled down to local size
-        let square = getGridSquareSize(gridSquare).applyMatrix4(this.scale);
-
-        // Calculate position of square
-        // The half-square addition at the end is to take into account PlaneGeometry
-        // is created around the centre of the square and we want it to be bottom-left
-        let coords = gridrefToCoords(gridSquare).applyMatrix4(this.transform);
-        let geometry = new THREE.PlaneGeometry(square.x, square.y);
-        geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z)
-
-        // Create a mesh out of it and add to map
-        let mesh = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
-        this.addToMap(mesh);
-
-    }
-
-    addToMap(mesh: THREE.Mesh) {
-        this.scene.add(mesh);
-        this.renderMap();
+    onWindowResize() {
+        super.onWindowResize();
+        this.renderer.setSize(this.width, this.height);
     }
 
     renderMap() {
+        this.stats.begin();
         this.renderer.render(this.scene, this.camera);
+        this.stats.end();
+        super.renderMap();
     }
-
-    animateMap() {
-        requestAnimationFrame(this.animateMap.bind(this));
-        this.controls.update();
-    }
-
-
-    // doCheck() {
-
-    //     // TODO Debounce this function
-    //     var inverseTransform = new THREE.Matrix4();
-    //     inverseTransform.getInverse(this.transform);
-
-    //     var raycaster = new THREE.Raycaster();
-
-    //     var extremes = [
-    //         new THREE.Vector2(1, 1),
-    //         new THREE.Vector2(1, -1),
-    //         new THREE.Vector2(-1, -1),
-    //         new THREE.Vector2(-1, 1),
-    //     ]
-
-    //     var corners = extremes.map(v => {
-
-    //         // Work out where each corner intersects the plane
-    //         raycaster.setFromCamera(v, this.camera );
-    //         var intersects = raycaster.intersectObject(this.scene.children[3], false);
-
-    //         if (intersects.length === 0) {
-    //             // Er...
-    //             return false;
-    //         }
-    //         else {
-    //             var coords = new Float32Array([
-    //                 intersects[0].point.x,
-    //                 intersects[0].point.y,
-    //                 intersects[0].point.z,
-    //             ]);
-    //             var buffer = new THREE.BufferAttribute(coords, coords.length);
-    //             return inverseTransform.applyToBufferAttribute(buffer).array;
-    //         }
-    //     });
-    //     console.log(corners);
-    // }
-
 
 }

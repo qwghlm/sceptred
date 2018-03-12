@@ -137,7 +137,7 @@ module.exports = function(env, caller) {
                 },
 
                 {
-                    test: /\.(png|jpe?g|gif|svg|csv|json|mp4|webm)$/,
+                    test: /\.(png|jpe?g|gif|webm|svg|ico)$/,
                     use: [
                         {
                             loader: "file-loader",

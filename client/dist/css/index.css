@@ -2687,7 +2687,9 @@ body {
   font-family: Roboto, sans-serif; }
 
 header {
-  padding: 1rem 0 1rem 1rem;
+  background: url(../img/logo.svg) 8px 8px no-repeat;
+  background-size: 40px 40px;
+  padding: 1rem 0 1rem 56px;
   margin-bottom: 2rem;
   border-bottom: 1px solid #333;
   text-transform: uppercase;
@@ -2702,7 +2704,12 @@ footer {
   text-align: center; }
 
 #map-view-wrapper {
-  max-width: 640px;
   margin: 0 auto; }
+  @media only screen and (max-width: 640px) {
+    #map-view-wrapper {
+      width: 100%; } }
+  @media only screen and (min-width: 641px) {
+    #map-view-wrapper {
+      max-width: 640px; } }
 
 /*# sourceMappingURL=index.css.map*/
