@@ -15,6 +15,7 @@ if (headless) {
         '--headless',
         '--hide-scrollbars',
         '--mute-audio',
+        '--no-sandbox',
     ];
 }
 
