@@ -4,13 +4,16 @@ import (
     "archive/zip"
     "bufio"
     "encoding/gob"
+    "errors"
     "fmt"
+    "io/ioutil"
     "math"
     "path"
     "path/filepath"
     "os"
     "strings"
     "strconv"
+    "time"
 )
 
 // Processes the OS data into a more usable Gob format
@@ -20,6 +23,8 @@ const outputDirectory = "../terrain/gob/";
 
 func main() {
 
+    start := time.Now()
+
     // Check to see if data exists
     if _, err := os.Stat(sourceDirectory); os.IsNotExist(err) {
         fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
@@ -27,6 +32,9 @@ func main() {
     }
 
     filepath.Walk(sourceDirectory, walker)
+
+    elapsed := time.Since(start)
+    fmt.Printf("Walk took %v\n", elapsed)
 
 }
 
@@ -38,24 +46,30 @@ func walker(pathname string, info os.FileInfo, err error) error {
         if basename == "data" {
             return nil;
         }
-        if basename != "nt" { // TODO Remove this
-            return filepath.SkipDir
-        }
-    } else {
-        if basename[len(basename)-4:] != ".zip" {
-            return nil;
-        }
 
-        squareValues, _ := parseZippedAsc(pathname)
-        gridSquare := strings.Split(basename, "_")[0]
-        outputFile := outputDirectory + gridSquare[:2] + ".gob"
+        outputFile := outputDirectory + basename + ".gob"
         data := make(map[string][][]int16)
-        _ = load(outputFile, &data)
-        data[gridSquare] = squareValues
-        _ = save(outputFile, data)
 
+        files, _ := ioutil.ReadDir(pathname)
+        for _, file := range files {
+
+            filename := file.Name()
+            if filename[len(filename)-4:] != ".zip" {
+                continue;
+            }
+            squareValues, err := parseZippedAsc(pathname + "/" + filename)
+            gridSquare := strings.Split(filename, "_")[0]
+            if err != nil {
+                fmt.Printf("Skipping %v\n", gridSquare)
+                continue;
+            }
+            data[gridSquare] = squareValues
+
+        }
+        save(outputFile, data)
+
+        return filepath.SkipDir
     }
-
     return nil
 }
 
@@ -152,9 +166,9 @@ func parseZippedAsc(dataPath string) ([][]int16, error) {
         ret[i] = retLine
     }
 
-    // TODO Is this worth it? Check Inchkeith
+    // Don't bother saving anything entirely underwater
     if maxVal < 0 {
-        fmt.Println(dataPath, maxVal)
+        return nil, errors.New("No land data")
     }
     return ret, nil
 
