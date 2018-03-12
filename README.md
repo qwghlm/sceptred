@@ -24,7 +24,13 @@ To install Webpack and associated build & test functionality, run:
 
 ## Developing
 
-TBD
+To run the dev server, run:
+
+    $ npm run serve
+
+To actively develop on the TypeScript, i.e. run Webpack in watch mode, run:
+
+    $ npm run watch
 
 ## Testing
 

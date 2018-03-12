@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { gridrefToCoords, coordsToGridref, getGridSquareSize, getSurroundingSquares } from '../lib/grid';
+import { gridrefToCoords, coordsToGridref, getGridSquareSize, getSurroundingSquares } from '../../lib/grid';
 
 test('gridrefToCoords() works properly', () => {
 

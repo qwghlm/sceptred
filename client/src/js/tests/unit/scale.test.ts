@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeTransform } from '../lib/scale';
+import { makeTransform } from '../../lib/scale';
 
 // Test our transform function (meters -> pixels) works
 test('Test makeScale', () => {

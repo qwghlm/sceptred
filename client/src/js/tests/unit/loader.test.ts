@@ -1,4 +1,4 @@
-import { Loader } from '../lib/loader';
+import { Loader } from '../../lib/loader';
 
 global.fetch = require('jest-fetch-mock');
 

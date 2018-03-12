@@ -1,4 +1,4 @@
-import { BaseMap } from '../lib/map.base';
+import { BaseMap } from '../../lib/map.base';
 
 const origin = [325000, 675000]; // Center of NT27
 const gridReference = 'NT';
@@ -11,7 +11,7 @@ const mockData = {
 }
 
 //
-jest.mock('../lib/loader', () => {
+jest.mock('../../lib/loader', () => {
     class Loader{
         isLoading() { return false; }
         load() {

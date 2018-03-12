@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { parseGridSquare } from '../lib/data';
+import { parseGridSquare } from '../../lib/data';
 
-jest.mock('../lib/grid', () => ({
+jest.mock('../../lib/grid', () => ({
     gridrefToCoords: jest.fn(() => ({x:520000, y:270000}))
 }));
 
