@@ -46,6 +46,7 @@
     "modernizr-loader": "^1.0.1",
     "node-sass": "^4.7.2",
     "postcss-loader": "^2.1.0",
+    "puppeteer": "^1.1.1",
     "sass-loader": "^6.0.6",
     "ts-jest": "^22.0.4",
     "ts-loader": "^3.5.0",
