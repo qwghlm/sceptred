@@ -34,12 +34,12 @@ beforeAll(async () => {
         if (error.message == 'net::ERR_CONNECTION_REFUSED') {
             console.warn("Firing up server...");
             proc = spawn("fresh", { cwd: procwd });
-            proc.stderr.on('data', (data) => {
-                console.error(`stderr: ${data}`);
-            });
-            proc.stdout.on('data', (data) => {
-                console.log(`stdout: ${data}`);
-            });
+            // proc.stderr.on('data', (data) => {
+            //     console.error(`stderr: ${data}`);
+            // });
+            // proc.stdout.on('data', (data) => {
+            //     console.log(`stdout: ${data}`);
+            // });
             await page.waitFor(5000); // TODO Await server online?
         }
         else {
