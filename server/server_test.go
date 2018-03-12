@@ -57,4 +57,7 @@ func TestMissingSquare(t *testing.T) {
     code, _ := request(t, "GET", "/data/aa00", nil)
     assert.Equal(t, http.StatusNoContent, code)
 
+    code, _ = request(t, "GET", "/data/nt38", nil)
+    assert.Equal(t, http.StatusNoContent, code)
+
 }
