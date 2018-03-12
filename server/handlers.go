@@ -49,7 +49,7 @@ func handleData(c echo.Context) error {
     allSquares := make(map[string][][]int16)
     err := loadGob(SRCPATH + "/server/terrain/gob/" + gridSquare[:2] + ".gob", &allSquares)
     if err != nil {
-        return err
+        return echo.NewHTTPError(http.StatusNoContent, nil)
     }
 
     squares := allSquares[gridSquare]

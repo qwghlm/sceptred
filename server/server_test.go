@@ -37,26 +37,24 @@ func Test404(t *testing.T) {
 
 }
 
-// FIXME: Tests do not work yet in CI!
-//
-// func TestData(t *testing.T) {
+func TestData(t *testing.T) {
 
-//     code, body := request(t, "GET", "/data/nt27", nil)
-//     assert.Equal(t, http.StatusOK, code)
-//     assert.Contains(t, body, "-2.1,-2.1")
+    code, body := request(t, "GET", "/data/nt27", nil)
+    assert.Equal(t, http.StatusOK, code)
+    assert.Contains(t, body, "-2,-2")
 
-// }
+}
 
-// func TestInvalidData(t *testing.T) {
+func TestInvalidData(t *testing.T) {
 
-//     code, _ := request(t, "GET", "/data/xxxx", nil)
-//     assert.Equal(t, http.StatusBadRequest, code)
+    code, _ := request(t, "GET", "/data/xxxx", nil)
+    assert.Equal(t, http.StatusBadRequest, code)
 
-// }
+}
 
-// func TestMissingSquare(t *testing.T) {
+func TestMissingSquare(t *testing.T) {
 
-//     code, _ := request(t, "GET", "/data/aa00", nil)
-//     assert.Equal(t, http.StatusNoContent, code)
+    code, _ := request(t, "GET", "/data/aa00", nil)
+    assert.Equal(t, http.StatusNoContent, code)
 
-// }
+}
