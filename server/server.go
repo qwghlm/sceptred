@@ -1,7 +1,6 @@
 package main
 
 import (
-    "fmt"
     "go/build"
     "html/template"
     "io"
@@ -46,12 +45,6 @@ func instance() *echo.Echo {
 }
 
 func main() {
-
-    // Check to see if data exists
-    if _, err := os.Stat(SRCPATH + "/terrain/data"); os.IsNotExist(err) {
-        fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
-        os.Exit(1)
-    }
 
     // Setup instance and add logging middleware
     e := instance()

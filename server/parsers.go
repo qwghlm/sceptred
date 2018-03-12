@@ -1,6 +1,7 @@
 package main
 
 import (
+    "encoding/gob"
     "encoding/json"
     "io/ioutil"
     "os"
@@ -18,3 +19,13 @@ func parseJSON(path string) (interface{}, error) {
     return ret, err
 }
 
+// Decode Gob file
+func loadGob(path string, object interface{}) error {
+    file, err := os.Open(path)
+    if err == nil {
+        decoder := gob.NewDecoder(file)
+        err = decoder.Decode(object)
+    }
+    file.Close()
+    return err
+}

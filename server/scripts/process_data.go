@@ -25,12 +25,13 @@ func main() {
 
     start := time.Now()
 
-    // Check to see if data exists
+    // Check to see if data exists first
     if _, err := os.Stat(sourceDirectory); os.IsNotExist(err) {
         fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
         os.Exit(1)
     }
 
+    // Walk through the data directory
     filepath.Walk(sourceDirectory, walker)
 
     elapsed := time.Since(start)
@@ -40,16 +41,22 @@ func main() {
 
 func walker(pathname string, info os.FileInfo, err error) error {
 
+    // Get the directory name
     basename := path.Base(pathname)
 
     if info.IsDir() {
+
+        // If it is the data directory, walk down one level
         if basename == "data" {
             return nil;
         }
 
+        // Create a new Gob file for this directory's data, and a mapping for it
+        // to go to
         outputFile := outputDirectory + basename + ".gob"
         data := make(map[string][][]int16)
 
+        // Go through each ZIP file...
         files, _ := ioutil.ReadDir(pathname)
         for _, file := range files {
 
@@ -57,17 +64,24 @@ func walker(pathname string, info os.FileInfo, err error) error {
             if filename[len(filename)-4:] != ".zip" {
                 continue;
             }
+
+            // Parse zipped file and get the square values. If an error occurs, skip & log
             squareValues, err := parseZippedAsc(pathname + "/" + filename)
             gridSquare := strings.Split(filename, "_")[0]
             if err != nil {
                 fmt.Printf("Skipping %v\n", gridSquare)
                 continue;
             }
+
+            // Set the data for this grid square
             data[gridSquare] = squareValues
 
         }
+
+        // Save the Gob file
         save(outputFile, data)
 
+        // Return
         return filepath.SkipDir
     }
     return nil
@@ -79,17 +93,6 @@ func save(path string, object interface{}) error {
     if err == nil {
         encoder := gob.NewEncoder(file)
         encoder.Encode(object)
-    }
-    file.Close()
-    return err
- }
-
-// Decode Gob file
-func load(path string, object interface{}) error {
-    file, err := os.Open(path)
-    if err == nil {
-        decoder := gob.NewDecoder(file)
-        err = decoder.Decode(object)
     }
     file.Close()
     return err

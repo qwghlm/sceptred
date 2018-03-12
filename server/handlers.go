@@ -1,12 +1,9 @@
 package main
 
 import (
-    "fmt"
     "net/http"
-    "os"
     "regexp"
     "strings"
-    "strconv"
 
     "github.com/labstack/echo"
 )
@@ -29,7 +26,7 @@ func handleIndex(c echo.Context) error {
 
 type gridData struct {
     Meta gridDataMeta      `json:"meta"`
-    Data [][]float64       `json:"data"`
+    Data [][]int16         `json:"data"`
 }
 
 type gridDataMeta struct {
@@ -47,18 +44,21 @@ func handleData(c echo.Context) error {
         return echo.NewHTTPError(http.StatusBadRequest)
     }
 
-    // Check for path
+    // Get the big grid square's data
     squareSize := 50
-    lines, err := parseZippedAsc(gridSquare)
+    allSquares := make(map[string][][]int16)
+    err := loadGob(SRCPATH + "/server/terrain/gob/" + gridSquare[:2] + ".gob", &allSquares)
     if err != nil {
-        if os.IsNotExist(err) {
-            return echo.NewHTTPError(http.StatusNoContent)
-        }
         return err
     }
 
+    squares := allSquares[gridSquare]
+    if squares == nil {
+        return echo.NewHTTPError(http.StatusNoContent, nil)
+    }
+
     // Value to return
-    ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, lines}
+    ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, squares}
     return c.JSON(http.StatusOK, ret)
 
 }
