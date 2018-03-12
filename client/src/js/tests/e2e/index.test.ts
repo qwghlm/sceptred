@@ -34,9 +34,10 @@ beforeAll(async () => {
         if (error.message == 'net::ERR_CONNECTION_REFUSED') {
             console.warn("Firing up server...");
             proc = spawn("fresh", { cwd: procwd });
-            await page.waitFor(4000);
+            await page.waitFor(5000);
         }
         else {
+            console.error("Error: " + error.message);
             throw error;
         }
     }
