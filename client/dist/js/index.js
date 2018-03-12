@@ -46008,14 +46008,24 @@ function LensFlare() {
 
 /***/ }),
 /* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["d"] = gridrefToCoords;
-/* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
-/* harmony export (immutable) */ __webpack_exports__["b"] = getGridSquareSize;
-/* harmony export (immutable) */ __webpack_exports__["c"] = getSurroundingSquares;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.gridrefToCoords = gridrefToCoords;
+exports.coordsToGridref = coordsToGridref;
+exports.getGridSquareSize = getGridSquareSize;
+exports.getSurroundingSquares = getSurroundingSquares;
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
@@ -46030,8 +46040,8 @@ function gridrefToCoords(gridref) {
     var letter1 = letterToNumber(gridref.substr(0, 1));
     var letter2 = letterToNumber(gridref.substr(1, 1));
     // Convert grid letters into 100km-square indexes from false origin (grid square SV):
-    var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
-    var n100km = (19 - Math.floor(letter1 / 5) * 5) - Math.floor(letter2 / 5);
+    var e100km = (letter1 - 2) % 5 * 5 + letter2 % 5;
+    var n100km = 19 - Math.floor(letter1 / 5) * 5 - Math.floor(letter2 / 5);
     if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
         throw new Error('Grid reference outside of UK');
     }
@@ -46039,50 +46049,53 @@ function gridrefToCoords(gridref) {
     var numbers = gridref.slice(2);
     var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
     // Standardise to 10-digit refs (metres)
-    var vector = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
+    var vector = new THREE.Vector3(parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
     return vector;
 }
 // Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
-function coordsToGridref(coords, digits = 10) {
+function coordsToGridref(coords) {
+    var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
+
     if (digits % 2 !== 0 || digits < 0 || digits > 16) {
         throw new RangeError('Invalid precision ‘' + digits + '’');
     }
     // Get the 100km-grid indices
-    let eastings = coords.x;
-    let northings = coords.y;
-    var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
+    var eastings = coords.x;
+    var northings = coords.y;
+    var e100k = Math.floor(eastings / 100000),
+        n100k = Math.floor(northings / 100000);
     if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
         throw new Error("Co-ordinates are not within UK National Grid");
     }
     // Translate those into numeric equivalents of the grid letters
-    var number1 = (19 - n100k) - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number1 = 19 - n100k - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
     var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
     var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
     // Strip 100km-grid indices from easting & northing, and reduce precision
     digits /= 2;
-    eastings = Math.floor((eastings % 100000) / Math.pow(10, 5 - digits));
-    northings = Math.floor((northings % 100000) / Math.pow(10, 5 - digits));
+    eastings = Math.floor(eastings % 100000 / Math.pow(10, 5 - digits));
+    northings = Math.floor(northings % 100000 / Math.pow(10, 5 - digits));
     // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
-    const eastingsString = eastings.toString().padStart(digits, '0');
-    const northingsString = northings.toString().padStart(digits, '0');
-    return `${gridSquare}${eastingsString}${northingsString}`;
+    var eastingsString = eastings.toString().padStart(digits, '0');
+    var northingsString = northings.toString().padStart(digits, '0');
+    return '' + gridSquare + eastingsString + northingsString;
 }
 // Return a vector for the grid square size, based on the accuracy
 // (i.e. string length) of the reference, in meters
 function getGridSquareSize(gridref) {
     var accuracy = (12 - gridref.length) / 2;
     var squareSize = Math.pow(10, accuracy);
-    return new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0);
+    return new THREE.Vector3(squareSize, squareSize, 0);
 }
 // Return an array of grid references for the squares surrounding this one
 function getSurroundingSquares(gridref, radius) {
     // Origin of this square
     var origin = gridrefToCoords(gridref);
     // Get X and Y vectors for one square along and one up
-    var xStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, getGridSquareSize(gridref).y, 0);
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
     // Go for radius around in both X and Y directions
-    let squares = [];
+    var squares = [];
     for (var x = -radius; x <= radius; x++) {
         for (var y = -radius; y <= radius; y++) {
             // Skip the centre
@@ -46091,13 +46104,12 @@ function getSurroundingSquares(gridref, radius) {
             }
             // Calculate the origin of the square X and Y steps away from the origin
             // i.e. C = O + xX + yY
-            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
             // Convert back into gridref
             try {
-                let neighbor = coordsToGridref(coords, gridref.length - 2);
+                var neighbor = coordsToGridref(coords, gridref.length - 2);
                 squares.push(neighbor);
-            }
-            catch (error) {
+            } catch (error) {
                 // Do nothing, square may be e.g. outside of the national grid and unmappable
             }
         }
@@ -46112,39 +46124,35 @@ function letterToNumber(letter) {
     }
     var index = letter.toUpperCase().charCodeAt(0) - 65;
     // As I is not used, if greater than I, return one less
-    return (index > 7) ? index - 1 : index;
+    return index > 7 ? index - 1 : index;
 }
 function numberToLetter(n) {
     // Compensate for skipped 'I' and build grid letter-pairs
-    if (n > 7)
-        n++;
+    if (n > 7) n++;
     return String.fromCharCode(n + 65);
 }
 
-
 /***/ }),
 /* 2 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__sass_index_scss__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__favicon_ico__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map__ = __webpack_require__(5);
 
 
+__webpack_require__(3);
+
+__webpack_require__(4);
+
+var _map = __webpack_require__(5);
 
 document.addEventListener("DOMContentLoaded", function (e) {
-    let element = document.querySelector('#map-view-wrapper');
-    new __WEBPACK_IMPORTED_MODULE_2__map__["a" /* Map */](element, {
+    var element = document.querySelector('#map-view-wrapper');
+    new _map.Map(element, {
         origin: [325000, 675000],
         heightFactor: 2,
-        debug: false,
+        debug: true
     });
 });
-
 
 /***/ }),
 /* 3 */
@@ -46160,65 +46168,124 @@ module.exports = __webpack_require__.p + "favicon.ico";
 
 /***/ }),
 /* 5 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_modernizr__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_map_base__ = __webpack_require__(7);
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Map = undefined;
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 // TODO Fix import error
 
-class DummyStats {
-    begin() { }
-    end() { }
-    showPanel() { }
-}
-class Map extends __WEBPACK_IMPORTED_MODULE_2__lib_map_base__["a" /* BaseMap */] {
-    initializeRenderer() {
-        // Add WebGL error message...
-        if (!__WEBPACK_IMPORTED_MODULE_1_modernizr__["webgl"]) {
-            this.wrapper.removeAttribute("style");
-            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
-            throw Error("Cannot create a WebGL instance, quitting");
-        }
-        // Renderer
-        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
-            antialias: true,
-            alpha: true,
-        });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.width, this.height);
-        renderer.setClearColor(0x444444);
-        renderer.shadowMap.enabled = true;
-        this.wrapper.appendChild(renderer.domElement);
-    }
-    initializeDebugger() {
-        if (this.config.debug) {
-            this.stats = new Stats();
-            this.stats.showPanel(1);
-            this.wrapper.parentNode.appendChild(this.stats.dom);
-        }
-        else {
-            this.stats = new DummyStats();
-        }
-    }
-    onWindowResize() {
-        super.onWindowResize();
-        this.renderer.setSize(this.width, this.height);
-    }
-    renderMap() {
-        this.stats.begin();
-        this.renderer.render(this.scene, this.camera);
-        this.stats.end();
-        super.renderMap();
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Map;
 
+var _three = __webpack_require__(0);
 
+var THREE = _interopRequireWildcard(_three);
+
+var _stats = __webpack_require__(17);
+
+var _stats2 = _interopRequireDefault(_stats);
+
+var _modernizr = __webpack_require__(6);
+
+var Modernizr = _interopRequireWildcard(_modernizr);
+
+var _map = __webpack_require__(7);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DummyStats = function () {
+    function DummyStats() {
+        _classCallCheck(this, DummyStats);
+    }
+
+    _createClass(DummyStats, [{
+        key: 'begin',
+        value: function begin() {}
+    }, {
+        key: 'end',
+        value: function end() {}
+    }, {
+        key: 'showPanel',
+        value: function showPanel() {}
+    }]);
+
+    return DummyStats;
+}();
+
+var Map = exports.Map = function (_BaseMap) {
+    _inherits(Map, _BaseMap);
+
+    function Map() {
+        _classCallCheck(this, Map);
+
+        return _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
+    }
+
+    _createClass(Map, [{
+        key: 'initializeRenderer',
+        value: function initializeRenderer() {
+            // Add WebGL error message...
+            if (!Modernizr.webgl) {
+                this.wrapper.removeAttribute("style");
+                this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
+                throw Error("Cannot create a WebGL instance, quitting");
+            }
+            // Renderer
+            var renderer = this.renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(this.width, this.height);
+            renderer.setClearColor(0x444444);
+            renderer.shadowMap.enabled = true;
+            this.wrapper.appendChild(renderer.domElement);
+        }
+    }, {
+        key: 'initializeDebugger',
+        value: function initializeDebugger() {
+            if (this.config.debug) {
+                this.stats = new _stats2.default();
+                this.stats.showPanel(1);
+                this.stats.dom.className = 'debug-stats';
+                this.wrapper.parentNode.appendChild(this.stats.dom);
+            } else {
+                this.stats = new DummyStats();
+            }
+        }
+    }, {
+        key: 'onWindowResize',
+        value: function onWindowResize() {
+            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'onWindowResize', this).call(this);
+            this.renderer.setSize(this.width, this.height);
+        }
+    }, {
+        key: 'renderMap',
+        value: function renderMap() {
+            this.stats.begin();
+            this.renderer.render(this.scene, this.camera);
+            this.stats.end();
+            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'renderMap', this).call(this);
+        }
+    }]);
+
+    return Map;
+}(_map.BaseMap);
 
 /***/ }),
 /* 6 */
@@ -46491,39 +46558,54 @@ else { delete window.Modernizr; }
 
 /***/ }),
 /* 7 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__ = __webpack_require__(8);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__data__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__grid__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__loader__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__scale__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__utils__ = __webpack_require__(13);
 
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.BaseMap = undefined;
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _three = __webpack_require__(0);
 
+var THREE = _interopRequireWildcard(_three);
 
+__webpack_require__(8);
 
+var _constants = __webpack_require__(9);
 
-class BaseMap {
-    constructor(wrapper, config) {
+var _data = __webpack_require__(10);
+
+var _grid = __webpack_require__(1);
+
+var _loader = __webpack_require__(11);
+
+var _scale = __webpack_require__(12);
+
+var _utils = __webpack_require__(13);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var BaseMap = exports.BaseMap = function () {
+    function BaseMap(wrapper, config) {
+        _classCallCheck(this, BaseMap);
+
         // Setup config
         this.config = config;
         this.loaded = false;
-        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_7__utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
+        this.updateMap = (0, _utils.debounce)(this._updateMap.bind(this), 500);
         // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
         this.initializeWorld();
         try {
             this.initializeRenderer();
-        }
-        catch (error) {
+        } catch (error) {
             console.error("Error initialising renderer, aborting load");
             return;
         }
@@ -46536,160 +46618,212 @@ class BaseMap {
         this.animateMap();
         this.loaded = true;
     }
-    initializeWrapper(wrapper) {
-        this.wrapper = wrapper;
-        this.sizeWrapper();
-    }
-    initializeWorld() {
-        // Setup camera
-        var camera = this.camera = new __WEBPACK_IMPORTED_MODULE_0_three__["PerspectiveCamera"](70, this.width / this.height, 1, 10000);
-        camera.position.z = Math.min(this.width, this.height) * 0.75;
-        // Setup trackball controls
-        var controls = this.controls = new __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"](camera, this.wrapper);
-        controls.rotateSpeed = 1.0;
-        controls.zoomSpeed = 1.2;
-        controls.panSpeed = 0.8;
-        controls.noZoom = false;
-        controls.noPan = false;
-        controls.staticMoving = true;
-        controls.dynamicDampingFactor = 0.3;
-        // Shift+ drag to zoom, Ctrl+ drag to pan
-        controls.keys = [-1, 16, 17];
-        controls.addEventListener('change', this.renderMap.bind(this));
-        // Setup scene
-        var scene = this.scene = new __WEBPACK_IMPORTED_MODULE_0_three__["Scene"]();
-        // Lights
-        var light = new __WEBPACK_IMPORTED_MODULE_0_three__["DirectionalLight"](0xffffff);
-        light.position.set(1, 1, 1);
-        scene.add(light);
-        var spotLight = new __WEBPACK_IMPORTED_MODULE_0_three__["SpotLight"](0xffffff);
-        spotLight.position.set(-1000, -1000, 1000);
-        spotLight.castShadow = true;
-        scene.add(spotLight);
-        var ambientLight = new __WEBPACK_IMPORTED_MODULE_0_three__["AmbientLight"](0x080808);
-        scene.add(ambientLight);
-        window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    }
-    initializeRenderer() {
-        // This must be overridden
-    }
-    initializeDebugger() {
-        // This must be overridden
-    }
-    // Setup transform from real-world to 3D world coordinates
-    initializeTransform() {
-        const metresPerPixel = 50; // TODO
-        // Calculate the world origin (i.e. where the world is centred),
-        // the model origin (i.e (0, 0, 0))
-        // and the scale to get from one to the other
-        var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
-        var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["a" /* makeScale */])(scale);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
-    }
-    initializeLoad() {
-        this.loader = new __WEBPACK_IMPORTED_MODULE_5__loader__["a" /* Loader */]();
-        // Work out our origin
-        var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["a" /* coordsToGridref */])(coords, 2);
-        this.load(gridSquare);
-        Object(__WEBPACK_IMPORTED_MODULE_4__grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
-    }
-    sizeWrapper() {
-        var width = this.width = (this.wrapper.offsetWidth === 0) ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
-        var height = this.height = 0.8 * width;
-        this.wrapper.style.height = height + 'px';
-    }
-    onWindowResize() {
-        this.sizeWrapper();
-        this.camera.aspect = this.width / this.height;
-        this.camera.updateProjectionMatrix();
-    }
-    load(gridSquare) {
-        var url = `/data/${gridSquare}`;
-        if (this.loader.isLoading(url)) {
-            return;
+
+    _createClass(BaseMap, [{
+        key: 'initializeWrapper',
+        value: function initializeWrapper(wrapper) {
+            this.wrapper = wrapper;
+            this.sizeWrapper();
         }
-        this.loader.load(url)
-            .then((json) => {
-            this.replaceEmpty(gridSquare);
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_3__data__["a" /* parseGridSquare */])(json, this.transform);
+    }, {
+        key: 'initializeWorld',
+        value: function initializeWorld() {
+            // Setup camera
+            var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
+            camera.position.z = Math.min(this.width, this.height) * 0.75;
+            // Setup trackball controls
+            var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+            controls.noZoom = false;
+            controls.noPan = false;
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+            // Shift+ drag to zoom, Ctrl+ drag to pan
+            controls.keys = [-1, 16, 17];
+            controls.addEventListener('change', this.renderMap.bind(this));
+            // Setup scene
+            var scene = this.scene = new THREE.Scene();
+            // Lights
+            var light = new THREE.DirectionalLight(0xffffff);
+            light.position.set(1, 1, 1);
+            scene.add(light);
+            var spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set(-1000, -1000, 1000);
+            spotLight.castShadow = true;
+            scene.add(spotLight);
+            var ambientLight = new THREE.AmbientLight(0x080808);
+            scene.add(ambientLight);
+            window.addEventListener('resize', this.onWindowResize.bind(this), false);
+        }
+    }, {
+        key: 'initializeRenderer',
+        value: function initializeRenderer() {
+            // This must be overridden
+        }
+    }, {
+        key: 'initializeDebugger',
+        value: function initializeDebugger() {}
+        // This must be overridden
+
+        // Setup transform from real-world to 3D world coordinates
+
+    }, {
+        key: 'initializeTransform',
+        value: function initializeTransform() {
+            var metresPerPixel = 50; // TODO
+            // Calculate the world origin (i.e. where the world is centred),
+            // the model origin (i.e (0, 0, 0))
+            // and the scale to get from one to the other
+            var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
+            var modelOrigin = new THREE.Vector3(0, 0, 0);
+            var scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
+            this.scale = (0, _scale.makeScale)(scale);
+            this.transform = (0, _scale.makeTransform)(worldOrigin, modelOrigin, scale);
+        }
+    }, {
+        key: 'initializeLoad',
+        value: function initializeLoad() {
+            var _this = this;
+
+            this.loader = new _loader.Loader();
+            // Work out our origin
+            var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
+            var gridSquare = (0, _grid.coordsToGridref)(coords, 2);
+            this.load(gridSquare);
+            (0, _grid.getSurroundingSquares)(gridSquare, 2).forEach(function (gridref) {
+                return _this.loadEmpty(gridref);
+            });
+        }
+    }, {
+        key: 'sizeWrapper',
+        value: function sizeWrapper() {
+            var width = this.width = this.wrapper.offsetWidth === 0 ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
+            var height = this.height = 0.8 * width;
+            this.wrapper.style.height = height + 'px';
+        }
+    }, {
+        key: 'onWindowResize',
+        value: function onWindowResize() {
+            this.sizeWrapper();
+            this.camera.aspect = this.width / this.height;
+            this.camera.updateProjectionMatrix();
+        }
+    }, {
+        key: 'load',
+        value: function load(gridSquare) {
+            var _this2 = this;
+
+            var url = '/data/' + gridSquare;
+            if (this.loader.isLoading(url)) {
+                return;
+            }
+            this.loader.load(url).then(function (json) {
+                _this2.replaceEmpty(gridSquare);
+                var geometry = (0, _data.parseGridSquare)(json, _this2.transform);
+                geometry.computeBoundingBox();
+                // Add mesh for this
+                var mesh = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
+                mesh.name = 'land-' + gridSquare;
+                _this2.addToMap(mesh);
+                if (geometry.boundingBox.min.z < 0) {
+                    var sea = new THREE.Mesh(_this2.makeSquare(gridSquare), _constants.materials.meshLambert(_constants.colors.seaColor));
+                    sea.name = 'sea-' + gridSquare;
+                    _this2.addToMap(sea);
+                }
+            });
+        }
+    }, {
+        key: 'makeSquare',
+        value: function makeSquare(gridSquare) {
+            // Get this grid square, scaled down to local size
+            var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(this.scale);
+            // Calculate position of square
+            // The half-square addition at the end is to take into account PlaneGeometry
+            // is created around the centre of the square and we want it to be bottom-left
+            var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(this.transform);
+            var geometry = new THREE.PlaneGeometry(square.x, square.y);
+            geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
             geometry.computeBoundingBox();
-            // Add mesh for this
-            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].landColor));
-            mesh.name = 'land-' + gridSquare;
-            this.addToMap(mesh);
-            if (geometry.boundingBox.min.z < 0) {
-                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].seaColor));
-                sea.name = 'sea-' + gridSquare;
-                this.addToMap(sea);
-            }
-        });
-    }
-    makeSquare(gridSquare) {
-        // Get this grid square, scaled down to local size
-        let square = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
-        // Calculate position of square
-        // The half-square addition at the end is to take into account PlaneGeometry
-        // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
-        let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
-        geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-        geometry.computeBoundingBox();
-        return geometry;
-    }
-    loadEmpty(gridSquare) {
-        // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
-        mesh.name = 'empty-' + gridSquare;
-        this.addToMap(mesh);
-    }
-    replaceEmpty(gridSquare) {
-        var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == "empty-" + gridSquare);
-        if (toReplace.length) {
-            toReplace.forEach(d => this.scene.remove(d));
+            return geometry;
         }
-    }
-    addToMap(mesh) {
-        this.scene.add(mesh);
-        this.renderMap();
-    }
-    renderMap() {
-        this.updateMap();
-    }
-    animateMap() {
-        requestAnimationFrame(this.animateMap.bind(this));
-        this.controls.update();
-    }
-    // Not usually called directly, but called by debounced version
-    _updateMap() {
-        // Calculate the frustum of this camera
-        var frustum = new __WEBPACK_IMPORTED_MODULE_0_three__["Frustum"]();
-        frustum.setFromMatrix(new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-        // Find every empty mesh on screen that is displayed in the camera
-        var emptyMeshes = this.scene.children
-            .filter(d => d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty')
-            .filter(d => {
-            var geometry = d.geometry;
-            if (geometry) {
-                return frustum.intersectsBox(geometry.boundingBox);
+    }, {
+        key: 'loadEmpty',
+        value: function loadEmpty(gridSquare) {
+            // Create a mesh out of it and add to map
+            var mesh = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshWireFrame(0xFFFFFF));
+            mesh.name = 'empty-' + gridSquare;
+            this.addToMap(mesh);
+        }
+    }, {
+        key: 'replaceEmpty',
+        value: function replaceEmpty(gridSquare) {
+            var _this3 = this;
+
+            var toReplace = this.scene.children.filter(function (d) {
+                return d.type == "Mesh" && d.name == "empty-" + gridSquare;
+            });
+            if (toReplace.length) {
+                toReplace.forEach(function (d) {
+                    return _this3.scene.remove(d);
+                });
             }
-            return false;
-        });
-        // TODO Get where centre of view intersects z=0 plane and
-        // measure distance from there
-        const getDistance = (d) => d.geometry.boundingSphere.center.length();
-        emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
-        emptyMeshes.forEach(d => {
-            var id = d.name.split('-')[1];
-            this.load(id);
-        });
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = BaseMap;
+        }
+    }, {
+        key: 'addToMap',
+        value: function addToMap(mesh) {
+            this.scene.add(mesh);
+            this.renderMap();
+        }
+    }, {
+        key: 'renderMap',
+        value: function renderMap() {
+            this.updateMap();
+        }
+    }, {
+        key: 'animateMap',
+        value: function animateMap() {
+            requestAnimationFrame(this.animateMap.bind(this));
+            this.controls.update();
+        }
+        // Not usually called directly, but called by debounced version
 
+    }, {
+        key: '_updateMap',
+        value: function _updateMap() {
+            var _this4 = this;
 
+            // Calculate the frustum of this camera
+            var frustum = new THREE.Frustum();
+            frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+            // Find every empty mesh on screen that is displayed in the camera
+            var emptyMeshes = this.scene.children.filter(function (d) {
+                return d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty';
+            }).filter(function (d) {
+                var geometry = d.geometry;
+                if (geometry) {
+                    return frustum.intersectsBox(geometry.boundingBox);
+                }
+                return false;
+            });
+            // TODO Get where centre of view intersects z=0 plane and
+            // measure distance from there
+            var getDistance = function getDistance(d) {
+                return d.geometry.boundingSphere.center.length();
+            };
+            emptyMeshes.sort(function (a, b) {
+                return getDistance(a) - getDistance(b);
+            });
+            emptyMeshes.forEach(function (d) {
+                var id = d.name.split('-')[1];
+                _this4.load(id);
+            });
+        }
+    }]);
+
+    return BaseMap;
+}();
 
 /***/ }),
 /* 8 */
@@ -47331,64 +47465,80 @@ module.exports = TrackballControls;
 
 /***/ }),
 /* 9 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
 
-const colors = {
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.materials = exports.colors = undefined;
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var colors = exports.colors = {
     landColor: 0x105520,
     seaColor: 0x082044
 };
-/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
-
-const materials = {
-    phong(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
+var materials = exports.materials = {
+    phong: function phong(color) {
+        return new THREE.MeshPhongMaterial({
             color: color,
-            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
+            side: THREE.DoubleSide
         });
     },
-    meshLambert(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
+    meshLambert: function meshLambert(color) {
+        return new THREE.MeshLambertMaterial({
             color: color,
             transparent: true
         });
     },
-    meshWireFrame(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+    meshWireFrame: function meshWireFrame(color) {
+        return new THREE.MeshBasicMaterial({
             color: color,
             transparent: true,
-            wireframe: true,
+            wireframe: true
         });
     },
-    meshBasic(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+    meshBasic: function meshBasic(color) {
+        return new THREE.MeshBasicMaterial({
             color: color,
             transparent: true
         });
     }
 };
-/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
-
-
 
 /***/ }),
 /* 10 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = parseGridSquare;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(1);
-// Functions for parsing data from the API
 
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.parseGridSquare = parseGridSquare;
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _grid = __webpack_require__(1);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+// Functions for parsing data from the API
 function parseGridSquare(data, transform) {
-    const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["d" /* gridrefToCoords */])(data.meta.gridReference);
-    const squareSize = data.meta.squareSize;
-    const grid = data.data;
+    var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
+    var squareSize = data.meta.squareSize;
+    var grid = data.data;
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
@@ -47396,100 +47546,134 @@ function parseGridSquare(data, transform) {
     var vertices = new Float32Array(3 * gridHeight * gridWidth);
     var faces = [];
     var n = 0;
-    grid.reverse().forEach((row, y) => row.forEach((z, x) => {
-        // Assign vertices
-        vertices[n] = tileOrigin.x + x * squareSize;
-        vertices[n + 1] = tileOrigin.y + y * squareSize;
-        vertices[n + 2] = z;
-        n += 3;
-        // If this point can form top-left of a square, add the two
-        // triangles that are formed by that square
-        if (x < gridWidth - 1 && y < gridHeight - 1) {
-            // Work out index of this point in the vertices array
-            var i = x + gridWidth * y;
-            faces.push(
-            // First triangle: top-left, top-right, bottom-left
-            i, i + 1, i + gridWidth, 
-            // Second triangle: top-right, bottom-right, bottom-left
-            i + 1, i + gridWidth + 1, i + gridWidth);
-        }
-    }));
-    var verticesBuffer = transform.applyToBufferAttribute(new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](vertices, 3));
+    grid.reverse().forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Assign vertices
+            vertices[n] = tileOrigin.x + x * squareSize;
+            vertices[n + 1] = tileOrigin.y + y * squareSize;
+            vertices[n + 2] = z;
+            n += 3;
+            // If this point can form top-left of a square, add the two
+            // triangles that are formed by that square
+            if (x < gridWidth - 1 && y < gridHeight - 1) {
+                // Work out index of this point in the vertices array
+                var i = x + gridWidth * y;
+                faces.push(
+                // First triangle: top-left, top-right, bottom-left
+                i, i + 1, i + gridWidth,
+                // Second triangle: top-right, bottom-right, bottom-left
+                i + 1, i + gridWidth + 1, i + gridWidth);
+            }
+        });
+    });
+    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
     // TODO OnUpload?
-    var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferGeometry"]();
+    var geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', verticesBuffer);
     geometry.setIndex(faces);
     geometry.computeVertexNormals();
     return geometry;
 }
 
-
 /***/ }),
 /* 11 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 // Constant we use further down
-const STATUS_LOADING = 0;
-const STATUS_LOADED = 1;
-const STATUS_MISSING = -1;
-const STATUS_EMPTY = -2;
-class Loader {
-    constructor() {
+var STATUS_LOADING = 0;
+var STATUS_LOADED = 1;
+var STATUS_MISSING = -1;
+var STATUS_EMPTY = -2;
+
+var Loader = exports.Loader = function () {
+    function Loader() {
+        _classCallCheck(this, Loader);
+
         this.status = {};
     }
-    isLoading(url) {
-        return url in this.status && this.status[url] === STATUS_LOADING;
-    }
-    load(url) {
-        // Update status for this URL
-        this.status[url] = STATUS_LOADING;
-        //
-        return fetch(url)
-            .then((response) => {
-            this.status[url] = STATUS_LOADED; // TODO After the promise?
-            return response.json();
-        });
-        // TODO Additional handling of empty or missing response?
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Loader;
 
+    _createClass(Loader, [{
+        key: "isLoading",
+        value: function isLoading(url) {
+            return url in this.status && this.status[url] === STATUS_LOADING;
+        }
+    }, {
+        key: "load",
+        value: function load(url) {
+            var _this = this;
 
+            // Update status for this URL
+            this.status[url] = STATUS_LOADING;
+            //
+            return fetch(url).then(function (response) {
+                _this.status[url] = STATUS_LOADED; // TODO After the promise?
+                return response.json();
+            });
+            // TODO Additional handling of empty or missing response?
+        }
+    }]);
+
+    return Loader;
+}();
 
 /***/ }),
 /* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
-/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.makeTransform = makeTransform;
+exports.makeScale = makeScale;
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // Scaling function - from the origin, scale up by scale, and then translate to the origin
 function makeTransform(fOrigin, tOrigin, scale) {
     // Reverse translate from, then scale, then translate to
-    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
+    var mStart = new THREE.Matrix4().makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
     var mMiddle = makeScale(scale);
-    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    var mEnd = new THREE.Matrix4().makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
     // Reverse order as per rules of matrix multiplication
     return mEnd.multiply(mMiddle).multiply(mStart);
 }
 function makeScale(scale) {
-    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
+    return new THREE.Matrix4().makeScale(scale.x, scale.y, scale.z);
 }
-
 
 /***/ }),
 /* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
+/***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* unused harmony export isMobile */
-/* unused harmony export isTouch */
-/* unused harmony export isRetina */
-/* unused harmony export extend */
-/* harmony export (immutable) */ __webpack_exports__["a"] = debounce;
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isMobile = isMobile;
+exports.isTouch = isTouch;
+exports.isRetina = isRetina;
+exports.extend = extend;
+exports.debounce = debounce;
 // Feature detection
 /* istanbul ignore next */
 function isMobile() {
@@ -47504,11 +47688,14 @@ function isRetina() {
     return window.devicePixelRatio && window.devicePixelRatio > 1.3;
 }
 // http://youmightnotneedjquery.com/
-function extend(...args) {
-    let out = args[0] || {};
+function extend() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+    }
+
+    var out = args[0] || {};
     for (var i = 1; i < args.length; i++) {
-        if (!args[i])
-            continue;
+        if (!args[i]) continue;
         for (var key in args[i]) {
             /* istanbul ignore else  */
             if (args[i].hasOwnProperty(key)) {
@@ -47518,13 +47705,30 @@ function extend(...args) {
     }
     return out;
 }
-function debounce(func, wait = 50) {
-    let h;
-    return () => {
+function debounce(func) {
+    var wait = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+
+    var h = void 0;
+    return function () {
         clearTimeout(h);
-        h = setTimeout(() => func(), wait);
+        h = setTimeout(function () {
+            return func();
+        }, wait);
     };
 }
+
+/***/ }),
+/* 14 */,
+/* 15 */,
+/* 16 */,
+/* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// stats.js - http://github.com/mrdoob/stats.js
+(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
+u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
+1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
+b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
 
 
 /***/ })

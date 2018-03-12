@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import Stats from 'stats.js';
 import * as Modernizr from 'modernizr';
 
 // TODO Fix import error
@@ -42,7 +43,8 @@ export class Map extends BaseMap {
         if (this.config.debug) {
             this.stats = new Stats();
             this.stats.showPanel(1);
-            (<HTMLElement>this.wrapper.parentNode).appendChild( this.stats.dom );
+            this.stats.dom.className = 'debug-stats';
+            (<HTMLElement>this.wrapper.parentNode).appendChild(this.stats.dom);
         }
         else {
             this.stats = new DummyStats();

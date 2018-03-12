@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as Stats from 'stats.js';
 import '../vendor/TrackballControls';
 
 import { materials, colors } from './constants';
