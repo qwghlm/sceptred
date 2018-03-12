@@ -46703,7 +46703,7 @@ var BaseMap = exports.BaseMap = function () {
             var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
             var gridSquare = (0, _grid.coordsToGridref)(coords, 2);
             this.load(gridSquare);
-            (0, _grid.getSurroundingSquares)(gridSquare, 2).forEach(function (gridref) {
+            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (gridref) {
                 return _this.loadEmpty(gridref);
             });
         }

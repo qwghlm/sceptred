@@ -150,7 +150,7 @@ export class BaseMap {
         var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
         var gridSquare = coordsToGridref(coords, 2);
         this.load(gridSquare);
-        getSurroundingSquares(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+        getSurroundingSquares(gridSquare, 4).forEach(gridref => this.loadEmpty(gridref));
 
     }
 
