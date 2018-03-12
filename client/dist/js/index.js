@@ -61,94 +61,11 @@ var SCEPTRED =
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 2);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__sass_index_scss__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__favicon_ico__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map__ = __webpack_require__(3);
-
-
-
-document.addEventListener("DOMContentLoaded", function (e) {
-    let element = document.querySelector('#map-view-wrapper');
-    new __WEBPACK_IMPORTED_MODULE_2__map__["a" /* Map */](element, {
-        origin: [325000, 675000],
-        heightFactor: 2,
-        debug: false,
-    });
-});
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__.p + "favicon.ico";
-
-/***/ }),
-/* 3 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_modernizr__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_map_base__ = __webpack_require__(9);
-
-
-// TODO Fix import error
-
-class Map extends __WEBPACK_IMPORTED_MODULE_2__lib_map_base__["a" /* BaseMap */] {
-    initializeRenderer() {
-        // Add WebGL error message...
-        if (!__WEBPACK_IMPORTED_MODULE_1_modernizr__["webgl"]) {
-            this.wrapper.removeAttribute("style");
-            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
-            throw Error("Cannot create a WebGL instance, quitting");
-        }
-        // Renderer
-        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
-            antialias: true,
-            alpha: true,
-        });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.width, this.height);
-        renderer.setClearColor(0x444444);
-        renderer.shadowMap.enabled = true;
-        this.wrapper.appendChild(renderer.domElement);
-    }
-    onWindowResize() {
-        super.onWindowResize();
-        this.renderer.setSize(this.width, this.height);
-    }
-    renderMap() {
-        this.stats.begin();
-        this.renderer.render(this.scene, this.camera);
-        this.stats.end();
-        super.renderMap();
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Map;
-
-
-
-/***/ }),
-/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46090,7 +46007,221 @@ function LensFlare() {
 
 
 /***/ }),
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["d"] = gridrefToCoords;
+/* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
+/* harmony export (immutable) */ __webpack_exports__["b"] = getGridSquareSize;
+/* harmony export (immutable) */ __webpack_exports__["c"] = getSurroundingSquares;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+// Grid conversion functions are based upon
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
+// Grid reference can have spaces, but no commas
+function gridrefToCoords(gridref) {
+    gridref = gridref.replace(/ +/g, "");
+    // Validate format
+    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+        throw new Error('Invalid grid reference');
+    }
+    var letter1 = letterToNumber(gridref.substr(0, 1));
+    var letter2 = letterToNumber(gridref.substr(1, 1));
+    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
+    var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
+    var n100km = (19 - Math.floor(letter1 / 5) * 5) - Math.floor(letter2 / 5);
+    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
+        throw new Error('Grid reference outside of UK');
+    }
+    // Get number pair out
+    var numbers = gridref.slice(2);
+    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
+    // Standardise to 10-digit refs (metres)
+    var vector = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
+    return vector;
+}
+// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
+function coordsToGridref(coords, digits = 10) {
+    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
+        throw new RangeError('Invalid precision ‘' + digits + '’');
+    }
+    // Get the 100km-grid indices
+    let eastings = coords.x;
+    let northings = coords.y;
+    var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
+        throw new Error("Co-ordinates are not within UK National Grid");
+    }
+    // Translate those into numeric equivalents of the grid letters
+    var number1 = (19 - n100k) - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
+    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
+    // Strip 100km-grid indices from easting & northing, and reduce precision
+    digits /= 2;
+    eastings = Math.floor((eastings % 100000) / Math.pow(10, 5 - digits));
+    northings = Math.floor((northings % 100000) / Math.pow(10, 5 - digits));
+    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    const eastingsString = eastings.toString().padStart(digits, '0');
+    const northingsString = northings.toString().padStart(digits, '0');
+    return `${gridSquare}${eastingsString}${northingsString}`;
+}
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
+function getGridSquareSize(gridref) {
+    var accuracy = (12 - gridref.length) / 2;
+    var squareSize = Math.pow(10, accuracy);
+    return new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0);
+}
+// Return an array of grid references for the squares surrounding this one
+function getSurroundingSquares(gridref, radius) {
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+    // Get X and Y vectors for one square along and one up
+    var xStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, getGridSquareSize(gridref).y, 0);
+    // Go for radius around in both X and Y directions
+    let squares = [];
+    for (var x = -radius; x <= radius; x++) {
+        for (var y = -radius; y <= radius; y++) {
+            // Skip the centre
+            if (x === 0 && y === 0) {
+                continue;
+            }
+            // Calculate the origin of the square X and Y steps away from the origin
+            // i.e. C = O + xX + yY
+            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+            // Convert back into gridref
+            try {
+                let neighbor = coordsToGridref(coords, gridref.length - 2);
+                squares.push(neighbor);
+            }
+            catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
+            }
+        }
+    }
+    return squares;
+}
+// Utils
+// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
+function letterToNumber(letter) {
+    if (letter.toUpperCase() === 'I') {
+        throw new Error("I is not used in the grid system");
+    }
+    var index = letter.toUpperCase().charCodeAt(0) - 65;
+    // As I is not used, if greater than I, return one less
+    return (index > 7) ? index - 1 : index;
+}
+function numberToLetter(n) {
+    // Compensate for skipped 'I' and build grid letter-pairs
+    if (n > 7)
+        n++;
+    return String.fromCharCode(n + 65);
+}
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__sass_index_scss___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__sass_index_scss__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__favicon_ico___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__favicon_ico__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__map__ = __webpack_require__(5);
+
+
+
+document.addEventListener("DOMContentLoaded", function (e) {
+    let element = document.querySelector('#map-view-wrapper');
+    new __WEBPACK_IMPORTED_MODULE_2__map__["a" /* Map */](element, {
+        origin: [325000, 675000],
+        heightFactor: 2,
+        debug: false,
+    });
+});
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
 /* 5 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_modernizr___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_modernizr__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__lib_map_base__ = __webpack_require__(7);
+
+
+// TODO Fix import error
+
+class DummyStats {
+    begin() { }
+    end() { }
+    showPanel() { }
+}
+class Map extends __WEBPACK_IMPORTED_MODULE_2__lib_map_base__["a" /* BaseMap */] {
+    initializeRenderer() {
+        // Add WebGL error message...
+        if (!__WEBPACK_IMPORTED_MODULE_1_modernizr__["webgl"]) {
+            this.wrapper.removeAttribute("style");
+            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
+            throw Error("Cannot create a WebGL instance, quitting");
+        }
+        // Renderer
+        var renderer = this.renderer = new __WEBPACK_IMPORTED_MODULE_0_three__["WebGLRenderer"]({
+            antialias: true,
+            alpha: true,
+        });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(this.width, this.height);
+        renderer.setClearColor(0x444444);
+        renderer.shadowMap.enabled = true;
+        this.wrapper.appendChild(renderer.domElement);
+    }
+    initializeDebugger() {
+        if (this.config.debug) {
+            this.stats = new Stats();
+            this.stats.showPanel(1);
+            this.wrapper.parentNode.appendChild(this.stats.dom);
+        }
+        else {
+            this.stats = new DummyStats();
+        }
+    }
+    onWindowResize() {
+        super.onWindowResize();
+        this.renderer.setSize(this.width, this.height);
+    }
+    renderMap() {
+        this.stats.begin();
+        this.renderer.render(this.scene, this.camera);
+        this.stats.end();
+        super.renderMap();
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Map;
+
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports) {
 
 ;(function(window){
@@ -46359,24 +46490,19 @@ else { delete window.Modernizr; }
 })(window);
 
 /***/ }),
-/* 6 */,
-/* 7 */,
-/* 8 */,
-/* 9 */
+/* 7 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_stats_js___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_stats_js__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2__vendor_TrackballControls__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__constants__ = __webpack_require__(12);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__data__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__grid__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__loader__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__scale__ = __webpack_require__(15);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__utils__ = __webpack_require__(16);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1__vendor_TrackballControls__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__constants__ = __webpack_require__(9);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__data__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__grid__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__loader__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__scale__ = __webpack_require__(12);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__utils__ = __webpack_require__(13);
 
 
 
@@ -46385,18 +46511,12 @@ else { delete window.Modernizr; }
 
 
 
-
-class DummyStats {
-    begin() { }
-    end() { }
-    showPanel() { }
-}
 class BaseMap {
     constructor(wrapper, config) {
         // Setup config
         this.config = config;
         this.loaded = false;
-        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_8__utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
+        this.updateMap = Object(__WEBPACK_IMPORTED_MODULE_7__utils__["a" /* debounce */])(this._updateMap.bind(this), 500);
         // Initialize the view and the renderer
         this.initializeWrapper(wrapper);
         this.initializeWorld();
@@ -46452,17 +46572,9 @@ class BaseMap {
     }
     initializeRenderer() {
         // This must be overridden
-        console.warn("initializeRenderer must be overridden");
     }
     initializeDebugger() {
-        if (this.config.debug) {
-            this.stats = new __WEBPACK_IMPORTED_MODULE_1_stats_js__();
-            this.stats.showPanel(1);
-            this.wrapper.parentNode.appendChild(this.stats.dom);
-        }
-        else {
-            this.stats = new DummyStats();
-        }
+        // This must be overridden
     }
     // Setup transform from real-world to 3D world coordinates
     initializeTransform() {
@@ -46473,16 +46585,16 @@ class BaseMap {
         var worldOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
         var modelOrigin = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, 0, 0);
         var scale = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-        this.scale = Object(__WEBPACK_IMPORTED_MODULE_7__scale__["a" /* makeScale */])(scale);
-        this.transform = Object(__WEBPACK_IMPORTED_MODULE_7__scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
+        this.scale = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["a" /* makeScale */])(scale);
+        this.transform = Object(__WEBPACK_IMPORTED_MODULE_6__scale__["b" /* makeTransform */])(worldOrigin, modelOrigin, scale);
     }
     initializeLoad() {
-        this.loader = new __WEBPACK_IMPORTED_MODULE_6__loader__["a" /* Loader */]();
+        this.loader = new __WEBPACK_IMPORTED_MODULE_5__loader__["a" /* Loader */]();
         // Work out our origin
         var coords = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](this.config.origin[0], this.config.origin[1], 0);
-        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_5__grid__["a" /* coordsToGridref */])(coords, 2);
+        var gridSquare = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["a" /* coordsToGridref */])(coords, 2);
         this.load(gridSquare);
-        Object(__WEBPACK_IMPORTED_MODULE_5__grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+        Object(__WEBPACK_IMPORTED_MODULE_4__grid__["c" /* getSurroundingSquares */])(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
     }
     sizeWrapper() {
         var width = this.width = (this.wrapper.offsetWidth === 0) ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
@@ -46502,14 +46614,14 @@ class BaseMap {
         this.loader.load(url)
             .then((json) => {
             this.replaceEmpty(gridSquare);
-            let geometry = Object(__WEBPACK_IMPORTED_MODULE_4__data__["a" /* parseGridSquare */])(json, this.transform);
+            let geometry = Object(__WEBPACK_IMPORTED_MODULE_3__data__["a" /* parseGridSquare */])(json, this.transform);
             geometry.computeBoundingBox();
             // Add mesh for this
-            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_3__constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_3__constants__["a" /* colors */].landColor));
+            let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](geometry, __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].phong(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].landColor));
             mesh.name = 'land-' + gridSquare;
             this.addToMap(mesh);
             if (geometry.boundingBox.min.z < 0) {
-                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_3__constants__["a" /* colors */].seaColor));
+                let sea = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshLambert(__WEBPACK_IMPORTED_MODULE_2__constants__["a" /* colors */].seaColor));
                 sea.name = 'sea-' + gridSquare;
                 this.addToMap(sea);
             }
@@ -46517,11 +46629,11 @@ class BaseMap {
     }
     makeSquare(gridSquare) {
         // Get this grid square, scaled down to local size
-        let square = Object(__WEBPACK_IMPORTED_MODULE_5__grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
+        let square = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["b" /* getGridSquareSize */])(gridSquare).applyMatrix4(this.scale);
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
         // is created around the centre of the square and we want it to be bottom-left
-        let coords = Object(__WEBPACK_IMPORTED_MODULE_5__grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
+        let coords = Object(__WEBPACK_IMPORTED_MODULE_4__grid__["d" /* gridrefToCoords */])(gridSquare).applyMatrix4(this.transform);
         let geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["PlaneGeometry"](square.x, square.y);
         geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
         geometry.computeBoundingBox();
@@ -46529,7 +46641,7 @@ class BaseMap {
     }
     loadEmpty(gridSquare) {
         // Create a mesh out of it and add to map
-        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_3__constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
+        let mesh = new __WEBPACK_IMPORTED_MODULE_0_three__["Mesh"](this.makeSquare(gridSquare), __WEBPACK_IMPORTED_MODULE_2__constants__["b" /* materials */].meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
         this.addToMap(mesh);
     }
@@ -46580,326 +46692,7 @@ class BaseMap {
 
 
 /***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// stats.js - http://github.com/mrdoob/stats.js
-(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
-u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
-1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
-b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["d"] = gridrefToCoords;
-/* harmony export (immutable) */ __webpack_exports__["a"] = coordsToGridref;
-/* harmony export (immutable) */ __webpack_exports__["b"] = getGridSquareSize;
-/* harmony export (immutable) */ __webpack_exports__["c"] = getSurroundingSquares;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-
-// Grid conversion functions are based upon
-// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
-// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
-// Grid reference can have spaces, but no commas
-function gridrefToCoords(gridref) {
-    gridref = gridref.replace(/ +/g, "");
-    // Validate format
-    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
-        throw new Error('Invalid grid reference');
-    }
-    var letter1 = letterToNumber(gridref.substr(0, 1));
-    var letter2 = letterToNumber(gridref.substr(1, 1));
-    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
-    var e100km = ((letter1 - 2) % 5) * 5 + (letter2 % 5);
-    var n100km = (19 - Math.floor(letter1 / 5) * 5) - Math.floor(letter2 / 5);
-    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
-        throw new Error('Grid reference outside of UK');
-    }
-    // Get number pair out
-    var numbers = gridref.slice(2);
-    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
-    // Standardise to 10-digit refs (metres)
-    var vector = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
-    return vector;
-}
-// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
-function coordsToGridref(coords, digits = 10) {
-    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
-        throw new RangeError('Invalid precision ‘' + digits + '’');
-    }
-    // Get the 100km-grid indices
-    let eastings = coords.x;
-    let northings = coords.y;
-    var e100k = Math.floor(eastings / 100000), n100k = Math.floor(northings / 100000);
-    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
-        throw new Error("Co-ordinates are not within UK National Grid");
-    }
-    // Translate those into numeric equivalents of the grid letters
-    var number1 = (19 - n100k) - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
-    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
-    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
-    // Strip 100km-grid indices from easting & northing, and reduce precision
-    digits /= 2;
-    eastings = Math.floor((eastings % 100000) / Math.pow(10, 5 - digits));
-    northings = Math.floor((northings % 100000) / Math.pow(10, 5 - digits));
-    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
-    const eastingsString = eastings.toString().padStart(digits, '0');
-    const northingsString = northings.toString().padStart(digits, '0');
-    return `${gridSquare}${eastingsString}${northingsString}`;
-}
-// Return a vector for the grid square size, based on the accuracy
-// (i.e. string length) of the reference, in meters
-function getGridSquareSize(gridref) {
-    var accuracy = (12 - gridref.length) / 2;
-    var squareSize = Math.pow(10, accuracy);
-    return new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](squareSize, squareSize, 0);
-}
-// Return an array of grid references for the squares surrounding this one
-function getSurroundingSquares(gridref, radius) {
-    // Origin of this square
-    var origin = gridrefToCoords(gridref);
-    // Get X and Y vectors for one square along and one up
-    var xStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new __WEBPACK_IMPORTED_MODULE_0_three__["Vector3"](0, getGridSquareSize(gridref).y, 0);
-    // Go for radius around in both X and Y directions
-    let squares = [];
-    for (var x = -radius; x <= radius; x++) {
-        for (var y = -radius; y <= radius; y++) {
-            // Skip the centre
-            if (x === 0 && y === 0) {
-                continue;
-            }
-            // Calculate the origin of the square X and Y steps away from the origin
-            // i.e. C = O + xX + yY
-            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
-            // Convert back into gridref
-            squares.push(coordsToGridref(coords, gridref.length - 2));
-        }
-    }
-    return squares;
-}
-// Utils
-// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
-function letterToNumber(letter) {
-    if (letter.toUpperCase() === 'I') {
-        throw new Error("I is not used in the grid system");
-    }
-    var index = letter.toUpperCase().charCodeAt(0) - 65;
-    // As I is not used, if greater than I, return one less
-    return (index > 7) ? index - 1 : index;
-}
-function numberToLetter(n) {
-    // Compensate for skipped 'I' and build grid letter-pairs
-    if (n > 7)
-        n++;
-    return String.fromCharCode(n + 65);
-}
-
-
-/***/ }),
-/* 12 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-
-const colors = {
-    landColor: 0x105520,
-    seaColor: 0x082044
-};
-/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
-
-const materials = {
-    phong(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
-            color: color,
-            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
-        });
-    },
-    meshLambert(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
-            color: color,
-            transparent: true
-        });
-    },
-    meshWireFrame(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
-            color: color,
-            transparent: true,
-            wireframe: true,
-        });
-    },
-    meshBasic(color) {
-        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
-            color: color,
-            transparent: true
-        });
-    }
-};
-/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
-
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["a"] = parseGridSquare;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(11);
-// Functions for parsing data from the API
-
-
-// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
-function parseGridSquare(data, transform) {
-    const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["d" /* gridrefToCoords */])(data.meta.gridReference);
-    const squareSize = data.meta.squareSize;
-    const grid = data.data;
-    var gridHeight = grid.length;
-    var gridWidth = grid[0].length;
-    // Grid data starts in north-west while Ordnance Survey origin is in south-west
-    // so we reverse the rows first
-    var vertices = new Float32Array(3 * gridHeight * gridWidth);
-    var faces = [];
-    var n = 0;
-    grid.reverse().forEach((row, y) => row.forEach((z, x) => {
-        // Assign vertices
-        vertices[n] = tileOrigin.x + x * squareSize;
-        vertices[n + 1] = tileOrigin.y + y * squareSize;
-        vertices[n + 2] = z;
-        n += 3;
-        // If this point can form top-left of a square, add the two
-        // triangles that are formed by that square
-        if (x < gridWidth - 1 && y < gridHeight - 1) {
-            // Work out index of this point in the vertices array
-            var i = x + gridWidth * y;
-            faces.push(
-            // First triangle: top-left, top-right, bottom-left
-            i, i + 1, i + gridWidth, 
-            // Second triangle: top-right, bottom-right, bottom-left
-            i + 1, i + gridWidth + 1, i + gridWidth);
-        }
-    }));
-    var verticesBuffer = transform.applyToBufferAttribute(new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](vertices, 3));
-    // TODO OnUpload?
-    var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferGeometry"]();
-    geometry.addAttribute('position', verticesBuffer);
-    geometry.setIndex(faces);
-    geometry.computeVertexNormals();
-    return geometry;
-}
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-// Constant we use further down
-const STATUS_LOADING = 0;
-const STATUS_LOADED = 1;
-const STATUS_MISSING = -1;
-const STATUS_EMPTY = -2;
-class Loader {
-    constructor() {
-        this.status = {};
-    }
-    isLoading(url) {
-        return url in this.status && this.status[url] === STATUS_LOADING;
-    }
-    load(url) {
-        // Update status for this URL
-        this.status[url] = STATUS_LOADING;
-        //
-        return fetch(url)
-            .then((response) => {
-            this.status[url] = STATUS_LOADED; // TODO After the promise?
-            return response.json();
-        });
-        // TODO Additional handling of empty or missing response?
-    }
-}
-/* harmony export (immutable) */ __webpack_exports__["a"] = Loader;
-
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
-/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(4);
-
-// Scaling function - from the origin, scale up by scale, and then translate to the origin
-function makeTransform(fOrigin, tOrigin, scale) {
-    // Reverse translate from, then scale, then translate to
-    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
-    var mMiddle = makeScale(scale);
-    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
-    // Reverse order as per rules of matrix multiplication
-    return mEnd.multiply(mMiddle).multiply(mStart);
-}
-function makeScale(scale) {
-    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
-}
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-/* unused harmony export isMobile */
-/* unused harmony export isTouch */
-/* unused harmony export isRetina */
-/* unused harmony export extend */
-/* harmony export (immutable) */ __webpack_exports__["a"] = debounce;
-// Feature detection
-/* istanbul ignore next */
-function isMobile() {
-    return window.matchMedia("(max-width: 640px)").matches;
-}
-/* istanbul ignore next */
-function isTouch() {
-    return 'ontouchstart' in window || !!navigator.maxTouchPoints;
-}
-/* istanbul ignore next */
-function isRetina() {
-    return window.devicePixelRatio && window.devicePixelRatio > 1.3;
-}
-// http://youmightnotneedjquery.com/
-function extend(...args) {
-    let out = args[0] || {};
-    for (var i = 1; i < args.length; i++) {
-        if (!args[i])
-            continue;
-        for (var key in args[i]) {
-            /* istanbul ignore else  */
-            if (args[i].hasOwnProperty(key)) {
-                out[key] = args[i][key];
-            }
-        }
-    }
-    return out;
-}
-function debounce(func, wait = 50) {
-    let h;
-    return () => {
-        clearTimeout(h);
-        h = setTimeout(() => func(), wait);
-    };
-}
-
-
-/***/ }),
-/* 17 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -46909,7 +46702,7 @@ function debounce(func, wait = 50) {
  * @author Luca Antiga  / http://lantiga.github.io
  */
 
-const THREE = __webpack_require__(4);
+const THREE = __webpack_require__(0);
 
 const TrackballControls = function ( object, domElement ) {
 
@@ -47534,6 +47327,204 @@ THREE.TrackballControls = TrackballControls;
 
 module.exports = TrackballControls;
 
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+const colors = {
+    landColor: 0x105520,
+    seaColor: 0x082044
+};
+/* harmony export (immutable) */ __webpack_exports__["a"] = colors;
+
+const materials = {
+    phong(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshPhongMaterial"]({
+            color: color,
+            side: __WEBPACK_IMPORTED_MODULE_0_three__["DoubleSide"]
+        });
+    },
+    meshLambert(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshLambertMaterial"]({
+            color: color,
+            transparent: true
+        });
+    },
+    meshWireFrame(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true,
+            wireframe: true,
+        });
+    },
+    meshBasic(color) {
+        return new __WEBPACK_IMPORTED_MODULE_0_three__["MeshBasicMaterial"]({
+            color: color,
+            transparent: true
+        });
+    }
+};
+/* harmony export (immutable) */ __webpack_exports__["b"] = materials;
+
+
+
+/***/ }),
+/* 10 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["a"] = parseGridSquare;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__grid__ = __webpack_require__(1);
+// Functions for parsing data from the API
+
+
+// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+function parseGridSquare(data, transform) {
+    const tileOrigin = Object(__WEBPACK_IMPORTED_MODULE_1__grid__["d" /* gridrefToCoords */])(data.meta.gridReference);
+    const squareSize = data.meta.squareSize;
+    const grid = data.data;
+    var gridHeight = grid.length;
+    var gridWidth = grid[0].length;
+    // Grid data starts in north-west while Ordnance Survey origin is in south-west
+    // so we reverse the rows first
+    var vertices = new Float32Array(3 * gridHeight * gridWidth);
+    var faces = [];
+    var n = 0;
+    grid.reverse().forEach((row, y) => row.forEach((z, x) => {
+        // Assign vertices
+        vertices[n] = tileOrigin.x + x * squareSize;
+        vertices[n + 1] = tileOrigin.y + y * squareSize;
+        vertices[n + 2] = z;
+        n += 3;
+        // If this point can form top-left of a square, add the two
+        // triangles that are formed by that square
+        if (x < gridWidth - 1 && y < gridHeight - 1) {
+            // Work out index of this point in the vertices array
+            var i = x + gridWidth * y;
+            faces.push(
+            // First triangle: top-left, top-right, bottom-left
+            i, i + 1, i + gridWidth, 
+            // Second triangle: top-right, bottom-right, bottom-left
+            i + 1, i + gridWidth + 1, i + gridWidth);
+        }
+    }));
+    var verticesBuffer = transform.applyToBufferAttribute(new __WEBPACK_IMPORTED_MODULE_0_three__["BufferAttribute"](vertices, 3));
+    // TODO OnUpload?
+    var geometry = new __WEBPACK_IMPORTED_MODULE_0_three__["BufferGeometry"]();
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.setIndex(faces);
+    geometry.computeVertexNormals();
+    return geometry;
+}
+
+
+/***/ }),
+/* 11 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+// Constant we use further down
+const STATUS_LOADING = 0;
+const STATUS_LOADED = 1;
+const STATUS_MISSING = -1;
+const STATUS_EMPTY = -2;
+class Loader {
+    constructor() {
+        this.status = {};
+    }
+    isLoading(url) {
+        return url in this.status && this.status[url] === STATUS_LOADING;
+    }
+    load(url) {
+        // Update status for this URL
+        this.status[url] = STATUS_LOADING;
+        //
+        return fetch(url)
+            .then((response) => {
+            this.status[url] = STATUS_LOADED; // TODO After the promise?
+            return response.json();
+        });
+        // TODO Additional handling of empty or missing response?
+    }
+}
+/* harmony export (immutable) */ __webpack_exports__["a"] = Loader;
+
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (immutable) */ __webpack_exports__["b"] = makeTransform;
+/* harmony export (immutable) */ __webpack_exports__["a"] = makeScale;
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(0);
+
+// Scaling function - from the origin, scale up by scale, and then translate to the origin
+function makeTransform(fOrigin, tOrigin, scale) {
+    // Reverse translate from, then scale, then translate to
+    var mStart = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(-fOrigin.x, -fOrigin.y, -fOrigin.z);
+    var mMiddle = makeScale(scale);
+    var mEnd = (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeTranslation(tOrigin.x, tOrigin.y, tOrigin.z);
+    // Reverse order as per rules of matrix multiplication
+    return mEnd.multiply(mMiddle).multiply(mStart);
+}
+function makeScale(scale) {
+    return (new __WEBPACK_IMPORTED_MODULE_0_three__["Matrix4"]()).makeScale(scale.x, scale.y, scale.z);
+}
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* unused harmony export isMobile */
+/* unused harmony export isTouch */
+/* unused harmony export isRetina */
+/* unused harmony export extend */
+/* harmony export (immutable) */ __webpack_exports__["a"] = debounce;
+// Feature detection
+/* istanbul ignore next */
+function isMobile() {
+    return window.matchMedia("(max-width: 640px)").matches;
+}
+/* istanbul ignore next */
+function isTouch() {
+    return 'ontouchstart' in window || !!navigator.maxTouchPoints;
+}
+/* istanbul ignore next */
+function isRetina() {
+    return window.devicePixelRatio && window.devicePixelRatio > 1.3;
+}
+// http://youmightnotneedjquery.com/
+function extend(...args) {
+    let out = args[0] || {};
+    for (var i = 1; i < args.length; i++) {
+        if (!args[i])
+            continue;
+        for (var key in args[i]) {
+            /* istanbul ignore else  */
+            if (args[i].hasOwnProperty(key)) {
+                out[key] = args[i][key];
+            }
+        }
+    }
+    return out;
+}
+function debounce(func, wait = 50) {
+    let h;
+    return () => {
+        clearTimeout(h);
+        h = setTimeout(() => func(), wait);
+    };
+}
 
 
 /***/ })

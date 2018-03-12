@@ -31,7 +31,7 @@ export class BaseMap {
 
     wrapper: HTMLElement;
     loader: Loader;
-    geometries: Geometries;
+    geometries: Geometries; // TODO Need this?
 
     camera: THREE.PerspectiveCamera;
     controls: THREE.TrackballControls;

@@ -6,7 +6,6 @@ import { BaseMap } from './lib/map.base';
 
 class DummyStats {
     dom : null;
-
     begin() {}
     end() {}
     showPanel() {}
