@@ -5,6 +5,7 @@ import (
     "bufio"
     "encoding/gob"
     "fmt"
+    "math"
     "path"
     "path/filepath"
     "os"
@@ -37,7 +38,7 @@ func walker(pathname string, info os.FileInfo, err error) error {
         if basename == "data" {
             return nil;
         }
-        if basename != "sp" { // TODO Remove this
+        if basename != "nt" { // TODO Remove this
             return filepath.SkipDir
         }
     } else {
@@ -48,7 +49,7 @@ func walker(pathname string, info os.FileInfo, err error) error {
         squareValues, _ := parseZippedAsc(pathname)
         gridSquare := strings.Split(basename, "_")[0]
         outputFile := outputDirectory + gridSquare[:2] + ".gob"
-        data := make(map[string][][]float64)
+        data := make(map[string][][]int16)
         _ = load(outputFile, &data)
         data[gridSquare] = squareValues
         _ = save(outputFile, data)
@@ -115,7 +116,7 @@ func readLines(f *zip.File) []string {
 }
 
 // Loads the zipped ASC file
-func parseZippedAsc(dataPath string) ([][]float64, error) {
+func parseZippedAsc(dataPath string) ([][]int16, error) {
 
     r, err := parseZip(dataPath)
     if err != nil {
@@ -135,14 +136,25 @@ func parseZippedAsc(dataPath string) ([][]float64, error) {
 
     // Parse strings in file and turn into array of floats
     lines = lines[5:]
-    ret := make([][]float64, len(lines))
+    ret := make([][]int16, len(lines))
+
+    maxVal := int16(math.MinInt16)
     for i:=0; i<len(lines); i++ {
         line := strings.Fields(lines[i])
-        retLine := make([]float64, len(line))
+        retLine := make([]int16, len(line))
         for j:=0; j<len(line); j++ {
-            retLine[j], _ = strconv.ParseFloat(line[j], 64)
+            floatVal, _ := strconv.ParseFloat(line[j], 64)
+            retLine[j] = int16(math.Round(floatVal))
+            if (retLine[j] > maxVal) {
+                maxVal = retLine[j]
+            }
         }
         ret[i] = retLine
+    }
+
+    // TODO Is this worth it? Check Inchkeith
+    if maxVal < 0 {
+        fmt.Println(dataPath, maxVal)
     }
     return ret, nil
 
