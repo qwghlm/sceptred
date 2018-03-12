@@ -17,7 +17,7 @@
 server/tmp
 
 # Terrain data
-terrain/data
+server/terrain/data
 
 # Node
 node_modules

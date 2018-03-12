@@ -63,38 +63,3 @@ func handleData(c echo.Context) error {
 
 }
 
-func parseZippedAsc(gridSquare string) ([][]float64, error) {
-
-    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
-        gridSquare[0:2], gridSquare)
-
-    r, err := parseZip(dataPath)
-    if err != nil {
-        return nil, err
-    }
-
-    // Pull lines out of the ASC file
-    var lines []string
-    for _, f := range r.File {
-        if !strings.HasSuffix(f.Name, ".asc") {
-            continue
-        }
-        lines = readLines(f)
-        break
-    }
-    r.Close()
-
-    // Parse strings in file and turn into array of floats
-    lines = lines[5:]
-    ret := make([][]float64, len(lines))
-    for i:=0; i<len(lines); i++ {
-        line := strings.Fields(lines[i])
-        retLine := make([]float64, len(line))
-        for j:=0; j<len(line); j++ {
-            retLine[j], _ = strconv.ParseFloat(line[j], 64)
-        }
-        ret[i] = retLine
-    }
-    return ret, nil
-
-}
