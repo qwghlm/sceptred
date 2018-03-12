@@ -3,23 +3,25 @@ package main
 import (
     "archive/zip"
     "bufio"
-    "encoding/gob"
+    "bytes"
+    "encoding/binary"
     "errors"
-    "fmt"
+    "log"
     "io/ioutil"
     "math"
-    "path"
-    "path/filepath"
     "os"
     "strings"
     "strconv"
     "time"
+
+    "github.com/dgraph-io/badger"
+
 )
 
 // Processes the OS data into a more usable Gob format
 
 const sourceDirectory = "../terrain/data/";
-const outputDirectory = "../terrain/gob/";
+const outputDirectory = "../terrain/db/";
 
 func main() {
 
@@ -27,37 +29,38 @@ func main() {
 
     // Check to see if data exists first
     if _, err := os.Stat(sourceDirectory); os.IsNotExist(err) {
-        fmt.Println("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
+        log.Fatal("Terrain data folder not found. Please follow the instructions in the README, install it, and then try again")
         os.Exit(1)
     }
 
     // Walk through the data directory
-    filepath.Walk(sourceDirectory, walker)
+    loadData(sourceDirectory)
 
     elapsed := time.Since(start)
-    fmt.Printf("Walk took %v\n", elapsed)
+    log.Printf("Walk took %v\n", elapsed)
 
 }
 
-func walker(pathname string, info os.FileInfo, err error) error {
+func loadData(pathname string) {
 
-    // Get the directory name
-    basename := path.Base(pathname)
+    opts := badger.DefaultOptions
+    opts.Dir = outputDirectory
+    opts.ValueDir = outputDirectory
+    db, err := badger.Open(opts)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer db.Close()
 
-    if info.IsDir() {
-
-        // If it is the data directory, walk down one level
-        if basename == "data" {
-            return nil;
+    directories, _ := ioutil.ReadDir(pathname)
+    for _, directory := range directories {
+        if !directory.IsDir() {
+            continue;
         }
-
-        // Create a new Gob file for this directory's data, and a mapping for it
-        // to go to
-        outputFile := outputDirectory + basename + ".gob"
-        data := make(map[string][][]int16)
+        directoryPath := pathname + "/" + directory.Name()
 
         // Go through each ZIP file...
-        files, _ := ioutil.ReadDir(pathname)
+        files, _ := ioutil.ReadDir(directoryPath)
         for _, file := range files {
 
             filename := file.Name()
@@ -66,36 +69,29 @@ func walker(pathname string, info os.FileInfo, err error) error {
             }
 
             // Parse zipped file and get the square values. If an error occurs, skip & log
-            squareValues, err := parseZippedAsc(pathname + "/" + filename)
+            squares, err := parseZippedAsc(directoryPath + "/" + filename)
             gridSquare := strings.Split(filename, "_")[0]
             if err != nil {
-                fmt.Printf("Skipping %v\n", gridSquare)
+                log.Printf("Skipping %v\n", gridSquare)
                 continue;
             }
 
-            // Set the data for this grid square
-            data[gridSquare] = squareValues
+            buf := new(bytes.Buffer)
+            err = binary.Write(buf, binary.LittleEndian, squares)
+            if err != nil {
+                log.Println("binary.Write failed:", err)
+            }
 
+            err = db.Update(func(txn *badger.Txn) error {
+                err := txn.Set([]byte(gridSquare), buf.Bytes())
+                return err
+            })
+            if err != nil {
+                log.Println(err)
+            }
         }
-
-        // Save the Gob file
-        save(outputFile, data)
-
-        // Return
-        return filepath.SkipDir
     }
-    return nil
-}
-
-// Encode via Gob to file
-func save(path string, object interface{}) error {
-    file, err := os.Create(path)
-    if err == nil {
-        encoder := gob.NewEncoder(file)
-        encoder.Encode(object)
-    }
-    file.Close()
-    return err
+    db.PurgeOlderVersions()
 }
 
 // Parses a ZIP files and returns a Read/Close interface
@@ -133,7 +129,7 @@ func readLines(f *zip.File) []string {
 }
 
 // Loads the zipped ASC file
-func parseZippedAsc(dataPath string) ([][]int16, error) {
+func parseZippedAsc(dataPath string) ([]int16, error) {
 
     r, err := parseZip(dataPath)
     if err != nil {
@@ -153,20 +149,23 @@ func parseZippedAsc(dataPath string) ([][]int16, error) {
 
     // Parse strings in file and turn into array of floats
     lines = lines[5:]
-    ret := make([][]int16, len(lines))
+    ret := make([]int16, len(lines)*len(lines))
 
     maxVal := int16(math.MinInt16)
+
     for i:=0; i<len(lines); i++ {
+
         line := strings.Fields(lines[i])
-        retLine := make([]int16, len(line))
+
         for j:=0; j<len(line); j++ {
+
             floatVal, _ := strconv.ParseFloat(line[j], 64)
-            retLine[j] = int16(math.Round(floatVal))
-            if (retLine[j] > maxVal) {
-                maxVal = retLine[j]
+            val := int16(math.Round(floatVal))
+            if (val > maxVal) {
+                maxVal = val
             }
+            ret[i*len(line) + j] = val
         }
-        ret[i] = retLine
     }
 
     // Don't bother saving anything entirely underwater
