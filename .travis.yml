@@ -6,6 +6,7 @@ go_import_path: sceptred
 
 before_script:
   - npm install
+  - ./install.sh
 
 script:
   - npm run test:js
