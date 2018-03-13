@@ -16,15 +16,21 @@ _Sceptred_ is a project to model the island of Great Britain in 3D, using open-s
 
 This is very much a work in progress at the moment, all code is subject to change.
 
-## Installing
+## Developing
 
-This assumes you have Go and Node install already - if not, install those first!
+### Before you start
 
-To install Webpack and associated build & test functionality, run:
+This assumes you have Go and Node install already - if not, install those first! To install Webpack and associated build & test functionality, run:
 
     $ npm install
 
-## Developing
+You will also need the database files. These are not included in the repo - they too large for Github so they are currently hosted on Amazon S3. To download them, run
+
+    $ ./install.sh
+
+This only needs to be done once, before you first run.
+
+### Dev server & watcher
 
 To run the dev server, run:
 
@@ -51,3 +57,9 @@ All tests can be run with:
 ## Deploying
 
 TBD
+
+## Copyright
+
+The source code for this project is licensed under the MIT License.
+
+Mapping data contains Ordnance Survey data © Crown copyright and database right 2017.
