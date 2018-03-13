@@ -7,6 +7,7 @@ import (
     "log"
 
     "github.com/labstack/echo"
+    "github.com/labstack/echo/middleware"
     "github.com/dgraph-io/badger"
 )
 // Constants
@@ -30,6 +31,10 @@ func instance() *echo.Echo {
     // Setup Echo instance
     e := echo.New()
 
+    e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
+        Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
+    }))
+
     // Setup template renderer
     e.Renderer = &renderer{
         templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
@@ -42,7 +47,7 @@ func instance() *echo.Echo {
     opts.ReadOnly = true
     db, err := badger.Open(opts)
     if err != nil {
-        log.Fatal(err)
+        log.Fatal("Error connecting to database. Check to see if database has been installed, if not follow the instructions in the README");
     }
 
     dataHandler := &DatabaseHandler{db: db}
