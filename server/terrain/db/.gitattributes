@@ -1,3 +1,0 @@
-*.vlog filter=lfs diff=lfs merge=lfs -text
-*.sst filter=lfs diff=lfs merge=lfs -text
-MANIFEST filter=lfs diff=lfs merge=lfs -text
