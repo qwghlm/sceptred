@@ -23,4 +23,6 @@ func main() {
     }
     e.Logger.Fatal(e.Start(":"+port))
 
+    // TODO Gracefully close DB connection on end
+
 }

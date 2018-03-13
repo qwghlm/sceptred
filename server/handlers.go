@@ -1,11 +1,15 @@
 package main
 
 import (
+    // "fmt"
+    "bytes"
+    "encoding/binary"
     "net/http"
     "regexp"
     "strings"
 
     "github.com/labstack/echo"
+    "github.com/dgraph-io/badger"
 )
 
 // Index
@@ -34,7 +38,13 @@ type gridDataMeta struct {
     GridReference string   `json:"gridReference"`
 }
 
-func handleData(c echo.Context) error {
+const dbDirectory = "./terrain/db/";
+
+type DatabaseHandler struct {
+    db *badger.DB
+}
+
+func (h *DatabaseHandler) get (c echo.Context) error {
 
     // Get the grid square required
     gridSquare := strings.ToLower(c.Param("gridSquare"))
@@ -46,18 +56,37 @@ func handleData(c echo.Context) error {
 
     // Get the big grid square's data
     squareSize := 50
-    allSquares := make(map[string][][]int16)
-    err := loadGob(SRCPATH + "/server/terrain/gob/" + gridSquare[:2] + ".gob", &allSquares)
+
+    // Squares to read into
+    // TODO Convert this to [200][200]
+    var linearSquares [40000]int16
+    err := h.db.View(func(txn *badger.Txn) error {
+        item, err := txn.Get([]byte(gridSquare))
+        if err != nil {
+            return err
+        }
+        byteData, _ := item.Value()
+        err = binary.Read(bytes.NewReader(byteData), binary.LittleEndian, &linearSquares)
+        if err != nil {
+            return err
+        }
+        return nil
+    })
     if err != nil {
-        return echo.NewHTTPError(http.StatusNoContent, nil)
+        if err.Error() == "Key not found" {
+            return echo.NewHTTPError(http.StatusNoContent, nil)
+        } else {
+            return echo.NewHTTPError(http.StatusInternalServerError, nil)
+        }
     }
 
-    squares := allSquares[gridSquare]
-    if squares == nil {
-        return echo.NewHTTPError(http.StatusNoContent, nil)
+    // Turn linear squares into a square of them
+    squares := make([][]int16, 200)
+    for i:=0; i<200; i++ {
+        squares[i] = linearSquares[i*200:(i+1)*200]
     }
 
-    // Value to return
+    // Return JSON
     ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, squares}
     return c.JSON(http.StatusOK, ret)
 
