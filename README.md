@@ -18,6 +18,8 @@ This is very much a work in progress at the moment, all code is subject to chang
 
 ## Installing
 
+This assumes you have Go and Node install already - if not, install those first!
+
 To install Webpack and associated build & test functionality, run:
 
     $ npm install
@@ -40,7 +42,7 @@ Client-side testing is done with Jest, and can be run as:
 
 Server-side testing is done with Go's `testing` package, and can be run as:
 
-    $ npm run test:js
+    $ npm run test:go
 
 All tests can be run with:
 

@@ -78,7 +78,7 @@ test('BaseMap works', async () => {
     // There should be one filled land mesh and 24 empty meshes (5x5 grid)
     var meshes = view.scene.children.filter(d => d.type == "Mesh");
     expect(meshes.filter(landFilter).length).toBe(1);
-    expect(meshes.filter(emptyFilter).length).toBe(24);
+    expect(meshes.filter(emptyFilter).length).toBe(80);
 
     // Run times, which triggers the updateMap() function
     await jest.runAllTimers();
@@ -86,7 +86,7 @@ test('BaseMap works', async () => {
     // There should now be more proper meshes in the camera view (5x3)
     var meshes = view.scene.children.filter(d => d.type == "Mesh");
     expect(meshes.filter(landFilter).length).toBe(15);
-    expect(meshes.filter(emptyFilter).length).toBe(10);
+    expect(meshes.filter(emptyFilter).length).toBe(66);
 
     // Finally trigger a window resize to half the size, and test the resize handler
     const resizeEvent = document.createEvent('Event');
