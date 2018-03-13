@@ -38,7 +38,8 @@ type gridDataMeta struct {
     GridReference string   `json:"gridReference"`
 }
 
-const dbDirectory = "./terrain/db/";
+const dbDirectory = "./terrain/db/"
+const gridSize = 200
 
 type DatabaseHandler struct {
     db *badger.DB
@@ -57,9 +58,9 @@ func (h *DatabaseHandler) get (c echo.Context) error {
     // Get the big grid square's data
     squareSize := 50
 
-    // Squares to read into
-    // TODO Convert this to [200][200]
-    var linearSquares [40000]int16
+    // Squares to read into. Data has to be stored linearly, we then convert it to 
+    // a 200x200 grid
+    var linearSquares [gridSize*gridSize]int16
     err := h.db.View(func(txn *badger.Txn) error {
         item, err := txn.Get([]byte(gridSquare))
         if err != nil {
@@ -80,10 +81,10 @@ func (h *DatabaseHandler) get (c echo.Context) error {
         }
     }
 
-    // Turn linear squares into a square of them
-    squares := make([][]int16, 200)
-    for i:=0; i<200; i++ {
-        squares[i] = linearSquares[i*200:(i+1)*200]
+    // Turn linear array of squares into a 200x200 grid of them
+    squares := make([][]int16, gridSize)
+    for i:=0; i<gridSize; i++ {
+        squares[i] = linearSquares[i*gridSize:(i+1)*gridSize]
     }
 
     // Return JSON
