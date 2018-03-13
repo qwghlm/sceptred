@@ -6,10 +6,11 @@ go_import_path: sceptred
 
 before_script:
   - npm install
+  - ./install.sh
 
 script:
   - npm run test:js
-  - go test ./server -coverprofile=./server/cover.out -covermode=atomic
+  - go test ./server -coverprofile=./server/cover.out -covermode=atomic -tags test
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

@@ -1,14 +1,15 @@
 package main
 
 import (
-    "fmt"
+    // "fmt"
+    "bytes"
+    "encoding/binary"
     "net/http"
-    "os"
     "regexp"
     "strings"
-    "strconv"
 
     "github.com/labstack/echo"
+    "github.com/dgraph-io/badger"
 )
 
 // Index
@@ -29,7 +30,7 @@ func handleIndex(c echo.Context) error {
 
 type gridData struct {
     Meta gridDataMeta      `json:"meta"`
-    Data [][]float64       `json:"data"`
+    Data [][]int16         `json:"data"`
 }
 
 type gridDataMeta struct {
@@ -37,7 +38,14 @@ type gridDataMeta struct {
     GridReference string   `json:"gridReference"`
 }
 
-func handleData(c echo.Context) error {
+const dbDirectory = "./terrain/db/"
+const gridSize = 200
+
+type DatabaseHandler struct {
+    db *badger.DB
+}
+
+func (h *DatabaseHandler) get (c echo.Context) error {
 
     // Get the grid square required
     gridSquare := strings.ToLower(c.Param("gridSquare"))
@@ -47,54 +55,41 @@ func handleData(c echo.Context) error {
         return echo.NewHTTPError(http.StatusBadRequest)
     }
 
-    // Check for path
+    // Get the big grid square's data
     squareSize := 50
-    lines, err := parseZippedAsc(gridSquare)
-    if err != nil {
-        if os.IsNotExist(err) {
-            return echo.NewHTTPError(http.StatusNoContent)
+
+    // Squares to read into. Data has to be stored linearly, we then convert it to 
+    // a 200x200 grid
+    var linearSquares [gridSize*gridSize]int16
+    err := h.db.View(func(txn *badger.Txn) error {
+        item, err := txn.Get([]byte(gridSquare))
+        if err != nil {
+            return err
         }
-        return err
+        byteData, _ := item.Value()
+        err = binary.Read(bytes.NewReader(byteData), binary.LittleEndian, &linearSquares)
+        if err != nil {
+            return err
+        }
+        return nil
+    })
+    if err != nil {
+        if err.Error() == "Key not found" {
+            return echo.NewHTTPError(http.StatusNoContent, nil)
+        } else {
+            return echo.NewHTTPError(http.StatusInternalServerError, nil)
+        }
     }
 
-    // Value to return
-    ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, lines}
+    // Turn linear array of squares into a 200x200 grid of them
+    squares := make([][]int16, gridSize)
+    for i:=0; i<gridSize; i++ {
+        squares[i] = linearSquares[i*gridSize:(i+1)*gridSize]
+    }
+
+    // Return JSON
+    ret := gridData{gridDataMeta{squareSize, strings.ToUpper(gridSquare)}, squares}
     return c.JSON(http.StatusOK, ret)
 
 }
 
-func parseZippedAsc(gridSquare string) ([][]float64, error) {
-
-    dataPath := SRCPATH + fmt.Sprintf("/terrain/data/%v/%v_OST50GRID_20170713.zip",
-        gridSquare[0:2], gridSquare)
-
-    r, err := parseZip(dataPath)
-    if err != nil {
-        return nil, err
-    }
-
-    // Pull lines out of the ASC file
-    var lines []string
-    for _, f := range r.File {
-        if !strings.HasSuffix(f.Name, ".asc") {
-            continue
-        }
-        lines = readLines(f)
-        break
-    }
-    r.Close()
-
-    // Parse strings in file and turn into array of floats
-    lines = lines[5:]
-    ret := make([][]float64, len(lines))
-    for i:=0; i<len(lines); i++ {
-        line := strings.Fields(lines[i])
-        retLine := make([]float64, len(line))
-        for j:=0; j<len(line); j++ {
-            retLine[j], _ = strconv.ParseFloat(line[j], 64)
-        }
-        ret[i] = retLine
-    }
-    return ret, nil
-
-}

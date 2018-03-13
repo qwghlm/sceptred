@@ -1,14 +1,14 @@
 {
   "name": "sceptred",
-  "version": "0.0.1",
-  "description": "An interesting project",
+  "version": "0.0.2",
+  "description": "A project to model Great Britain in 3D",
   "main": "js/index.js",
   "scripts": {
     "dist": "webpack -p",
     "serve": "cd server && fresh",
     "watch": "webpack --watch",
     "test:js": "jest",
-    "test:go": "go test ./server -coverprofile=./server/cover.out",
+    "test:go": "go test ./server -coverprofile=./server/cover.out -tags test",
     "test": "npm run test:js && npm run test:go",
     "coverage": "open ./client/coverage/index.html; go tool cover -html=./server/cover.out"
   },
@@ -46,12 +46,13 @@
     "modernizr-loader": "^1.0.1",
     "node-sass": "^4.7.2",
     "postcss-loader": "^2.1.0",
-    "puppeteer": "^1.1.1",
     "sass-loader": "^6.0.6",
     "ts-jest": "^22.0.4",
     "ts-loader": "^3.5.0",
     "typescript": "^2.7.2",
     "webpack": "^3.11.0",
+    "webpack-bundle-analyzer": "^2.11.1",
+    "webpack-cleanup-plugin": "^0.5.1",
     "webpack-livereload-plugin": "^1.0.0",
     "webpack-manifest-plugin": "^2.0.0-rc.2"
   },

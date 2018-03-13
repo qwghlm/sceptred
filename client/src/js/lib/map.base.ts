@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as Stats from 'stats.js';
 import '../vendor/TrackballControls';
 
 import { materials, colors } from './constants';
@@ -151,7 +150,7 @@ export class BaseMap {
         var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
         var gridSquare = coordsToGridref(coords, 2);
         this.load(gridSquare);
-        getSurroundingSquares(gridSquare, 2).forEach(gridref => this.loadEmpty(gridref));
+        getSurroundingSquares(gridSquare, 4).forEach(gridref => this.loadEmpty(gridref));
 
     }
 
@@ -176,6 +175,7 @@ export class BaseMap {
 
         this.loader.load(url)
             .then((json) => {
+
                 this.replaceEmpty(gridSquare);
                 let geometry = parseGridSquare(json, this.transform);
                 geometry.computeBoundingBox();
@@ -186,12 +186,25 @@ export class BaseMap {
                 this.addToMap(mesh);
 
                 if (geometry.boundingBox.min.z < 0) {
-                    let sea = new THREE.Mesh(this.makeSquare(gridSquare),
-                        materials.meshLambert(colors.seaColor));
-                    sea.name = 'sea-' + gridSquare;
-                    this.addToMap(sea);
+                    this.addToMap(this.makeSea(gridSquare));
+                }4
+            })
+            .catch((errorResponse) => {
+                if (errorResponse.status == 204) {
+                    this.replaceEmpty(gridSquare);
+                    this.addToMap(this.makeSea(gridSquare));
+                }
+                else {
+                    console.error(errorResponse);
                 }
             });
+    }
+
+    makeSea(gridSquare: string) {
+        let sea = new THREE.Mesh(this.makeSquare(gridSquare),
+        materials.meshLambert(colors.seaColor));
+        sea.name = 'sea-' + gridSquare;
+        return sea;
     }
 
     makeSquare(gridSquare:string) {

@@ -5,6 +5,8 @@ var ManifestPlugin = require('webpack-manifest-plugin');
 // Webpack plugins
 var ExtractTextPlugin = require("extract-text-webpack-plugin");
 var LiveReloadPlugin = require('webpack-livereload-plugin');
+var WebpackCleanupPlugin = require("webpack-cleanup-plugin");
+var BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 // Constants used, can edit
 const entryNames = ['index'];
@@ -49,9 +51,9 @@ module.exports = function(env, caller) {
         }));
     }
     else {
-        // plugins.push(new WebpackCleanupPlugin({
-        //     exclude: ['**/.gitkeep',],
-        // }));
+        plugins.push(new WebpackCleanupPlugin({
+            exclude: ['**/.gitkeep',],
+        }));
     }
 
     if (isProduction) {
@@ -93,7 +95,10 @@ module.exports = function(env, caller) {
                 // },
                 {
                     test: /\.tsx?$/,
-                    use: 'ts-loader',
+                    use: [
+                        { loader: 'babel-loader'},
+                        { loader: 'ts-loader'},
+                    ],
                     exclude: /node_modules/
                 },
                 {

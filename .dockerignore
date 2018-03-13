@@ -6,6 +6,7 @@ client/coverage
 client/src
 **/*.map
 
-# No tmp files
+# No tmp files or raw data files
+server/terrain/data
 server/tmp
 **/*.out

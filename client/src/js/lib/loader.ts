@@ -31,10 +31,12 @@ export class Loader {
         //
         return fetch(url)
             .then((response: Response): Promise<GridData> => {
-                this.status[url] = STATUS_LOADED; // TODO After the promise?
+                this.status[url] = STATUS_LOADED;
+                if (!response.ok || response.status == 204) {
+                    throw response;
+                }
                 return response.json()
             });
-            // TODO Additional handling of empty or missing response?
     }
 
 }
