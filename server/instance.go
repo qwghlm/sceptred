@@ -39,6 +39,7 @@ func instance() *echo.Echo {
     opts := badger.DefaultOptions
     opts.Dir = dbDirectory
     opts.ValueDir = dbDirectory
+    opts.ReadOnly = true
     db, err := badger.Open(opts)
     if err != nil {
         log.Fatal(err)
