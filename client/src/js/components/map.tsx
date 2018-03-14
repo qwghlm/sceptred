@@ -1,7 +1,8 @@
-import * as Modernizr from 'modernizr';
 import { h, Component } from "preact";
-import Stats from "../../../../node_modules/stats.js/src/Stats.js";
 import * as THREE from 'three';
+
+import Stats from "stats";
+import * as Modernizr from 'Modernizr';
 
 import '../vendor/TrackballControls';
 import { World } from '../lib/world';
@@ -54,7 +55,7 @@ export class Map extends Component<PropsType, StateType> {
         controls.keys = [-1, 16, 17];
 
         // Set up stats to record
-        var stats = this.stats = new Stats();
+        var stats = this.stats = Stats();
         if (this.props.debug) {
             stats.showPanel(1);
             stats.dom.className = 'debug-stats';
