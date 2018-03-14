@@ -1132,6 +1132,8 @@ var _preact = __webpack_require__(3);
 
 var _map = __webpack_require__(8);
 
+var _grid = __webpack_require__(13);
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -1150,7 +1152,7 @@ var App = exports.App = function (_Component) {
             var target = e.target;
             _this.setState({
                 value: target.value,
-                enabled: target.value.length > 0
+                enabled: (0, _grid.isValidGridref)(target.value)
             });
         };
         _this.handleClick = function (e) {
@@ -1163,7 +1165,7 @@ var App = exports.App = function (_Component) {
     }
 
     _createClass(App, [{
-        key: "componentDidMount",
+        key: 'componentDidMount',
         value: function componentDidMount() {
             var element = this.base.querySelector('.canvas-wrapper');
             new _map.Map(element, {
@@ -1173,9 +1175,9 @@ var App = exports.App = function (_Component) {
             });
         }
     }, {
-        key: "render",
+        key: 'render',
         value: function render(props, state) {
-            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12" }, (0, _preact.h)("div", { class: "canvas-wrapper" })), (0, _preact.h)("div", { class: "column col-8 mt-2" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-4 mt-2" }, (0, _preact.h)("button", { className: "btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")));
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12" }, (0, _preact.h)("div", { class: "canvas-wrapper" })), (0, _preact.h)("div", { class: "column col-10 mt-2" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2 mt-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")));
         }
     }]);
 
@@ -47820,6 +47822,7 @@ var BaseMap = exports.BaseMap = function () {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.isValidGridref = isValidGridref;
 exports.gridrefToCoords = gridrefToCoords;
 exports.coordsToGridref = coordsToGridref;
 exports.getGridSquareSize = getGridSquareSize;
@@ -47833,12 +47836,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+function isValidGridref(gridref) {
+    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
+}
 // Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
 // Grid reference can have spaces, but no commas
 function gridrefToCoords(gridref) {
     gridref = gridref.replace(/ +/g, "");
     // Validate format
-    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+    if (!isValidGridref(gridref)) {
         throw new Error('Invalid grid reference');
     }
     var letter1 = letterToNumber(gridref.substr(0, 1));

@@ -1,5 +1,6 @@
 import { h, Component } from "preact";
-import { Map } from './map';
+import { Map } from './map'
+import { isValidGridref } from './lib/grid';
 
 interface AppProps {}
 interface AppState {
@@ -29,12 +30,11 @@ export class App extends Component<AppProps, AppState> {
 
     }
 
-
     checkEnabled = (e: Event) => {
         var target = e.target as HTMLTextAreaElement;
         this.setState({
             value: target.value,
-            enabled: target.value.length > 0,
+            enabled: isValidGridref(target.value),
         });
     }
 
@@ -51,7 +51,7 @@ export class App extends Component<AppProps, AppState> {
                 <div class="canvas-wrapper"></div>
             </div>
 
-            <div class="column col-8 mt-2">
+            <div class="column col-10 mt-2">
 
                 <input className="form-input" type="text" value={this.state.value}
                     onChange={this.checkEnabled} onKeyUp={this.checkEnabled}
@@ -59,9 +59,9 @@ export class App extends Component<AppProps, AppState> {
 
             </div>
 
-            <div class="column col-4 mt-2">
+            <div class="column col-2 mt-2">
 
-                <button className={"btn btn-primary " + (this.state.loading ? "loading" : "")}
+                <button className={"col-12 btn btn-primary " + (this.state.loading ? "loading" : "")}
                     disabled={!this.state.enabled} onClick={this.handleClick} >Go</button>
 
             </div>
