@@ -8,43 +8,42 @@ import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
 import { debounce } from './utils';
 
-interface Config {
-    origin: number[],
-    width: number,
-    height: number,
+// Models the world in which our tiles live
+
+class EventTarget {
+
+    addEventListener: (s: string, f: Function) => void;
+    removeEventListener: (s: string, f: Function) => void;
+    dispatchEvent: (e: Event) => void;
+
+    constructor() {
+
+        var target = document.createTextNode("");
+
+        // Pass EventTarget interface calls to DOM EventTarget object
+        this.addEventListener = target.addEventListener.bind(target);
+        this.removeEventListener = target.removeEventListener.bind(target);
+        this.dispatchEvent = target.dispatchEvent.bind(target);
+    }
 }
 
-// TODO Call this "World" or something
-export class BaseMap {
+export class World extends EventTarget {
 
-    config: Config; // TODO Kill this
     loader: Loader; // TODO Make private
 
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
 
-    scale: THREE.Matrix4; // TODO Make private
+    scale: THREE.Vector3; // TODO Make private
     transform: THREE.Matrix4; // TODO Make private
 
-    updateMap: () => void;
+    update: () => void;
 
-    constructor(config: Config) {
+    constructor(width: number, height: number) {
 
-        // Setup config
-        this.config = config;
+        super();
 
-        this.updateMap = debounce(this._updateMap.bind(this), 500);
-
-        // Initialize the view and the renderer
-        this.initializeWorld(config.width, config.height);
-
-        // Initialize the transforms within the world, and load
-        this.initializeTransform();
-        this.initializeLoad();
-
-    }
-
-    initializeWorld(width: number, height: number) {
+        this.update = debounce(this._update.bind(this), 500);
 
         // Setup camera
         var camera = this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
@@ -66,32 +65,27 @@ export class BaseMap {
         var ambientLight = new THREE.AmbientLight(0x080808);
         scene.add(ambientLight);
 
+        // Set up scale
+        const metresPerPixel = 50; // TODO turn into a configurable property?
+        const heightFactor = 2;
+        this.scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, heightFactor/metresPerPixel);
+
+        // Set up loader
+        this.loader = new Loader();
     }
 
     // Setup transform from real-world to 3D world coordinates
-    initializeTransform() {
+    navigateTo(gridref: string) {
 
-        const metresPerPixel = 50; // TODO turn into a config?
-        const heightFactor = 2;
+        // Calculate the real origin (i.e. where the world is centred),
+        // the world origin (i.e (0, 0, 0))
+        // and the transform to get from one to the other
+        var realOrigin = gridrefToCoords(gridref);
+        var worldOrigin = new THREE.Vector3(0, 0, 0);
+        this.transform = makeTransform(realOrigin, worldOrigin, this.scale);
 
-        // Calculate the world origin (i.e. where the world is centred),
-        // the model origin (i.e (0, 0, 0))
-        // and the scale to get from one to the other
-        var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-        var modelOrigin = new THREE.Vector3(0, 0, 0);
-        var scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, heightFactor/metresPerPixel);
-
-        this.scale = makeScale(scale);
-        this.transform = makeTransform(worldOrigin, modelOrigin, scale);
-    }
-
-    initializeLoad() {
-
-        this.loader = new Loader();
-
-        // Work out our origin
-        var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0)
-        var gridSquare = coordsToGridref(coords, 2);
+        // Work out our origin as a two-letter square
+        var gridSquare = coordsToGridref(realOrigin, 2);
         this.load(gridSquare);
         getSurroundingSquares(gridSquare, 4).forEach(gridref => this.loadEmpty(gridref));
 
@@ -119,22 +113,27 @@ export class BaseMap {
                 // Add mesh for this
                 let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
                 mesh.name = 'land-'+gridSquare;
-                this.addToMap(mesh);
+                this.addToWorld(mesh);
 
                 if (geometry.boundingBox.min.z < 0) {
-                    this.addToMap(this.makeSea(gridSquare));
-                }4
+                    this.addToWorld(this.makeSea(gridSquare));
+                }
             })
             .catch((errorResponse) => {
                 if (errorResponse.status == 204) {
                     this.replaceEmpty(gridSquare);
-                    this.addToMap(this.makeSea(gridSquare));
+                    this.addToWorld(this.makeSea(gridSquare));
                 }
                 else {
                     console.error(errorResponse);
                 }
             });
     }
+
+    // TODO Simple non-this functions makeSea, makeLand, makeEmpty, that each take a geometry
+    // and turn into relevant material
+
+    // And this functions makeEmptyGeometry, makeMeshGeometry, that generate the geometry passed
 
     makeSea(gridSquare: string) {
         let sea = new THREE.Mesh(this.makeSquare(gridSquare),
@@ -146,7 +145,7 @@ export class BaseMap {
     makeSquare(gridSquare:string) {
 
         // Get this grid square, scaled down to local size
-        let square = getGridSquareSize(gridSquare).applyMatrix4(this.scale);
+        let square = getGridSquareSize(gridSquare).applyMatrix4(makeScale(this.scale));
 
         // Calculate position of square
         // The half-square addition at the end is to take into account PlaneGeometry
@@ -164,10 +163,11 @@ export class BaseMap {
         // Create a mesh out of it and add to map
         let mesh = new THREE.Mesh(this.makeSquare(gridSquare), materials.meshWireFrame(0xFFFFFF));
         mesh.name = 'empty-' + gridSquare;
-        this.addToMap(mesh);
+        this.addToWorld(mesh);
 
     }
 
+    // TODO Convert to removeFromWorld
     replaceEmpty(gridSquare: string) {
 
         var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == "empty-" + gridSquare);
@@ -177,13 +177,12 @@ export class BaseMap {
 
     }
 
-    addToMap(mesh: THREE.Mesh) {
+    addToWorld(mesh: THREE.Mesh) {
         this.scene.add(mesh);
-        // TODO Trigger some sort of event that the parent knows to re-render
+        this.dispatchEvent(new Event('update'));
     }
 
-    // Not usually called directly, but called by debounced version
-    _updateMap() {
+    _update() {
 
         // Calculate the frustum of this camera
         var frustum = new THREE.Frustum();
@@ -213,3 +212,4 @@ export class BaseMap {
         });
     }
 }
+

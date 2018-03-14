@@ -49,7 +49,7 @@ export class App extends Component<AppProps, AppState> {
             </div>
 
             <div class="column col-12 mt-2">
-                <Map />
+                <Map debug={true} />
             </div>
 
         </div>

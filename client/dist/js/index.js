@@ -61,1251 +61,11 @@ var SCEPTRED =
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createElement", function() { return h; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneElement", function() { return cloneElement; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rerender", function() { return rerender; });
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "options", function() { return options; });
-/** Virtual DOM Node */
-function VNode() {}
-
-/** Global options
- *	@public
- *	@namespace options {Object}
- */
-var options = {
-
-	/** If `true`, `prop` changes trigger synchronous component updates.
-  *	@name syncComponentUpdates
-  *	@type Boolean
-  *	@default true
-  */
-	//syncComponentUpdates: true,
-
-	/** Processes all created VNodes.
-  *	@param {VNode} vnode	A newly-created VNode to normalize/process
-  */
-	//vnode(vnode) { }
-
-	/** Hook invoked after a component is mounted. */
-	// afterMount(component) { }
-
-	/** Hook invoked after the DOM is updated with a component's latest render. */
-	// afterUpdate(component) { }
-
-	/** Hook invoked immediately before a component is unmounted. */
-	// beforeUnmount(component) { }
-};
-
-var stack = [];
-
-var EMPTY_CHILDREN = [];
-
-/**
- * JSX/hyperscript reviver.
- * @see http://jasonformat.com/wtf-is-jsx
- * Benchmarks: https://esbench.com/bench/57ee8f8e330ab09900a1a1a0
- *
- * Note: this is exported as both `h()` and `createElement()` for compatibility reasons.
- *
- * Creates a VNode (virtual DOM element). A tree of VNodes can be used as a lightweight representation
- * of the structure of a DOM tree. This structure can be realized by recursively comparing it against
- * the current _actual_ DOM structure, and applying only the differences.
- *
- * `h()`/`createElement()` accepts an element name, a list of attributes/props,
- * and optionally children to append to the element.
- *
- * @example The following DOM tree
- *
- * `<div id="foo" name="bar">Hello!</div>`
- *
- * can be constructed using this function as:
- *
- * `h('div', { id: 'foo', name : 'bar' }, 'Hello!');`
- *
- * @param {string} nodeName	An element name. Ex: `div`, `a`, `span`, etc.
- * @param {Object} attributes	Any attributes/props to set on the created element.
- * @param rest			Additional arguments are taken to be children to append. Can be infinitely nested Arrays.
- *
- * @public
- */
-function h(nodeName, attributes) {
-	var children = EMPTY_CHILDREN,
-	    lastSimple,
-	    child,
-	    simple,
-	    i;
-	for (i = arguments.length; i-- > 2;) {
-		stack.push(arguments[i]);
-	}
-	if (attributes && attributes.children != null) {
-		if (!stack.length) stack.push(attributes.children);
-		delete attributes.children;
-	}
-	while (stack.length) {
-		if ((child = stack.pop()) && child.pop !== undefined) {
-			for (i = child.length; i--;) {
-				stack.push(child[i]);
-			}
-		} else {
-			if (typeof child === 'boolean') child = null;
-
-			if (simple = typeof nodeName !== 'function') {
-				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
-			}
-
-			if (simple && lastSimple) {
-				children[children.length - 1] += child;
-			} else if (children === EMPTY_CHILDREN) {
-				children = [child];
-			} else {
-				children.push(child);
-			}
-
-			lastSimple = simple;
-		}
-	}
-
-	var p = new VNode();
-	p.nodeName = nodeName;
-	p.children = children;
-	p.attributes = attributes == null ? undefined : attributes;
-	p.key = attributes == null ? undefined : attributes.key;
-
-	// if a "vnode hook" is defined, pass every created VNode to it
-	if (options.vnode !== undefined) options.vnode(p);
-
-	return p;
-}
-
-/**
- *  Copy all properties from `props` onto `obj`.
- *  @param {Object} obj		Object onto which properties should be copied.
- *  @param {Object} props	Object from which to copy properties.
- *  @returns obj
- *  @private
- */
-function extend(obj, props) {
-  for (var i in props) {
-    obj[i] = props[i];
-  }return obj;
-}
-
-/**
- * Call a function asynchronously, as soon as possible. Makes
- * use of HTML Promise to schedule the callback if available,
- * otherwise falling back to `setTimeout` (mainly for IE<11).
- *
- * @param {Function} callback
- */
-var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
-
-/**
- * Clones the given VNode, optionally adding attributes/props and replacing its children.
- * @param {VNode} vnode		The virutal DOM element to clone
- * @param {Object} props	Attributes/props to add when cloning
- * @param {VNode} rest		Any additional arguments will be used as replacement children.
- */
-function cloneElement(vnode, props) {
-  return h(vnode.nodeName, extend(extend({}, vnode.attributes), props), arguments.length > 2 ? [].slice.call(arguments, 2) : vnode.children);
-}
-
-// DOM properties that should NOT have "px" added when numeric
-var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
-
-/** Managed queue of dirty components to be re-rendered */
-
-var items = [];
-
-function enqueueRender(component) {
-	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
-		(options.debounceRendering || defer)(rerender);
-	}
-}
-
-function rerender() {
-	var p,
-	    list = items;
-	items = [];
-	while (p = list.pop()) {
-		if (p._dirty) renderComponent(p);
-	}
-}
-
-/**
- * Check if two nodes are equivalent.
- *
- * @param {Node} node			DOM Node to compare
- * @param {VNode} vnode			Virtual DOM node to compare
- * @param {boolean} [hyrdating=false]	If true, ignores component constructors when comparing.
- * @private
- */
-function isSameNodeType(node, vnode, hydrating) {
-  if (typeof vnode === 'string' || typeof vnode === 'number') {
-    return node.splitText !== undefined;
-  }
-  if (typeof vnode.nodeName === 'string') {
-    return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
-  }
-  return hydrating || node._componentConstructor === vnode.nodeName;
-}
-
-/**
- * Check if an Element has a given nodeName, case-insensitively.
- *
- * @param {Element} node	A DOM Element to inspect the name of.
- * @param {String} nodeName	Unnormalized name to compare against.
- */
-function isNamedNode(node, nodeName) {
-  return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
-}
-
-/**
- * Reconstruct Component-style `props` from a VNode.
- * Ensures default/fallback values from `defaultProps`:
- * Own-properties of `defaultProps` not present in `vnode.attributes` are added.
- *
- * @param {VNode} vnode
- * @returns {Object} props
- */
-function getNodeProps(vnode) {
-  var props = extend({}, vnode.attributes);
-  props.children = vnode.children;
-
-  var defaultProps = vnode.nodeName.defaultProps;
-  if (defaultProps !== undefined) {
-    for (var i in defaultProps) {
-      if (props[i] === undefined) {
-        props[i] = defaultProps[i];
-      }
-    }
-  }
-
-  return props;
-}
-
-/** Create an element with the given nodeName.
- *	@param {String} nodeName
- *	@param {Boolean} [isSvg=false]	If `true`, creates an element within the SVG namespace.
- *	@returns {Element} node
- */
-function createNode(nodeName, isSvg) {
-	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
-	node.normalizedNodeName = nodeName;
-	return node;
-}
-
-/** Remove a child node from its parent if attached.
- *	@param {Element} node		The node to remove
- */
-function removeNode(node) {
-	var parentNode = node.parentNode;
-	if (parentNode) parentNode.removeChild(node);
-}
-
-/** Set a named attribute on the given Node, with special behavior for some names and event handlers.
- *	If `value` is `null`, the attribute/handler will be removed.
- *	@param {Element} node	An element to mutate
- *	@param {string} name	The name/key to set, such as an event or attribute name
- *	@param {any} old	The last value that was set for this name/node pair
- *	@param {any} value	An attribute value, such as a function to be used as an event handler
- *	@param {Boolean} isSvg	Are we currently diffing inside an svg?
- *	@private
- */
-function setAccessor(node, name, old, value, isSvg) {
-	if (name === 'className') name = 'class';
-
-	if (name === 'key') {
-		// ignore
-	} else if (name === 'ref') {
-		if (old) old(null);
-		if (value) value(node);
-	} else if (name === 'class' && !isSvg) {
-		node.className = value || '';
-	} else if (name === 'style') {
-		if (!value || typeof value === 'string' || typeof old === 'string') {
-			node.style.cssText = value || '';
-		}
-		if (value && typeof value === 'object') {
-			if (typeof old !== 'string') {
-				for (var i in old) {
-					if (!(i in value)) node.style[i] = '';
-				}
-			}
-			for (var i in value) {
-				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
-			}
-		}
-	} else if (name === 'dangerouslySetInnerHTML') {
-		if (value) node.innerHTML = value.__html || '';
-	} else if (name[0] == 'o' && name[1] == 'n') {
-		var useCapture = name !== (name = name.replace(/Capture$/, ''));
-		name = name.toLowerCase().substring(2);
-		if (value) {
-			if (!old) node.addEventListener(name, eventProxy, useCapture);
-		} else {
-			node.removeEventListener(name, eventProxy, useCapture);
-		}
-		(node._listeners || (node._listeners = {}))[name] = value;
-	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
-		setProperty(node, name, value == null ? '' : value);
-		if (value == null || value === false) node.removeAttribute(name);
-	} else {
-		var ns = isSvg && name !== (name = name.replace(/^xlink\:?/, ''));
-		if (value == null || value === false) {
-			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
-		} else if (typeof value !== 'function') {
-			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
-		}
-	}
-}
-
-/** Attempt to set a DOM property to the given value.
- *	IE & FF throw for certain property-value combinations.
- */
-function setProperty(node, name, value) {
-	try {
-		node[name] = value;
-	} catch (e) {}
-}
-
-/** Proxy an event to hooked event handlers
- *	@private
- */
-function eventProxy(e) {
-	return this._listeners[e.type](options.event && options.event(e) || e);
-}
-
-/** Queue of components that have been mounted and are awaiting componentDidMount */
-var mounts = [];
-
-/** Diff recursion count, used to track the end of the diff cycle. */
-var diffLevel = 0;
-
-/** Global flag indicating if the diff is currently within an SVG */
-var isSvgMode = false;
-
-/** Global flag indicating if the diff is performing hydration */
-var hydrating = false;
-
-/** Invoke queued componentDidMount lifecycle methods */
-function flushMounts() {
-	var c;
-	while (c = mounts.pop()) {
-		if (options.afterMount) options.afterMount(c);
-		if (c.componentDidMount) c.componentDidMount();
-	}
-}
-
-/** Apply differences in a given vnode (and it's deep children) to a real DOM Node.
- *	@param {Element} [dom=null]		A DOM node to mutate into the shape of the `vnode`
- *	@param {VNode} vnode			A VNode (with descendants forming a tree) representing the desired DOM structure
- *	@returns {Element} dom			The created/mutated element
- *	@private
- */
-function diff(dom, vnode, context, mountAll, parent, componentRoot) {
-	// diffLevel having been 0 here indicates initial entry into the diff (not a subdiff)
-	if (!diffLevel++) {
-		// when first starting the diff, check if we're diffing an SVG or within an SVG
-		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
-
-		// hydration is indicated by the existing element to be diffed not having a prop cache
-		hydrating = dom != null && !('__preactattr_' in dom);
-	}
-
-	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
-
-	// append the element if its a new parent
-	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
-
-	// diffLevel being reduced to 0 means we're exiting the diff
-	if (! --diffLevel) {
-		hydrating = false;
-		// invoke queued componentDidMount lifecycle methods
-		if (!componentRoot) flushMounts();
-	}
-
-	return ret;
-}
-
-/** Internals of `diff()`, separated to allow bypassing diffLevel / mount flushing. */
-function idiff(dom, vnode, context, mountAll, componentRoot) {
-	var out = dom,
-	    prevSvgMode = isSvgMode;
-
-	// empty values (null, undefined, booleans) render as empty Text nodes
-	if (vnode == null || typeof vnode === 'boolean') vnode = '';
-
-	// Fast case: Strings & Numbers create/update Text nodes.
-	if (typeof vnode === 'string' || typeof vnode === 'number') {
-
-		// update if it's already a Text node:
-		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
-			/* istanbul ignore if */ /* Browser quirk that can't be covered: https://github.com/developit/preact/commit/fd4f21f5c45dfd75151bd27b4c217d8003aa5eb9 */
-			if (dom.nodeValue != vnode) {
-				dom.nodeValue = vnode;
-			}
-		} else {
-			// it wasn't a Text node: replace it with one and recycle the old Element
-			out = document.createTextNode(vnode);
-			if (dom) {
-				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-				recollectNodeTree(dom, true);
-			}
-		}
-
-		out['__preactattr_'] = true;
-
-		return out;
-	}
-
-	// If the VNode represents a Component, perform a component diff:
-	var vnodeName = vnode.nodeName;
-	if (typeof vnodeName === 'function') {
-		return buildComponentFromVNode(dom, vnode, context, mountAll);
-	}
-
-	// Tracks entering and exiting SVG namespace when descending through the tree.
-	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
-
-	// If there's no existing element or it's the wrong type, create a new one:
-	vnodeName = String(vnodeName);
-	if (!dom || !isNamedNode(dom, vnodeName)) {
-		out = createNode(vnodeName, isSvgMode);
-
-		if (dom) {
-			// move children into the replacement node
-			while (dom.firstChild) {
-				out.appendChild(dom.firstChild);
-			} // if the previous Element was mounted into the DOM, replace it inline
-			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
-
-			// recycle the old element (skips non-Element node types)
-			recollectNodeTree(dom, true);
-		}
-	}
-
-	var fc = out.firstChild,
-	    props = out['__preactattr_'],
-	    vchildren = vnode.children;
-
-	if (props == null) {
-		props = out['__preactattr_'] = {};
-		for (var a = out.attributes, i = a.length; i--;) {
-			props[a[i].name] = a[i].value;
-		}
-	}
-
-	// Optimization: fast-path for elements containing a single TextNode:
-	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
-		if (fc.nodeValue != vchildren[0]) {
-			fc.nodeValue = vchildren[0];
-		}
-	}
-	// otherwise, if there are existing or new children, diff them:
-	else if (vchildren && vchildren.length || fc != null) {
-			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
-		}
-
-	// Apply attributes/props from VNode to the DOM Element:
-	diffAttributes(out, vnode.attributes, props);
-
-	// restore previous SVG mode: (in case we're exiting an SVG namespace)
-	isSvgMode = prevSvgMode;
-
-	return out;
-}
-
-/** Apply child and attribute changes between a VNode and a DOM Node to the DOM.
- *	@param {Element} dom			Element whose children should be compared & mutated
- *	@param {Array} vchildren		Array of VNodes to compare to `dom.childNodes`
- *	@param {Object} context			Implicitly descendant context object (from most recent `getChildContext()`)
- *	@param {Boolean} mountAll
- *	@param {Boolean} isHydrating	If `true`, consumes externally created elements similar to hydration
- */
-function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
-	var originalChildren = dom.childNodes,
-	    children = [],
-	    keyed = {},
-	    keyedLen = 0,
-	    min = 0,
-	    len = originalChildren.length,
-	    childrenLen = 0,
-	    vlen = vchildren ? vchildren.length : 0,
-	    j,
-	    c,
-	    f,
-	    vchild,
-	    child;
-
-	// Build up a map of keyed children and an Array of unkeyed children:
-	if (len !== 0) {
-		for (var i = 0; i < len; i++) {
-			var _child = originalChildren[i],
-			    props = _child['__preactattr_'],
-			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
-			if (key != null) {
-				keyedLen++;
-				keyed[key] = _child;
-			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
-				children[childrenLen++] = _child;
-			}
-		}
-	}
-
-	if (vlen !== 0) {
-		for (var i = 0; i < vlen; i++) {
-			vchild = vchildren[i];
-			child = null;
-
-			// attempt to find a node based on key matching
-			var key = vchild.key;
-			if (key != null) {
-				if (keyedLen && keyed[key] !== undefined) {
-					child = keyed[key];
-					keyed[key] = undefined;
-					keyedLen--;
-				}
-			}
-			// attempt to pluck a node of the same type from the existing children
-			else if (!child && min < childrenLen) {
-					for (j = min; j < childrenLen; j++) {
-						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
-							child = c;
-							children[j] = undefined;
-							if (j === childrenLen - 1) childrenLen--;
-							if (j === min) min++;
-							break;
-						}
-					}
-				}
-
-			// morph the matched/found/created DOM child to match vchild (deep)
-			child = idiff(child, vchild, context, mountAll);
-
-			f = originalChildren[i];
-			if (child && child !== dom && child !== f) {
-				if (f == null) {
-					dom.appendChild(child);
-				} else if (child === f.nextSibling) {
-					removeNode(f);
-				} else {
-					dom.insertBefore(child, f);
-				}
-			}
-		}
-	}
-
-	// remove unused keyed children:
-	if (keyedLen) {
-		for (var i in keyed) {
-			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
-		}
-	}
-
-	// remove orphaned unkeyed children:
-	while (min <= childrenLen) {
-		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
-	}
-}
-
-/** Recursively recycle (or just unmount) a node and its descendants.
- *	@param {Node} node						DOM node to start unmount/removal from
- *	@param {Boolean} [unmountOnly=false]	If `true`, only triggers unmount lifecycle, skips removal
- */
-function recollectNodeTree(node, unmountOnly) {
-	var component = node._component;
-	if (component) {
-		// if node is owned by a Component, unmount that component (ends up recursing back here)
-		unmountComponent(component);
-	} else {
-		// If the node's VNode had a ref function, invoke it with null here.
-		// (this is part of the React spec, and smart for unsetting references)
-		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
-
-		if (unmountOnly === false || node['__preactattr_'] == null) {
-			removeNode(node);
-		}
-
-		removeChildren(node);
-	}
-}
-
-/** Recollect/unmount all children.
- *	- we use .lastChild here because it causes less reflow than .firstChild
- *	- it's also cheaper than accessing the .childNodes Live NodeList
- */
-function removeChildren(node) {
-	node = node.lastChild;
-	while (node) {
-		var next = node.previousSibling;
-		recollectNodeTree(node, true);
-		node = next;
-	}
-}
-
-/** Apply differences in attributes from a VNode to the given DOM Element.
- *	@param {Element} dom		Element with attributes to diff `attrs` against
- *	@param {Object} attrs		The desired end-state key-value attribute pairs
- *	@param {Object} old			Current/previous attributes (from previous VNode or element's prop cache)
- */
-function diffAttributes(dom, attrs, old) {
-	var name;
-
-	// remove attributes no longer present on the vnode by setting them to undefined
-	for (name in old) {
-		if (!(attrs && attrs[name] != null) && old[name] != null) {
-			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
-		}
-	}
-
-	// add new & update changed attributes
-	for (name in attrs) {
-		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
-			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
-		}
-	}
-}
-
-/** Retains a pool of Components for re-use, keyed on component name.
- *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
- *	@private
- */
-var components = {};
-
-/** Reclaim a component for later re-use by the recycler. */
-function collectComponent(component) {
-	var name = component.constructor.name;
-	(components[name] || (components[name] = [])).push(component);
-}
-
-/** Create a component. Normalizes differences between PFC's and classful Components. */
-function createComponent(Ctor, props, context) {
-	var list = components[Ctor.name],
-	    inst;
-
-	if (Ctor.prototype && Ctor.prototype.render) {
-		inst = new Ctor(props, context);
-		Component.call(inst, props, context);
-	} else {
-		inst = new Component(props, context);
-		inst.constructor = Ctor;
-		inst.render = doRender;
-	}
-
-	if (list) {
-		for (var i = list.length; i--;) {
-			if (list[i].constructor === Ctor) {
-				inst.nextBase = list[i].nextBase;
-				list.splice(i, 1);
-				break;
-			}
-		}
-	}
-	return inst;
-}
-
-/** The `.render()` method for a PFC backing instance. */
-function doRender(props, state, context) {
-	return this.constructor(props, context);
-}
-
-/** Set a component's `props` (generally derived from JSX attributes).
- *	@param {Object} props
- *	@param {Object} [opts]
- *	@param {boolean} [opts.renderSync=false]	If `true` and {@link options.syncComponentUpdates} is `true`, triggers synchronous rendering.
- *	@param {boolean} [opts.render=true]			If `false`, no render will be triggered.
- */
-function setComponentProps(component, props, opts, context, mountAll) {
-	if (component._disable) return;
-	component._disable = true;
-
-	if (component.__ref = props.ref) delete props.ref;
-	if (component.__key = props.key) delete props.key;
-
-	if (!component.base || mountAll) {
-		if (component.componentWillMount) component.componentWillMount();
-	} else if (component.componentWillReceiveProps) {
-		component.componentWillReceiveProps(props, context);
-	}
-
-	if (context && context !== component.context) {
-		if (!component.prevContext) component.prevContext = component.context;
-		component.context = context;
-	}
-
-	if (!component.prevProps) component.prevProps = component.props;
-	component.props = props;
-
-	component._disable = false;
-
-	if (opts !== 0) {
-		if (opts === 1 || options.syncComponentUpdates !== false || !component.base) {
-			renderComponent(component, 1, mountAll);
-		} else {
-			enqueueRender(component);
-		}
-	}
-
-	if (component.__ref) component.__ref(component);
-}
-
-/** Render a Component, triggering necessary lifecycle events and taking High-Order Components into account.
- *	@param {Component} component
- *	@param {Object} [opts]
- *	@param {boolean} [opts.build=false]		If `true`, component will build and store a DOM node if not already associated with one.
- *	@private
- */
-function renderComponent(component, opts, mountAll, isChild) {
-	if (component._disable) return;
-
-	var props = component.props,
-	    state = component.state,
-	    context = component.context,
-	    previousProps = component.prevProps || props,
-	    previousState = component.prevState || state,
-	    previousContext = component.prevContext || context,
-	    isUpdate = component.base,
-	    nextBase = component.nextBase,
-	    initialBase = isUpdate || nextBase,
-	    initialChildComponent = component._component,
-	    skip = false,
-	    rendered,
-	    inst,
-	    cbase;
-
-	// if updating
-	if (isUpdate) {
-		component.props = previousProps;
-		component.state = previousState;
-		component.context = previousContext;
-		if (opts !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
-			skip = true;
-		} else if (component.componentWillUpdate) {
-			component.componentWillUpdate(props, state, context);
-		}
-		component.props = props;
-		component.state = state;
-		component.context = context;
-	}
-
-	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
-	component._dirty = false;
-
-	if (!skip) {
-		rendered = component.render(props, state, context);
-
-		// context to pass to the child, can be updated via (grand-)parent component
-		if (component.getChildContext) {
-			context = extend(extend({}, context), component.getChildContext());
-		}
-
-		var childComponent = rendered && rendered.nodeName,
-		    toUnmount,
-		    base;
-
-		if (typeof childComponent === 'function') {
-			// set up high order component link
-
-			var childProps = getNodeProps(rendered);
-			inst = initialChildComponent;
-
-			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
-				setComponentProps(inst, childProps, 1, context, false);
-			} else {
-				toUnmount = inst;
-
-				component._component = inst = createComponent(childComponent, childProps, context);
-				inst.nextBase = inst.nextBase || nextBase;
-				inst._parentComponent = component;
-				setComponentProps(inst, childProps, 0, context, false);
-				renderComponent(inst, 1, mountAll, true);
-			}
-
-			base = inst.base;
-		} else {
-			cbase = initialBase;
-
-			// destroy high order component link
-			toUnmount = initialChildComponent;
-			if (toUnmount) {
-				cbase = component._component = null;
-			}
-
-			if (initialBase || opts === 1) {
-				if (cbase) cbase._component = null;
-				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
-			}
-		}
-
-		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
-			var baseParent = initialBase.parentNode;
-			if (baseParent && base !== baseParent) {
-				baseParent.replaceChild(base, initialBase);
-
-				if (!toUnmount) {
-					initialBase._component = null;
-					recollectNodeTree(initialBase, false);
-				}
-			}
-		}
-
-		if (toUnmount) {
-			unmountComponent(toUnmount);
-		}
-
-		component.base = base;
-		if (base && !isChild) {
-			var componentRef = component,
-			    t = component;
-			while (t = t._parentComponent) {
-				(componentRef = t).base = base;
-			}
-			base._component = componentRef;
-			base._componentConstructor = componentRef.constructor;
-		}
-	}
-
-	if (!isUpdate || mountAll) {
-		mounts.unshift(component);
-	} else if (!skip) {
-		// Ensure that pending componentDidMount() hooks of child components
-		// are called before the componentDidUpdate() hook in the parent.
-		// Note: disabled as it causes duplicate hooks, see https://github.com/developit/preact/issues/750
-		// flushMounts();
-
-		if (component.componentDidUpdate) {
-			component.componentDidUpdate(previousProps, previousState, previousContext);
-		}
-		if (options.afterUpdate) options.afterUpdate(component);
-	}
-
-	if (component._renderCallbacks != null) {
-		while (component._renderCallbacks.length) {
-			component._renderCallbacks.pop().call(component);
-		}
-	}
-
-	if (!diffLevel && !isChild) flushMounts();
-}
-
-/** Apply the Component referenced by a VNode to the DOM.
- *	@param {Element} dom	The DOM node to mutate
- *	@param {VNode} vnode	A Component-referencing VNode
- *	@returns {Element} dom	The created/mutated element
- *	@private
- */
-function buildComponentFromVNode(dom, vnode, context, mountAll) {
-	var c = dom && dom._component,
-	    originalComponent = c,
-	    oldDom = dom,
-	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
-	    isOwner = isDirectOwner,
-	    props = getNodeProps(vnode);
-	while (c && !isOwner && (c = c._parentComponent)) {
-		isOwner = c.constructor === vnode.nodeName;
-	}
-
-	if (c && isOwner && (!mountAll || c._component)) {
-		setComponentProps(c, props, 3, context, mountAll);
-		dom = c.base;
-	} else {
-		if (originalComponent && !isDirectOwner) {
-			unmountComponent(originalComponent);
-			dom = oldDom = null;
-		}
-
-		c = createComponent(vnode.nodeName, props, context);
-		if (dom && !c.nextBase) {
-			c.nextBase = dom;
-			// passing dom/oldDom as nextBase will recycle it if unused, so bypass recycling on L229:
-			oldDom = null;
-		}
-		setComponentProps(c, props, 1, context, mountAll);
-		dom = c.base;
-
-		if (oldDom && dom !== oldDom) {
-			oldDom._component = null;
-			recollectNodeTree(oldDom, false);
-		}
-	}
-
-	return dom;
-}
-
-/** Remove a component from the DOM and recycle it.
- *	@param {Component} component	The Component instance to unmount
- *	@private
- */
-function unmountComponent(component) {
-	if (options.beforeUnmount) options.beforeUnmount(component);
-
-	var base = component.base;
-
-	component._disable = true;
-
-	if (component.componentWillUnmount) component.componentWillUnmount();
-
-	component.base = null;
-
-	// recursively tear down & recollect high-order component children:
-	var inner = component._component;
-	if (inner) {
-		unmountComponent(inner);
-	} else if (base) {
-		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
-
-		component.nextBase = base;
-
-		removeNode(base);
-		collectComponent(component);
-
-		removeChildren(base);
-	}
-
-	if (component.__ref) component.__ref(null);
-}
-
-/** Base Component class.
- *	Provides `setState()` and `forceUpdate()`, which trigger rendering.
- *	@public
- *
- *	@example
- *	class MyFoo extends Component {
- *		render(props, state) {
- *			return <div />;
- *		}
- *	}
- */
-function Component(props, context) {
-	this._dirty = true;
-
-	/** @public
-  *	@type {object}
-  */
-	this.context = context;
-
-	/** @public
-  *	@type {object}
-  */
-	this.props = props;
-
-	/** @public
-  *	@type {object}
-  */
-	this.state = this.state || {};
-}
-
-extend(Component.prototype, {
-
-	/** Returns a `boolean` indicating if the component should re-render when receiving the given `props` and `state`.
-  *	@param {object} nextProps
-  *	@param {object} nextState
-  *	@param {object} nextContext
-  *	@returns {Boolean} should the component re-render
-  *	@name shouldComponentUpdate
-  *	@function
-  */
-
-	/** Update component state by copying properties from `state` to `this.state`.
-  *	@param {object} state		A hash of state properties to update with new values
-  *	@param {function} callback	A function to be called once component state is updated
-  */
-	setState: function setState(state, callback) {
-		var s = this.state;
-		if (!this.prevState) this.prevState = extend({}, s);
-		extend(s, typeof state === 'function' ? state(s, this.props) : state);
-		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
-		enqueueRender(this);
-	},
-
-
-	/** Immediately perform a synchronous re-render of the component.
-  *	@param {function} callback		A function to be called after component is re-rendered.
-  *	@private
-  */
-	forceUpdate: function forceUpdate(callback) {
-		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
-		renderComponent(this, 2);
-	},
-
-
-	/** Accepts `props` and `state`, and returns a new Virtual DOM tree to build.
-  *	Virtual DOM is generally constructed via [JSX](http://jasonformat.com/wtf-is-jsx).
-  *	@param {object} props		Props (eg: JSX attributes) received from parent element/component
-  *	@param {object} state		The component's current state
-  *	@param {object} context		Context object (if a parent component has provided context)
-  *	@returns VNode
-  */
-	render: function render() {}
-});
-
-/** Render JSX into a `parent` Element.
- *	@param {VNode} vnode		A (JSX) VNode to render
- *	@param {Element} parent		DOM element to render into
- *	@param {Element} [merge]	Attempt to re-use an existing DOM tree rooted at `merge`
- *	@public
- *
- *	@example
- *	// render a div into <body>:
- *	render(<div id="hello">hello!</div>, document.body);
- *
- *	@example
- *	// render a "Thing" component into #foo:
- *	const Thing = ({ name }) => <span>{ name }</span>;
- *	render(<Thing name="one" />, document.querySelector('#foo'));
- */
-function render(vnode, parent, merge) {
-  return diff(merge, vnode, {}, false, parent, false);
-}
-
-var preact = {
-	h: h,
-	createElement: h,
-	cloneElement: cloneElement,
-	Component: Component,
-	render: render,
-	rerender: rerender,
-	options: options
-};
-
-
-/* harmony default export */ __webpack_exports__["default"] = (preact);
-//# sourceMappingURL=preact.esm.js.map
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-__webpack_require__(2);
-
-__webpack_require__(3);
-
-var _preact = __webpack_require__(0);
-
-var _app = __webpack_require__(4);
-
-(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__.p + "favicon.ico";
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.App = undefined;
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _preact = __webpack_require__(0);
-
-var _map = __webpack_require__(10);
-
-var _grid = __webpack_require__(5);
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var App = exports.App = function (_Component) {
-    _inherits(App, _Component);
-
-    function App(props) {
-        _classCallCheck(this, App);
-
-        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
-
-        _this.checkEnabled = function (e) {
-            var target = e.target;
-            _this.setState({
-                value: target.value,
-                enabled: (0, _grid.isValidGridref)(target.value)
-            });
-        };
-        _this.handleClick = function (e) {
-            _this.setState({
-                loading: true
-            });
-        };
-        _this.state = { enabled: false, value: "", loading: false };
-        return _this;
-    }
-
-    _createClass(App, [{
-        key: 'render',
-        value: function render(props, state) {
-            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, null)));
-        }
-    }]);
-
-    return App;
-}(_preact.Component);
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.isValidGridref = isValidGridref;
-exports.gridrefToCoords = gridrefToCoords;
-exports.coordsToGridref = coordsToGridref;
-exports.getGridSquareSize = getGridSquareSize;
-exports.getSurroundingSquares = getSurroundingSquares;
-
-var _three = __webpack_require__(6);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-// Grid conversion functions are based upon
-// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
-function isValidGridref(gridref) {
-    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
-}
-// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
-// Grid reference can have spaces, but no commas
-function gridrefToCoords(gridref) {
-    gridref = gridref.replace(/ +/g, "");
-    // Validate format
-    if (!isValidGridref(gridref)) {
-        throw new Error('Invalid grid reference');
-    }
-    var letter1 = letterToNumber(gridref.substr(0, 1));
-    var letter2 = letterToNumber(gridref.substr(1, 1));
-    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
-    var e100km = (letter1 - 2) % 5 * 5 + letter2 % 5;
-    var n100km = 19 - Math.floor(letter1 / 5) * 5 - Math.floor(letter2 / 5);
-    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
-        throw new Error('Grid reference outside of UK');
-    }
-    // Get number pair out
-    var numbers = gridref.slice(2);
-    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
-    // Standardise to 10-digit refs (metres)
-    var vector = new THREE.Vector3(parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
-    return vector;
-}
-// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
-function coordsToGridref(coords) {
-    var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
-
-    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
-        throw new RangeError('Invalid precision ‘' + digits + '’');
-    }
-    // Get the 100km-grid indices
-    var eastings = coords.x;
-    var northings = coords.y;
-    var e100k = Math.floor(eastings / 100000),
-        n100k = Math.floor(northings / 100000);
-    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
-        throw new Error("Co-ordinates are not within UK National Grid");
-    }
-    // Translate those into numeric equivalents of the grid letters
-    var number1 = 19 - n100k - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
-    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
-    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
-    // Strip 100km-grid indices from easting & northing, and reduce precision
-    digits /= 2;
-    eastings = Math.floor(eastings % 100000 / Math.pow(10, 5 - digits));
-    northings = Math.floor(northings % 100000 / Math.pow(10, 5 - digits));
-    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
-    var eastingsString = eastings.toString().padStart(digits, '0');
-    var northingsString = northings.toString().padStart(digits, '0');
-    return '' + gridSquare + eastingsString + northingsString;
-}
-// Return a vector for the grid square size, based on the accuracy
-// (i.e. string length) of the reference, in meters
-function getGridSquareSize(gridref) {
-    var accuracy = (12 - gridref.length) / 2;
-    var squareSize = Math.pow(10, accuracy);
-    return new THREE.Vector3(squareSize, squareSize, 0);
-}
-// Return an array of grid references for the squares surrounding this one
-function getSurroundingSquares(gridref, radius) {
-    // Origin of this square
-    var origin = gridrefToCoords(gridref);
-    // Get X and Y vectors for one square along and one up
-    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
-    // Go for radius around in both X and Y directions
-    var squares = [];
-    for (var x = -radius; x <= radius; x++) {
-        for (var y = -radius; y <= radius; y++) {
-            // Skip the centre
-            if (x === 0 && y === 0) {
-                continue;
-            }
-            // Calculate the origin of the square X and Y steps away from the origin
-            // i.e. C = O + xX + yY
-            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
-            // Convert back into gridref
-            try {
-                var neighbor = coordsToGridref(coords, gridref.length - 2);
-                squares.push(neighbor);
-            } catch (error) {
-                // Do nothing, square may be e.g. outside of the national grid and unmappable
-            }
-        }
-    }
-    return squares;
-}
-// Utils
-// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
-function letterToNumber(letter) {
-    if (letter.toUpperCase() === 'I') {
-        throw new Error("I is not used in the grid system");
-    }
-    var index = letter.toUpperCase().charCodeAt(0) - 65;
-    // As I is not used, if greater than I, return one less
-    return index > 7 ? index - 1 : index;
-}
-function numberToLetter(n) {
-    // Compensate for skipped 'I' and build grid letter-pairs
-    if (n > 7) n++;
-    return String.fromCharCode(n + 65);
-}
-
-/***/ }),
-/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47247,10 +46007,1247 @@ function LensFlare() {
 
 
 /***/ }),
-/* 7 */,
-/* 8 */,
-/* 9 */,
-/* 10 */
+/* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createElement", function() { return h; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneElement", function() { return cloneElement; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rerender", function() { return rerender; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "options", function() { return options; });
+/** Virtual DOM Node */
+function VNode() {}
+
+/** Global options
+ *	@public
+ *	@namespace options {Object}
+ */
+var options = {
+
+	/** If `true`, `prop` changes trigger synchronous component updates.
+  *	@name syncComponentUpdates
+  *	@type Boolean
+  *	@default true
+  */
+	//syncComponentUpdates: true,
+
+	/** Processes all created VNodes.
+  *	@param {VNode} vnode	A newly-created VNode to normalize/process
+  */
+	//vnode(vnode) { }
+
+	/** Hook invoked after a component is mounted. */
+	// afterMount(component) { }
+
+	/** Hook invoked after the DOM is updated with a component's latest render. */
+	// afterUpdate(component) { }
+
+	/** Hook invoked immediately before a component is unmounted. */
+	// beforeUnmount(component) { }
+};
+
+var stack = [];
+
+var EMPTY_CHILDREN = [];
+
+/**
+ * JSX/hyperscript reviver.
+ * @see http://jasonformat.com/wtf-is-jsx
+ * Benchmarks: https://esbench.com/bench/57ee8f8e330ab09900a1a1a0
+ *
+ * Note: this is exported as both `h()` and `createElement()` for compatibility reasons.
+ *
+ * Creates a VNode (virtual DOM element). A tree of VNodes can be used as a lightweight representation
+ * of the structure of a DOM tree. This structure can be realized by recursively comparing it against
+ * the current _actual_ DOM structure, and applying only the differences.
+ *
+ * `h()`/`createElement()` accepts an element name, a list of attributes/props,
+ * and optionally children to append to the element.
+ *
+ * @example The following DOM tree
+ *
+ * `<div id="foo" name="bar">Hello!</div>`
+ *
+ * can be constructed using this function as:
+ *
+ * `h('div', { id: 'foo', name : 'bar' }, 'Hello!');`
+ *
+ * @param {string} nodeName	An element name. Ex: `div`, `a`, `span`, etc.
+ * @param {Object} attributes	Any attributes/props to set on the created element.
+ * @param rest			Additional arguments are taken to be children to append. Can be infinitely nested Arrays.
+ *
+ * @public
+ */
+function h(nodeName, attributes) {
+	var children = EMPTY_CHILDREN,
+	    lastSimple,
+	    child,
+	    simple,
+	    i;
+	for (i = arguments.length; i-- > 2;) {
+		stack.push(arguments[i]);
+	}
+	if (attributes && attributes.children != null) {
+		if (!stack.length) stack.push(attributes.children);
+		delete attributes.children;
+	}
+	while (stack.length) {
+		if ((child = stack.pop()) && child.pop !== undefined) {
+			for (i = child.length; i--;) {
+				stack.push(child[i]);
+			}
+		} else {
+			if (typeof child === 'boolean') child = null;
+
+			if (simple = typeof nodeName !== 'function') {
+				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
+			}
+
+			if (simple && lastSimple) {
+				children[children.length - 1] += child;
+			} else if (children === EMPTY_CHILDREN) {
+				children = [child];
+			} else {
+				children.push(child);
+			}
+
+			lastSimple = simple;
+		}
+	}
+
+	var p = new VNode();
+	p.nodeName = nodeName;
+	p.children = children;
+	p.attributes = attributes == null ? undefined : attributes;
+	p.key = attributes == null ? undefined : attributes.key;
+
+	// if a "vnode hook" is defined, pass every created VNode to it
+	if (options.vnode !== undefined) options.vnode(p);
+
+	return p;
+}
+
+/**
+ *  Copy all properties from `props` onto `obj`.
+ *  @param {Object} obj		Object onto which properties should be copied.
+ *  @param {Object} props	Object from which to copy properties.
+ *  @returns obj
+ *  @private
+ */
+function extend(obj, props) {
+  for (var i in props) {
+    obj[i] = props[i];
+  }return obj;
+}
+
+/**
+ * Call a function asynchronously, as soon as possible. Makes
+ * use of HTML Promise to schedule the callback if available,
+ * otherwise falling back to `setTimeout` (mainly for IE<11).
+ *
+ * @param {Function} callback
+ */
+var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
+
+/**
+ * Clones the given VNode, optionally adding attributes/props and replacing its children.
+ * @param {VNode} vnode		The virutal DOM element to clone
+ * @param {Object} props	Attributes/props to add when cloning
+ * @param {VNode} rest		Any additional arguments will be used as replacement children.
+ */
+function cloneElement(vnode, props) {
+  return h(vnode.nodeName, extend(extend({}, vnode.attributes), props), arguments.length > 2 ? [].slice.call(arguments, 2) : vnode.children);
+}
+
+// DOM properties that should NOT have "px" added when numeric
+var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
+
+/** Managed queue of dirty components to be re-rendered */
+
+var items = [];
+
+function enqueueRender(component) {
+	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
+		(options.debounceRendering || defer)(rerender);
+	}
+}
+
+function rerender() {
+	var p,
+	    list = items;
+	items = [];
+	while (p = list.pop()) {
+		if (p._dirty) renderComponent(p);
+	}
+}
+
+/**
+ * Check if two nodes are equivalent.
+ *
+ * @param {Node} node			DOM Node to compare
+ * @param {VNode} vnode			Virtual DOM node to compare
+ * @param {boolean} [hyrdating=false]	If true, ignores component constructors when comparing.
+ * @private
+ */
+function isSameNodeType(node, vnode, hydrating) {
+  if (typeof vnode === 'string' || typeof vnode === 'number') {
+    return node.splitText !== undefined;
+  }
+  if (typeof vnode.nodeName === 'string') {
+    return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
+  }
+  return hydrating || node._componentConstructor === vnode.nodeName;
+}
+
+/**
+ * Check if an Element has a given nodeName, case-insensitively.
+ *
+ * @param {Element} node	A DOM Element to inspect the name of.
+ * @param {String} nodeName	Unnormalized name to compare against.
+ */
+function isNamedNode(node, nodeName) {
+  return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
+}
+
+/**
+ * Reconstruct Component-style `props` from a VNode.
+ * Ensures default/fallback values from `defaultProps`:
+ * Own-properties of `defaultProps` not present in `vnode.attributes` are added.
+ *
+ * @param {VNode} vnode
+ * @returns {Object} props
+ */
+function getNodeProps(vnode) {
+  var props = extend({}, vnode.attributes);
+  props.children = vnode.children;
+
+  var defaultProps = vnode.nodeName.defaultProps;
+  if (defaultProps !== undefined) {
+    for (var i in defaultProps) {
+      if (props[i] === undefined) {
+        props[i] = defaultProps[i];
+      }
+    }
+  }
+
+  return props;
+}
+
+/** Create an element with the given nodeName.
+ *	@param {String} nodeName
+ *	@param {Boolean} [isSvg=false]	If `true`, creates an element within the SVG namespace.
+ *	@returns {Element} node
+ */
+function createNode(nodeName, isSvg) {
+	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
+	node.normalizedNodeName = nodeName;
+	return node;
+}
+
+/** Remove a child node from its parent if attached.
+ *	@param {Element} node		The node to remove
+ */
+function removeNode(node) {
+	var parentNode = node.parentNode;
+	if (parentNode) parentNode.removeChild(node);
+}
+
+/** Set a named attribute on the given Node, with special behavior for some names and event handlers.
+ *	If `value` is `null`, the attribute/handler will be removed.
+ *	@param {Element} node	An element to mutate
+ *	@param {string} name	The name/key to set, such as an event or attribute name
+ *	@param {any} old	The last value that was set for this name/node pair
+ *	@param {any} value	An attribute value, such as a function to be used as an event handler
+ *	@param {Boolean} isSvg	Are we currently diffing inside an svg?
+ *	@private
+ */
+function setAccessor(node, name, old, value, isSvg) {
+	if (name === 'className') name = 'class';
+
+	if (name === 'key') {
+		// ignore
+	} else if (name === 'ref') {
+		if (old) old(null);
+		if (value) value(node);
+	} else if (name === 'class' && !isSvg) {
+		node.className = value || '';
+	} else if (name === 'style') {
+		if (!value || typeof value === 'string' || typeof old === 'string') {
+			node.style.cssText = value || '';
+		}
+		if (value && typeof value === 'object') {
+			if (typeof old !== 'string') {
+				for (var i in old) {
+					if (!(i in value)) node.style[i] = '';
+				}
+			}
+			for (var i in value) {
+				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
+			}
+		}
+	} else if (name === 'dangerouslySetInnerHTML') {
+		if (value) node.innerHTML = value.__html || '';
+	} else if (name[0] == 'o' && name[1] == 'n') {
+		var useCapture = name !== (name = name.replace(/Capture$/, ''));
+		name = name.toLowerCase().substring(2);
+		if (value) {
+			if (!old) node.addEventListener(name, eventProxy, useCapture);
+		} else {
+			node.removeEventListener(name, eventProxy, useCapture);
+		}
+		(node._listeners || (node._listeners = {}))[name] = value;
+	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
+		setProperty(node, name, value == null ? '' : value);
+		if (value == null || value === false) node.removeAttribute(name);
+	} else {
+		var ns = isSvg && name !== (name = name.replace(/^xlink\:?/, ''));
+		if (value == null || value === false) {
+			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
+		} else if (typeof value !== 'function') {
+			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
+		}
+	}
+}
+
+/** Attempt to set a DOM property to the given value.
+ *	IE & FF throw for certain property-value combinations.
+ */
+function setProperty(node, name, value) {
+	try {
+		node[name] = value;
+	} catch (e) {}
+}
+
+/** Proxy an event to hooked event handlers
+ *	@private
+ */
+function eventProxy(e) {
+	return this._listeners[e.type](options.event && options.event(e) || e);
+}
+
+/** Queue of components that have been mounted and are awaiting componentDidMount */
+var mounts = [];
+
+/** Diff recursion count, used to track the end of the diff cycle. */
+var diffLevel = 0;
+
+/** Global flag indicating if the diff is currently within an SVG */
+var isSvgMode = false;
+
+/** Global flag indicating if the diff is performing hydration */
+var hydrating = false;
+
+/** Invoke queued componentDidMount lifecycle methods */
+function flushMounts() {
+	var c;
+	while (c = mounts.pop()) {
+		if (options.afterMount) options.afterMount(c);
+		if (c.componentDidMount) c.componentDidMount();
+	}
+}
+
+/** Apply differences in a given vnode (and it's deep children) to a real DOM Node.
+ *	@param {Element} [dom=null]		A DOM node to mutate into the shape of the `vnode`
+ *	@param {VNode} vnode			A VNode (with descendants forming a tree) representing the desired DOM structure
+ *	@returns {Element} dom			The created/mutated element
+ *	@private
+ */
+function diff(dom, vnode, context, mountAll, parent, componentRoot) {
+	// diffLevel having been 0 here indicates initial entry into the diff (not a subdiff)
+	if (!diffLevel++) {
+		// when first starting the diff, check if we're diffing an SVG or within an SVG
+		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
+
+		// hydration is indicated by the existing element to be diffed not having a prop cache
+		hydrating = dom != null && !('__preactattr_' in dom);
+	}
+
+	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
+
+	// append the element if its a new parent
+	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
+
+	// diffLevel being reduced to 0 means we're exiting the diff
+	if (! --diffLevel) {
+		hydrating = false;
+		// invoke queued componentDidMount lifecycle methods
+		if (!componentRoot) flushMounts();
+	}
+
+	return ret;
+}
+
+/** Internals of `diff()`, separated to allow bypassing diffLevel / mount flushing. */
+function idiff(dom, vnode, context, mountAll, componentRoot) {
+	var out = dom,
+	    prevSvgMode = isSvgMode;
+
+	// empty values (null, undefined, booleans) render as empty Text nodes
+	if (vnode == null || typeof vnode === 'boolean') vnode = '';
+
+	// Fast case: Strings & Numbers create/update Text nodes.
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+
+		// update if it's already a Text node:
+		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
+			/* istanbul ignore if */ /* Browser quirk that can't be covered: https://github.com/developit/preact/commit/fd4f21f5c45dfd75151bd27b4c217d8003aa5eb9 */
+			if (dom.nodeValue != vnode) {
+				dom.nodeValue = vnode;
+			}
+		} else {
+			// it wasn't a Text node: replace it with one and recycle the old Element
+			out = document.createTextNode(vnode);
+			if (dom) {
+				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+				recollectNodeTree(dom, true);
+			}
+		}
+
+		out['__preactattr_'] = true;
+
+		return out;
+	}
+
+	// If the VNode represents a Component, perform a component diff:
+	var vnodeName = vnode.nodeName;
+	if (typeof vnodeName === 'function') {
+		return buildComponentFromVNode(dom, vnode, context, mountAll);
+	}
+
+	// Tracks entering and exiting SVG namespace when descending through the tree.
+	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
+
+	// If there's no existing element or it's the wrong type, create a new one:
+	vnodeName = String(vnodeName);
+	if (!dom || !isNamedNode(dom, vnodeName)) {
+		out = createNode(vnodeName, isSvgMode);
+
+		if (dom) {
+			// move children into the replacement node
+			while (dom.firstChild) {
+				out.appendChild(dom.firstChild);
+			} // if the previous Element was mounted into the DOM, replace it inline
+			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+
+			// recycle the old element (skips non-Element node types)
+			recollectNodeTree(dom, true);
+		}
+	}
+
+	var fc = out.firstChild,
+	    props = out['__preactattr_'],
+	    vchildren = vnode.children;
+
+	if (props == null) {
+		props = out['__preactattr_'] = {};
+		for (var a = out.attributes, i = a.length; i--;) {
+			props[a[i].name] = a[i].value;
+		}
+	}
+
+	// Optimization: fast-path for elements containing a single TextNode:
+	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
+		if (fc.nodeValue != vchildren[0]) {
+			fc.nodeValue = vchildren[0];
+		}
+	}
+	// otherwise, if there are existing or new children, diff them:
+	else if (vchildren && vchildren.length || fc != null) {
+			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
+		}
+
+	// Apply attributes/props from VNode to the DOM Element:
+	diffAttributes(out, vnode.attributes, props);
+
+	// restore previous SVG mode: (in case we're exiting an SVG namespace)
+	isSvgMode = prevSvgMode;
+
+	return out;
+}
+
+/** Apply child and attribute changes between a VNode and a DOM Node to the DOM.
+ *	@param {Element} dom			Element whose children should be compared & mutated
+ *	@param {Array} vchildren		Array of VNodes to compare to `dom.childNodes`
+ *	@param {Object} context			Implicitly descendant context object (from most recent `getChildContext()`)
+ *	@param {Boolean} mountAll
+ *	@param {Boolean} isHydrating	If `true`, consumes externally created elements similar to hydration
+ */
+function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
+	var originalChildren = dom.childNodes,
+	    children = [],
+	    keyed = {},
+	    keyedLen = 0,
+	    min = 0,
+	    len = originalChildren.length,
+	    childrenLen = 0,
+	    vlen = vchildren ? vchildren.length : 0,
+	    j,
+	    c,
+	    f,
+	    vchild,
+	    child;
+
+	// Build up a map of keyed children and an Array of unkeyed children:
+	if (len !== 0) {
+		for (var i = 0; i < len; i++) {
+			var _child = originalChildren[i],
+			    props = _child['__preactattr_'],
+			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
+			if (key != null) {
+				keyedLen++;
+				keyed[key] = _child;
+			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
+				children[childrenLen++] = _child;
+			}
+		}
+	}
+
+	if (vlen !== 0) {
+		for (var i = 0; i < vlen; i++) {
+			vchild = vchildren[i];
+			child = null;
+
+			// attempt to find a node based on key matching
+			var key = vchild.key;
+			if (key != null) {
+				if (keyedLen && keyed[key] !== undefined) {
+					child = keyed[key];
+					keyed[key] = undefined;
+					keyedLen--;
+				}
+			}
+			// attempt to pluck a node of the same type from the existing children
+			else if (!child && min < childrenLen) {
+					for (j = min; j < childrenLen; j++) {
+						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
+							child = c;
+							children[j] = undefined;
+							if (j === childrenLen - 1) childrenLen--;
+							if (j === min) min++;
+							break;
+						}
+					}
+				}
+
+			// morph the matched/found/created DOM child to match vchild (deep)
+			child = idiff(child, vchild, context, mountAll);
+
+			f = originalChildren[i];
+			if (child && child !== dom && child !== f) {
+				if (f == null) {
+					dom.appendChild(child);
+				} else if (child === f.nextSibling) {
+					removeNode(f);
+				} else {
+					dom.insertBefore(child, f);
+				}
+			}
+		}
+	}
+
+	// remove unused keyed children:
+	if (keyedLen) {
+		for (var i in keyed) {
+			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
+		}
+	}
+
+	// remove orphaned unkeyed children:
+	while (min <= childrenLen) {
+		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
+	}
+}
+
+/** Recursively recycle (or just unmount) a node and its descendants.
+ *	@param {Node} node						DOM node to start unmount/removal from
+ *	@param {Boolean} [unmountOnly=false]	If `true`, only triggers unmount lifecycle, skips removal
+ */
+function recollectNodeTree(node, unmountOnly) {
+	var component = node._component;
+	if (component) {
+		// if node is owned by a Component, unmount that component (ends up recursing back here)
+		unmountComponent(component);
+	} else {
+		// If the node's VNode had a ref function, invoke it with null here.
+		// (this is part of the React spec, and smart for unsetting references)
+		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
+
+		if (unmountOnly === false || node['__preactattr_'] == null) {
+			removeNode(node);
+		}
+
+		removeChildren(node);
+	}
+}
+
+/** Recollect/unmount all children.
+ *	- we use .lastChild here because it causes less reflow than .firstChild
+ *	- it's also cheaper than accessing the .childNodes Live NodeList
+ */
+function removeChildren(node) {
+	node = node.lastChild;
+	while (node) {
+		var next = node.previousSibling;
+		recollectNodeTree(node, true);
+		node = next;
+	}
+}
+
+/** Apply differences in attributes from a VNode to the given DOM Element.
+ *	@param {Element} dom		Element with attributes to diff `attrs` against
+ *	@param {Object} attrs		The desired end-state key-value attribute pairs
+ *	@param {Object} old			Current/previous attributes (from previous VNode or element's prop cache)
+ */
+function diffAttributes(dom, attrs, old) {
+	var name;
+
+	// remove attributes no longer present on the vnode by setting them to undefined
+	for (name in old) {
+		if (!(attrs && attrs[name] != null) && old[name] != null) {
+			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
+		}
+	}
+
+	// add new & update changed attributes
+	for (name in attrs) {
+		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
+			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
+		}
+	}
+}
+
+/** Retains a pool of Components for re-use, keyed on component name.
+ *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
+ *	@private
+ */
+var components = {};
+
+/** Reclaim a component for later re-use by the recycler. */
+function collectComponent(component) {
+	var name = component.constructor.name;
+	(components[name] || (components[name] = [])).push(component);
+}
+
+/** Create a component. Normalizes differences between PFC's and classful Components. */
+function createComponent(Ctor, props, context) {
+	var list = components[Ctor.name],
+	    inst;
+
+	if (Ctor.prototype && Ctor.prototype.render) {
+		inst = new Ctor(props, context);
+		Component.call(inst, props, context);
+	} else {
+		inst = new Component(props, context);
+		inst.constructor = Ctor;
+		inst.render = doRender;
+	}
+
+	if (list) {
+		for (var i = list.length; i--;) {
+			if (list[i].constructor === Ctor) {
+				inst.nextBase = list[i].nextBase;
+				list.splice(i, 1);
+				break;
+			}
+		}
+	}
+	return inst;
+}
+
+/** The `.render()` method for a PFC backing instance. */
+function doRender(props, state, context) {
+	return this.constructor(props, context);
+}
+
+/** Set a component's `props` (generally derived from JSX attributes).
+ *	@param {Object} props
+ *	@param {Object} [opts]
+ *	@param {boolean} [opts.renderSync=false]	If `true` and {@link options.syncComponentUpdates} is `true`, triggers synchronous rendering.
+ *	@param {boolean} [opts.render=true]			If `false`, no render will be triggered.
+ */
+function setComponentProps(component, props, opts, context, mountAll) {
+	if (component._disable) return;
+	component._disable = true;
+
+	if (component.__ref = props.ref) delete props.ref;
+	if (component.__key = props.key) delete props.key;
+
+	if (!component.base || mountAll) {
+		if (component.componentWillMount) component.componentWillMount();
+	} else if (component.componentWillReceiveProps) {
+		component.componentWillReceiveProps(props, context);
+	}
+
+	if (context && context !== component.context) {
+		if (!component.prevContext) component.prevContext = component.context;
+		component.context = context;
+	}
+
+	if (!component.prevProps) component.prevProps = component.props;
+	component.props = props;
+
+	component._disable = false;
+
+	if (opts !== 0) {
+		if (opts === 1 || options.syncComponentUpdates !== false || !component.base) {
+			renderComponent(component, 1, mountAll);
+		} else {
+			enqueueRender(component);
+		}
+	}
+
+	if (component.__ref) component.__ref(component);
+}
+
+/** Render a Component, triggering necessary lifecycle events and taking High-Order Components into account.
+ *	@param {Component} component
+ *	@param {Object} [opts]
+ *	@param {boolean} [opts.build=false]		If `true`, component will build and store a DOM node if not already associated with one.
+ *	@private
+ */
+function renderComponent(component, opts, mountAll, isChild) {
+	if (component._disable) return;
+
+	var props = component.props,
+	    state = component.state,
+	    context = component.context,
+	    previousProps = component.prevProps || props,
+	    previousState = component.prevState || state,
+	    previousContext = component.prevContext || context,
+	    isUpdate = component.base,
+	    nextBase = component.nextBase,
+	    initialBase = isUpdate || nextBase,
+	    initialChildComponent = component._component,
+	    skip = false,
+	    rendered,
+	    inst,
+	    cbase;
+
+	// if updating
+	if (isUpdate) {
+		component.props = previousProps;
+		component.state = previousState;
+		component.context = previousContext;
+		if (opts !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
+			skip = true;
+		} else if (component.componentWillUpdate) {
+			component.componentWillUpdate(props, state, context);
+		}
+		component.props = props;
+		component.state = state;
+		component.context = context;
+	}
+
+	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
+	component._dirty = false;
+
+	if (!skip) {
+		rendered = component.render(props, state, context);
+
+		// context to pass to the child, can be updated via (grand-)parent component
+		if (component.getChildContext) {
+			context = extend(extend({}, context), component.getChildContext());
+		}
+
+		var childComponent = rendered && rendered.nodeName,
+		    toUnmount,
+		    base;
+
+		if (typeof childComponent === 'function') {
+			// set up high order component link
+
+			var childProps = getNodeProps(rendered);
+			inst = initialChildComponent;
+
+			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
+				setComponentProps(inst, childProps, 1, context, false);
+			} else {
+				toUnmount = inst;
+
+				component._component = inst = createComponent(childComponent, childProps, context);
+				inst.nextBase = inst.nextBase || nextBase;
+				inst._parentComponent = component;
+				setComponentProps(inst, childProps, 0, context, false);
+				renderComponent(inst, 1, mountAll, true);
+			}
+
+			base = inst.base;
+		} else {
+			cbase = initialBase;
+
+			// destroy high order component link
+			toUnmount = initialChildComponent;
+			if (toUnmount) {
+				cbase = component._component = null;
+			}
+
+			if (initialBase || opts === 1) {
+				if (cbase) cbase._component = null;
+				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
+			}
+		}
+
+		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
+			var baseParent = initialBase.parentNode;
+			if (baseParent && base !== baseParent) {
+				baseParent.replaceChild(base, initialBase);
+
+				if (!toUnmount) {
+					initialBase._component = null;
+					recollectNodeTree(initialBase, false);
+				}
+			}
+		}
+
+		if (toUnmount) {
+			unmountComponent(toUnmount);
+		}
+
+		component.base = base;
+		if (base && !isChild) {
+			var componentRef = component,
+			    t = component;
+			while (t = t._parentComponent) {
+				(componentRef = t).base = base;
+			}
+			base._component = componentRef;
+			base._componentConstructor = componentRef.constructor;
+		}
+	}
+
+	if (!isUpdate || mountAll) {
+		mounts.unshift(component);
+	} else if (!skip) {
+		// Ensure that pending componentDidMount() hooks of child components
+		// are called before the componentDidUpdate() hook in the parent.
+		// Note: disabled as it causes duplicate hooks, see https://github.com/developit/preact/issues/750
+		// flushMounts();
+
+		if (component.componentDidUpdate) {
+			component.componentDidUpdate(previousProps, previousState, previousContext);
+		}
+		if (options.afterUpdate) options.afterUpdate(component);
+	}
+
+	if (component._renderCallbacks != null) {
+		while (component._renderCallbacks.length) {
+			component._renderCallbacks.pop().call(component);
+		}
+	}
+
+	if (!diffLevel && !isChild) flushMounts();
+}
+
+/** Apply the Component referenced by a VNode to the DOM.
+ *	@param {Element} dom	The DOM node to mutate
+ *	@param {VNode} vnode	A Component-referencing VNode
+ *	@returns {Element} dom	The created/mutated element
+ *	@private
+ */
+function buildComponentFromVNode(dom, vnode, context, mountAll) {
+	var c = dom && dom._component,
+	    originalComponent = c,
+	    oldDom = dom,
+	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
+	    isOwner = isDirectOwner,
+	    props = getNodeProps(vnode);
+	while (c && !isOwner && (c = c._parentComponent)) {
+		isOwner = c.constructor === vnode.nodeName;
+	}
+
+	if (c && isOwner && (!mountAll || c._component)) {
+		setComponentProps(c, props, 3, context, mountAll);
+		dom = c.base;
+	} else {
+		if (originalComponent && !isDirectOwner) {
+			unmountComponent(originalComponent);
+			dom = oldDom = null;
+		}
+
+		c = createComponent(vnode.nodeName, props, context);
+		if (dom && !c.nextBase) {
+			c.nextBase = dom;
+			// passing dom/oldDom as nextBase will recycle it if unused, so bypass recycling on L229:
+			oldDom = null;
+		}
+		setComponentProps(c, props, 1, context, mountAll);
+		dom = c.base;
+
+		if (oldDom && dom !== oldDom) {
+			oldDom._component = null;
+			recollectNodeTree(oldDom, false);
+		}
+	}
+
+	return dom;
+}
+
+/** Remove a component from the DOM and recycle it.
+ *	@param {Component} component	The Component instance to unmount
+ *	@private
+ */
+function unmountComponent(component) {
+	if (options.beforeUnmount) options.beforeUnmount(component);
+
+	var base = component.base;
+
+	component._disable = true;
+
+	if (component.componentWillUnmount) component.componentWillUnmount();
+
+	component.base = null;
+
+	// recursively tear down & recollect high-order component children:
+	var inner = component._component;
+	if (inner) {
+		unmountComponent(inner);
+	} else if (base) {
+		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
+
+		component.nextBase = base;
+
+		removeNode(base);
+		collectComponent(component);
+
+		removeChildren(base);
+	}
+
+	if (component.__ref) component.__ref(null);
+}
+
+/** Base Component class.
+ *	Provides `setState()` and `forceUpdate()`, which trigger rendering.
+ *	@public
+ *
+ *	@example
+ *	class MyFoo extends Component {
+ *		render(props, state) {
+ *			return <div />;
+ *		}
+ *	}
+ */
+function Component(props, context) {
+	this._dirty = true;
+
+	/** @public
+  *	@type {object}
+  */
+	this.context = context;
+
+	/** @public
+  *	@type {object}
+  */
+	this.props = props;
+
+	/** @public
+  *	@type {object}
+  */
+	this.state = this.state || {};
+}
+
+extend(Component.prototype, {
+
+	/** Returns a `boolean` indicating if the component should re-render when receiving the given `props` and `state`.
+  *	@param {object} nextProps
+  *	@param {object} nextState
+  *	@param {object} nextContext
+  *	@returns {Boolean} should the component re-render
+  *	@name shouldComponentUpdate
+  *	@function
+  */
+
+	/** Update component state by copying properties from `state` to `this.state`.
+  *	@param {object} state		A hash of state properties to update with new values
+  *	@param {function} callback	A function to be called once component state is updated
+  */
+	setState: function setState(state, callback) {
+		var s = this.state;
+		if (!this.prevState) this.prevState = extend({}, s);
+		extend(s, typeof state === 'function' ? state(s, this.props) : state);
+		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
+		enqueueRender(this);
+	},
+
+
+	/** Immediately perform a synchronous re-render of the component.
+  *	@param {function} callback		A function to be called after component is re-rendered.
+  *	@private
+  */
+	forceUpdate: function forceUpdate(callback) {
+		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
+		renderComponent(this, 2);
+	},
+
+
+	/** Accepts `props` and `state`, and returns a new Virtual DOM tree to build.
+  *	Virtual DOM is generally constructed via [JSX](http://jasonformat.com/wtf-is-jsx).
+  *	@param {object} props		Props (eg: JSX attributes) received from parent element/component
+  *	@param {object} state		The component's current state
+  *	@param {object} context		Context object (if a parent component has provided context)
+  *	@returns VNode
+  */
+	render: function render() {}
+});
+
+/** Render JSX into a `parent` Element.
+ *	@param {VNode} vnode		A (JSX) VNode to render
+ *	@param {Element} parent		DOM element to render into
+ *	@param {Element} [merge]	Attempt to re-use an existing DOM tree rooted at `merge`
+ *	@public
+ *
+ *	@example
+ *	// render a div into <body>:
+ *	render(<div id="hello">hello!</div>, document.body);
+ *
+ *	@example
+ *	// render a "Thing" component into #foo:
+ *	const Thing = ({ name }) => <span>{ name }</span>;
+ *	render(<Thing name="one" />, document.querySelector('#foo'));
+ */
+function render(vnode, parent, merge) {
+  return diff(merge, vnode, {}, false, parent, false);
+}
+
+var preact = {
+	h: h,
+	createElement: h,
+	cloneElement: cloneElement,
+	Component: Component,
+	render: render,
+	rerender: rerender,
+	options: options
+};
+
+
+/* harmony default export */ __webpack_exports__["default"] = (preact);
+//# sourceMappingURL=preact.esm.js.map
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isValidGridref = isValidGridref;
+exports.gridrefToCoords = gridrefToCoords;
+exports.coordsToGridref = coordsToGridref;
+exports.getGridSquareSize = getGridSquareSize;
+exports.getSurroundingSquares = getSurroundingSquares;
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+// Grid conversion functions are based upon
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+function isValidGridref(gridref) {
+    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
+}
+// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
+// Grid reference can have spaces, but no commas
+function gridrefToCoords(gridref) {
+    gridref = gridref.replace(/ +/g, "");
+    // Validate format
+    if (!isValidGridref(gridref)) {
+        throw new Error('Invalid grid reference');
+    }
+    var letter1 = letterToNumber(gridref.substr(0, 1));
+    var letter2 = letterToNumber(gridref.substr(1, 1));
+    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
+    var e100km = (letter1 - 2) % 5 * 5 + letter2 % 5;
+    var n100km = 19 - Math.floor(letter1 / 5) * 5 - Math.floor(letter2 / 5);
+    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
+        throw new Error('Grid reference outside of UK');
+    }
+    // Get number pair out
+    var numbers = gridref.slice(2);
+    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
+    // Standardise to 10-digit refs (metres)
+    var vector = new THREE.Vector3(parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
+    return vector;
+}
+// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
+function coordsToGridref(coords) {
+    var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
+
+    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
+        throw new RangeError('Invalid precision ‘' + digits + '’');
+    }
+    // Get the 100km-grid indices
+    var eastings = coords.x;
+    var northings = coords.y;
+    var e100k = Math.floor(eastings / 100000),
+        n100k = Math.floor(northings / 100000);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
+        throw new Error("Co-ordinates are not within UK National Grid");
+    }
+    // Translate those into numeric equivalents of the grid letters
+    var number1 = 19 - n100k - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
+    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
+    // Strip 100km-grid indices from easting & northing, and reduce precision
+    digits /= 2;
+    eastings = Math.floor(eastings % 100000 / Math.pow(10, 5 - digits));
+    northings = Math.floor(northings % 100000 / Math.pow(10, 5 - digits));
+    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    var eastingsString = eastings.toString().padStart(digits, '0');
+    var northingsString = northings.toString().padStart(digits, '0');
+    return '' + gridSquare + eastingsString + northingsString;
+}
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
+function getGridSquareSize(gridref) {
+    var accuracy = (12 - gridref.length) / 2;
+    var squareSize = Math.pow(10, accuracy);
+    return new THREE.Vector3(squareSize, squareSize, 0);
+}
+// Return an array of grid references for the squares surrounding this one
+function getSurroundingSquares(gridref, radius) {
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+    // Get X and Y vectors for one square along and one up
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
+    // Go for radius around in both X and Y directions
+    var squares = [];
+    for (var x = -radius; x <= radius; x++) {
+        for (var y = -radius; y <= radius; y++) {
+            // Skip the centre
+            if (x === 0 && y === 0) {
+                continue;
+            }
+            // Calculate the origin of the square X and Y steps away from the origin
+            // i.e. C = O + xX + yY
+            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+            // Convert back into gridref
+            try {
+                var neighbor = coordsToGridref(coords, gridref.length - 2);
+                squares.push(neighbor);
+            } catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
+            }
+        }
+    }
+    return squares;
+}
+// Utils
+// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
+function letterToNumber(letter) {
+    if (letter.toUpperCase() === 'I') {
+        throw new Error("I is not used in the grid system");
+    }
+    var index = letter.toUpperCase().charCodeAt(0) - 65;
+    // As I is not used, if greater than I, return one less
+    return index > 7 ? index - 1 : index;
+}
+function numberToLetter(n) {
+    // Compensate for skipped 'I' and build grid letter-pairs
+    if (n > 7) n++;
+    return String.fromCharCode(n + 65);
+}
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(4);
+
+__webpack_require__(5);
+
+var _preact = __webpack_require__(1);
+
+var _app = __webpack_require__(6);
+
+(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.App = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _preact = __webpack_require__(1);
+
+var _map = __webpack_require__(7);
+
+var _grid = __webpack_require__(2);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var App = exports.App = function (_Component) {
+    _inherits(App, _Component);
+
+    function App(props) {
+        _classCallCheck(this, App);
+
+        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+        _this.checkEnabled = function (e) {
+            var target = e.target;
+            _this.setState({
+                value: target.value,
+                enabled: (0, _grid.isValidGridref)(target.value)
+            });
+        };
+        _this.handleClick = function (e) {
+            _this.setState({
+                loading: true
+            });
+        };
+        _this.state = { enabled: false, value: "", loading: false };
+        return _this;
+    }
+
+    _createClass(App, [{
+        key: 'render',
+        value: function render(props, state) {
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true })));
+        }
+    }]);
+
+    return App;
+}(_preact.Component);
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47263,23 +47260,23 @@ exports.Map = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(6);
+var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _modernizr = __webpack_require__(11);
+var _modernizr = __webpack_require__(8);
 
 var Modernizr = _interopRequireWildcard(_modernizr);
 
-var _preact = __webpack_require__(0);
+var _preact = __webpack_require__(1);
 
-var _stats = __webpack_require__(12);
+var _Stats = __webpack_require__(9);
 
-var _stats2 = _interopRequireDefault(_stats);
+var _Stats2 = _interopRequireDefault(_Stats);
 
-__webpack_require__(14);
+__webpack_require__(10);
 
-var _map = __webpack_require__(13);
+var _world = __webpack_require__(11);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47291,12 +47288,6 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-// class DummyStats {
-//     dom : null;
-//     begin() {}
-//     end() {}
-//     showPanel() {}
-// }
 var Map = exports.Map = function (_Component) {
     _inherits(Map, _Component);
 
@@ -47308,8 +47299,6 @@ var Map = exports.Map = function (_Component) {
 
     _createClass(Map, [{
         key: 'componentDidMount',
-
-        // controls: THREE.TrackballControls;
         value: function componentDidMount() {
             if (!this.base.querySelector('canvas')) {
                 return;
@@ -47317,7 +47306,8 @@ var Map = exports.Map = function (_Component) {
             var canvas = this.base.querySelector('canvas');
             var width = this.base.offsetWidth;
             var height = Math.floor(width * 0.8);
-            // Setup renderer
+            // Setup world & renderer
+            var world = this.world = new _world.World(width, height);
             var renderer = this.renderer = new THREE.WebGLRenderer({
                 antialias: true,
                 alpha: true,
@@ -47328,53 +47318,54 @@ var Map = exports.Map = function (_Component) {
             renderer.setClearColor(0x444444);
             renderer.shadowMap.enabled = true;
             // Setup trackball controls
-            // var controls = this.controls = new THREE.TrackballControls(camera, canvas);
-            // controls.rotateSpeed = 1.0;
-            // controls.zoomSpeed = 1.2;
-            // controls.panSpeed = 0.8;
-            // controls.noZoom = false;
-            // controls.noPan = false;
-            // controls.staticMoving = true;
-            // controls.dynamicDampingFactor = 0.3;
+            var controls = this.controls = new THREE.TrackballControls(world.camera, canvas);
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+            controls.noZoom = false;
+            controls.noPan = false;
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
             // Shift+ drag to zoom, Ctrl+ drag to pan
-            // controls.keys = [-1, 16, 17];
-            if (true) {
-                var stats = new _stats2.default();
+            controls.keys = [-1, 16, 17];
+            // Set up stats to record
+            var stats = this.stats = new _Stats2.default();
+            if (this.props.debug) {
                 stats.showPanel(1);
                 stats.dom.className = 'debug-stats';
                 this.base.parentNode.appendChild(stats.dom);
-            } else {
-                //             this.stats = new DummyStats();
             }
-            var world = new _map.BaseMap({
-                origin: [325000, 675000],
-                width: width,
-                height: height
-            });
-            renderer.render(world.scene, world.camera);
-            // controls.addEventListener('change', this.renderMap.bind(this));
+            this.renderWorld();
+            this.animateWorld();
+            world.addEventListener('update', this.renderWorld.bind(this));
+            controls.addEventListener('change', this.renderWorld.bind(this));
             window.addEventListener('resize', this.onWindowResize.bind(this), false);
+            // TODO Get rid of this once interface is fully done
+            world.navigateTo('NT27');
         }
     }, {
         key: 'onWindowResize',
         value: function onWindowResize() {
             var width = this.base.offsetWidth;
             var height = Math.floor(width * 0.8);
+            this.world.setSize(width, height);
             this.renderer.setSize(width, height);
-            // TODO Update the world size too
         }
-        // animateMap() {
-        //     requestAnimationFrame(this.animateMap.bind(this));
-        //     // this.controls.update();
-        // }
-        // TODO
+    }, {
+        key: 'renderWorld',
+        value: function renderWorld() {
+            this.stats.begin();
+            this.renderer.render(this.world.scene, this.world.camera);
+            this.stats.end();
+            this.world.update();
+        }
+    }, {
+        key: 'animateWorld',
+        value: function animateWorld() {
+            requestAnimationFrame(this.animateWorld.bind(this));
+            this.controls.update();
+        }
         // Render function that re-renders the renderer, and calls for an update from the world
-        //     renderMap() {
-        //         this.stats.begin();
-        //         this.renderer.render(this.scene, this.camera);
-        //         this.stats.end();
-        //         super.renderMap();
-        //     }
 
     }, {
         key: 'render',
@@ -47390,7 +47381,7 @@ var Map = exports.Map = function (_Component) {
 }(_preact.Component);
 
 /***/ }),
-/* 11 */
+/* 8 */
 /***/ (function(module, exports) {
 
 ;(function(window){
@@ -47659,239 +47650,187 @@ else { delete window.Modernizr; }
 })(window);
 
 /***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-// stats.js - http://github.com/mrdoob/stats.js
-(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
-u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
-1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
-b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Stats; });
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
+var Stats = function () {
+
+	var mode = 0;
+
+	var container = document.createElement( 'div' );
+	container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
+	container.addEventListener( 'click', function ( event ) {
+
+		event.preventDefault();
+		showPanel( ++ mode % container.children.length );
+
+	}, false );
+
+	//
+
+	function addPanel( panel ) {
+
+		container.appendChild( panel.dom );
+		return panel;
+
+	}
+
+	function showPanel( id ) {
+
+		for ( var i = 0; i < container.children.length; i ++ ) {
+
+			container.children[ i ].style.display = i === id ? 'block' : 'none';
+
+		}
+
+		mode = id;
+
+	}
+
+	//
+
+	var beginTime = ( performance || Date ).now(), prevTime = beginTime, frames = 0;
+
+	var fpsPanel = addPanel( new Stats.Panel( 'FPS', '#0ff', '#002' ) );
+	var msPanel = addPanel( new Stats.Panel( 'MS', '#0f0', '#020' ) );
+
+	if ( self.performance && self.performance.memory ) {
+
+		var memPanel = addPanel( new Stats.Panel( 'MB', '#f08', '#201' ) );
+
+	}
+
+	showPanel( 0 );
+
+	return {
+
+		REVISION: 16,
+
+		dom: container,
+
+		addPanel: addPanel,
+		showPanel: showPanel,
+
+		begin: function () {
+
+			beginTime = ( performance || Date ).now();
+
+		},
+
+		end: function () {
+
+			frames ++;
+
+			var time = ( performance || Date ).now();
+
+			msPanel.update( time - beginTime, 200 );
+
+			if ( time > prevTime + 1000 ) {
+
+				fpsPanel.update( ( frames * 1000 ) / ( time - prevTime ), 100 );
+
+				prevTime = time;
+				frames = 0;
+
+				if ( memPanel ) {
+
+					var memory = performance.memory;
+					memPanel.update( memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576 );
+
+				}
+
+			}
+
+			return time;
+
+		},
+
+		update: function () {
+
+			beginTime = this.end();
+
+		},
+
+		// Backwards Compatibility
+
+		domElement: container,
+		setMode: showPanel
+
+	};
+
+};
+
+Stats.Panel = function ( name, fg, bg ) {
+
+	var min = Infinity, max = 0, round = Math.round;
+	var PR = round( window.devicePixelRatio || 1 );
+
+	var WIDTH = 80 * PR, HEIGHT = 48 * PR,
+			TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
+			GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
+			GRAPH_WIDTH = 74 * PR, GRAPH_HEIGHT = 30 * PR;
+
+	var canvas = document.createElement( 'canvas' );
+	canvas.width = WIDTH;
+	canvas.height = HEIGHT;
+	canvas.style.cssText = 'width:80px;height:48px';
+
+	var context = canvas.getContext( '2d' );
+	context.font = 'bold ' + ( 9 * PR ) + 'px Helvetica,Arial,sans-serif';
+	context.textBaseline = 'top';
+
+	context.fillStyle = bg;
+	context.fillRect( 0, 0, WIDTH, HEIGHT );
+
+	context.fillStyle = fg;
+	context.fillText( name, TEXT_X, TEXT_Y );
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	context.fillStyle = bg;
+	context.globalAlpha = 0.9;
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	return {
+
+		dom: canvas,
+
+		update: function ( value, maxValue ) {
+
+			min = Math.min( min, value );
+			max = Math.max( max, value );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 1;
+			context.fillRect( 0, 0, WIDTH, GRAPH_Y );
+			context.fillStyle = fg;
+			context.fillText( round( value ) + ' ' + name + ' (' + round( min ) + '-' + round( max ) + ')', TEXT_X, TEXT_Y );
+
+			context.drawImage( canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT );
+
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, GRAPH_HEIGHT );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 0.9;
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, round( ( 1 - ( value / maxValue ) ) * GRAPH_HEIGHT ) );
+
+		}
+
+	};
+
+};
 
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.BaseMap = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _three = __webpack_require__(6);
-
-var THREE = _interopRequireWildcard(_three);
-
-var _constants = __webpack_require__(15);
-
-var _data = __webpack_require__(16);
-
-var _grid = __webpack_require__(5);
-
-var _loader = __webpack_require__(17);
-
-var _scale = __webpack_require__(18);
-
-var _utils = __webpack_require__(19);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// TODO Call this "World" or something
-var BaseMap = exports.BaseMap = function () {
-    function BaseMap(config) {
-        _classCallCheck(this, BaseMap);
-
-        // Setup config
-        this.config = config;
-        this.updateMap = (0, _utils.debounce)(this._updateMap.bind(this), 500);
-        // Initialize the view and the renderer
-        this.initializeWorld(config.width, config.height);
-        // Initialize the transforms within the world, and load
-        this.initializeTransform();
-        this.initializeLoad();
-    }
-
-    _createClass(BaseMap, [{
-        key: 'initializeWorld',
-        value: function initializeWorld(width, height) {
-            // Setup camera
-            var camera = this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
-            camera.position.z = Math.min(width, height) * 0.75;
-            // Setup scene
-            var scene = this.scene = new THREE.Scene();
-            // Lights
-            var light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(1, 1, 1);
-            scene.add(light);
-            var spotLight = new THREE.SpotLight(0xffffff);
-            spotLight.position.set(-1000, -1000, 1000);
-            spotLight.castShadow = true;
-            scene.add(spotLight);
-            var ambientLight = new THREE.AmbientLight(0x080808);
-            scene.add(ambientLight);
-        }
-        // Setup transform from real-world to 3D world coordinates
-
-    }, {
-        key: 'initializeTransform',
-        value: function initializeTransform() {
-            var metresPerPixel = 50; // TODO turn into a config?
-            var heightFactor = 2;
-            // Calculate the world origin (i.e. where the world is centred),
-            // the model origin (i.e (0, 0, 0))
-            // and the scale to get from one to the other
-            var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-            var modelOrigin = new THREE.Vector3(0, 0, 0);
-            var scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
-            this.scale = (0, _scale.makeScale)(scale);
-            this.transform = (0, _scale.makeTransform)(worldOrigin, modelOrigin, scale);
-        }
-    }, {
-        key: 'initializeLoad',
-        value: function initializeLoad() {
-            var _this = this;
-
-            this.loader = new _loader.Loader();
-            // Work out our origin
-            var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-            var gridSquare = (0, _grid.coordsToGridref)(coords, 2);
-            this.load(gridSquare);
-            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (gridref) {
-                return _this.loadEmpty(gridref);
-            });
-        }
-    }, {
-        key: 'setSize',
-        value: function setSize(width, height) {
-            this.camera.aspect = width / height;
-            this.camera.updateProjectionMatrix();
-        }
-    }, {
-        key: 'load',
-        value: function load(gridSquare) {
-            var _this2 = this;
-
-            var url = '/data/' + gridSquare;
-            if (this.loader.isLoading(url)) {
-                return;
-            }
-            this.loader.load(url).then(function (json) {
-                _this2.replaceEmpty(gridSquare);
-                var geometry = (0, _data.parseGridSquare)(json, _this2.transform);
-                geometry.computeBoundingBox();
-                // Add mesh for this
-                var mesh = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
-                mesh.name = 'land-' + gridSquare;
-                _this2.addToMap(mesh);
-                if (geometry.boundingBox.min.z < 0) {
-                    _this2.addToMap(_this2.makeSea(gridSquare));
-                }
-                4;
-            }).catch(function (errorResponse) {
-                if (errorResponse.status == 204) {
-                    _this2.replaceEmpty(gridSquare);
-                    _this2.addToMap(_this2.makeSea(gridSquare));
-                } else {
-                    console.error(errorResponse);
-                }
-            });
-        }
-    }, {
-        key: 'makeSea',
-        value: function makeSea(gridSquare) {
-            var sea = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshLambert(_constants.colors.seaColor));
-            sea.name = 'sea-' + gridSquare;
-            return sea;
-        }
-    }, {
-        key: 'makeSquare',
-        value: function makeSquare(gridSquare) {
-            // Get this grid square, scaled down to local size
-            var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(this.scale);
-            // Calculate position of square
-            // The half-square addition at the end is to take into account PlaneGeometry
-            // is created around the centre of the square and we want it to be bottom-left
-            var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(this.transform);
-            var geometry = new THREE.PlaneGeometry(square.x, square.y);
-            geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-            geometry.computeBoundingBox();
-            return geometry;
-        }
-    }, {
-        key: 'loadEmpty',
-        value: function loadEmpty(gridSquare) {
-            // Create a mesh out of it and add to map
-            var mesh = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshWireFrame(0xFFFFFF));
-            mesh.name = 'empty-' + gridSquare;
-            this.addToMap(mesh);
-        }
-    }, {
-        key: 'replaceEmpty',
-        value: function replaceEmpty(gridSquare) {
-            var _this3 = this;
-
-            var toReplace = this.scene.children.filter(function (d) {
-                return d.type == "Mesh" && d.name == "empty-" + gridSquare;
-            });
-            if (toReplace.length) {
-                toReplace.forEach(function (d) {
-                    return _this3.scene.remove(d);
-                });
-            }
-        }
-    }, {
-        key: 'addToMap',
-        value: function addToMap(mesh) {
-            this.scene.add(mesh);
-            // TODO Trigger some sort of event that the parent knows to re-render
-        }
-        // Not usually called directly, but called by debounced version
-
-    }, {
-        key: '_updateMap',
-        value: function _updateMap() {
-            var _this4 = this;
-
-            // Calculate the frustum of this camera
-            var frustum = new THREE.Frustum();
-            frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-            // Find every empty mesh on screen that is displayed in the camera
-            var emptyMeshes = this.scene.children.filter(function (d) {
-                return d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty';
-            }).filter(function (d) {
-                var geometry = d.geometry;
-                if (geometry) {
-                    return frustum.intersectsBox(geometry.boundingBox);
-                }
-                return false;
-            });
-            // TODO Get where centre of view intersects z=0 plane and
-            // measure distance from there
-            var getDistance = function getDistance(d) {
-                return d.geometry.boundingSphere.center.length();
-            };
-            emptyMeshes.sort(function (a, b) {
-                return getDistance(a) - getDistance(b);
-            });
-            emptyMeshes.forEach(function (d) {
-                var id = d.name.split('-')[1];
-                _this4.load(id);
-            });
-        }
-    }]);
-
-    return BaseMap;
-}();
 
 /***/ }),
-/* 14 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /**
@@ -47901,7 +47840,7 @@ var BaseMap = exports.BaseMap = function () {
  * @author Luca Antiga  / http://lantiga.github.io
  */
 
-const THREE = __webpack_require__(6);
+const THREE = __webpack_require__(0);
 
 const TrackballControls = function ( object, domElement ) {
 
@@ -48529,7 +48468,235 @@ module.exports = TrackballControls;
 
 
 /***/ }),
-/* 15 */
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.World = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _constants = __webpack_require__(12);
+
+var _data = __webpack_require__(13);
+
+var _grid = __webpack_require__(2);
+
+var _loader = __webpack_require__(14);
+
+var _scale = __webpack_require__(15);
+
+var _utils = __webpack_require__(19);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Models the world in which our tiles live
+var EventTarget = function EventTarget() {
+    _classCallCheck(this, EventTarget);
+
+    var target = document.createTextNode("");
+    // Pass EventTarget interface calls to DOM EventTarget object
+    this.addEventListener = target.addEventListener.bind(target);
+    this.removeEventListener = target.removeEventListener.bind(target);
+    this.dispatchEvent = target.dispatchEvent.bind(target);
+};
+
+var World = exports.World = function (_EventTarget) {
+    _inherits(World, _EventTarget);
+
+    function World(width, height) {
+        _classCallCheck(this, World);
+
+        var _this = _possibleConstructorReturn(this, (World.__proto__ || Object.getPrototypeOf(World)).call(this));
+
+        _this.update = (0, _utils.debounce)(_this._update.bind(_this), 500);
+        // Setup camera
+        var camera = _this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
+        camera.position.z = Math.min(width, height) * 0.75;
+        // Setup scene
+        var scene = _this.scene = new THREE.Scene();
+        // Lights
+        var light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-1000, -1000, 1000);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+        var ambientLight = new THREE.AmbientLight(0x080808);
+        scene.add(ambientLight);
+        // Set up scale
+        var metresPerPixel = 50; // TODO turn into a configurable property?
+        var heightFactor = 2;
+        _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
+        // Set up loader
+        _this.loader = new _loader.Loader();
+        return _this;
+    }
+    // Setup transform from real-world to 3D world coordinates
+
+
+    _createClass(World, [{
+        key: 'navigateTo',
+        value: function navigateTo(gridref) {
+            var _this2 = this;
+
+            // Calculate the real origin (i.e. where the world is centred),
+            // the world origin (i.e (0, 0, 0))
+            // and the transform to get from one to the other
+            var realOrigin = (0, _grid.gridrefToCoords)(gridref);
+            var worldOrigin = new THREE.Vector3(0, 0, 0);
+            this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
+            // Work out our origin as a two-letter square
+            var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
+            this.load(gridSquare);
+            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (gridref) {
+                return _this2.loadEmpty(gridref);
+            });
+        }
+    }, {
+        key: 'setSize',
+        value: function setSize(width, height) {
+            this.camera.aspect = width / height;
+            this.camera.updateProjectionMatrix();
+        }
+    }, {
+        key: 'load',
+        value: function load(gridSquare) {
+            var _this3 = this;
+
+            var url = '/data/' + gridSquare;
+            if (this.loader.isLoading(url)) {
+                return;
+            }
+            this.loader.load(url).then(function (json) {
+                _this3.replaceEmpty(gridSquare);
+                var geometry = (0, _data.parseGridSquare)(json, _this3.transform);
+                geometry.computeBoundingBox();
+                // Add mesh for this
+                var mesh = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
+                mesh.name = 'land-' + gridSquare;
+                _this3.addToWorld(mesh);
+                if (geometry.boundingBox.min.z < 0) {
+                    _this3.addToWorld(_this3.makeSea(gridSquare));
+                }
+            }).catch(function (errorResponse) {
+                if (errorResponse.status == 204) {
+                    _this3.replaceEmpty(gridSquare);
+                    _this3.addToWorld(_this3.makeSea(gridSquare));
+                } else {
+                    console.error(errorResponse);
+                }
+            });
+        }
+        // TODO Simple non-this functions makeSea, makeLand, makeEmpty, that each take a geometry
+        // and turn into relevant material
+        // And this functions makeEmptyGeometry, makeMeshGeometry, that generate the geometry passed
+
+    }, {
+        key: 'makeSea',
+        value: function makeSea(gridSquare) {
+            var sea = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshLambert(_constants.colors.seaColor));
+            sea.name = 'sea-' + gridSquare;
+            return sea;
+        }
+    }, {
+        key: 'makeSquare',
+        value: function makeSquare(gridSquare) {
+            // Get this grid square, scaled down to local size
+            var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4((0, _scale.makeScale)(this.scale));
+            // Calculate position of square
+            // The half-square addition at the end is to take into account PlaneGeometry
+            // is created around the centre of the square and we want it to be bottom-left
+            var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(this.transform);
+            var geometry = new THREE.PlaneGeometry(square.x, square.y);
+            geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+            geometry.computeBoundingBox();
+            return geometry;
+        }
+    }, {
+        key: 'loadEmpty',
+        value: function loadEmpty(gridSquare) {
+            // Create a mesh out of it and add to map
+            var mesh = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshWireFrame(0xFFFFFF));
+            mesh.name = 'empty-' + gridSquare;
+            this.addToWorld(mesh);
+        }
+        // TODO Convert to removeFromWorld
+
+    }, {
+        key: 'replaceEmpty',
+        value: function replaceEmpty(gridSquare) {
+            var _this4 = this;
+
+            var toReplace = this.scene.children.filter(function (d) {
+                return d.type == "Mesh" && d.name == "empty-" + gridSquare;
+            });
+            if (toReplace.length) {
+                toReplace.forEach(function (d) {
+                    return _this4.scene.remove(d);
+                });
+            }
+        }
+    }, {
+        key: 'addToWorld',
+        value: function addToWorld(mesh) {
+            this.scene.add(mesh);
+            this.dispatchEvent(new Event('update'));
+        }
+    }, {
+        key: '_update',
+        value: function _update() {
+            var _this5 = this;
+
+            // Calculate the frustum of this camera
+            var frustum = new THREE.Frustum();
+            frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+            // Find every empty mesh on screen that is displayed in the camera
+            var emptyMeshes = this.scene.children.filter(function (d) {
+                return d.type == "Mesh" && d.geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty';
+            }).filter(function (d) {
+                var geometry = d.geometry;
+                if (geometry) {
+                    return frustum.intersectsBox(geometry.boundingBox);
+                }
+                return false;
+            });
+            // TODO Get where centre of view intersects z=0 plane and
+            // measure distance from there
+            var getDistance = function getDistance(d) {
+                return d.geometry.boundingSphere.center.length();
+            };
+            emptyMeshes.sort(function (a, b) {
+                return getDistance(a) - getDistance(b);
+            });
+            emptyMeshes.forEach(function (d) {
+                var id = d.name.split('-')[1];
+                _this5.load(id);
+            });
+        }
+    }]);
+
+    return World;
+}(EventTarget);
+
+/***/ }),
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48540,7 +48707,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.materials = exports.colors = undefined;
 
-var _three = __webpack_require__(6);
+var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -48579,7 +48746,7 @@ var materials = exports.materials = {
 };
 
 /***/ }),
-/* 16 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48590,11 +48757,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseGridSquare = parseGridSquare;
 
-var _three = __webpack_require__(6);
+var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _grid = __webpack_require__(5);
+var _grid = __webpack_require__(2);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -48641,7 +48808,7 @@ function parseGridSquare(data, transform) {
 }
 
 /***/ }),
-/* 17 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48695,7 +48862,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 18 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48707,7 +48874,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeTransform = makeTransform;
 exports.makeScale = makeScale;
 
-var _three = __webpack_require__(6);
+var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -48727,6 +48894,9 @@ function makeScale(scale) {
 }
 
 /***/ }),
+/* 16 */,
+/* 17 */,
+/* 18 */,
 /* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
