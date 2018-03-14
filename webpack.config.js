@@ -20,7 +20,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./client/src/js/${d}.ts`;
+        obj[d] = `./client/src/js/${d}.tsx`;
         return obj;
     }, {});
 

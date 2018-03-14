@@ -44,7 +44,7 @@ export class Map extends BaseMap {
             this.stats = new Stats();
             this.stats.showPanel(1);
             this.stats.dom.className = 'debug-stats';
-            (<HTMLElement>this.wrapper.parentNode).appendChild(this.stats.dom);
+            (this.wrapper.parentNode as HTMLElement).appendChild(this.stats.dom);
         }
         else {
             this.stats = new DummyStats();
