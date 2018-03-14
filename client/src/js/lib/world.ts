@@ -2,7 +2,6 @@ import * as THREE from 'three';
 
 import { materials, colors } from './constants';
 import { makeLandGeometry, makeEmptyGeometry } from './data';
-import { EventTarget } from './event';
 import { coordsToGridref, gridrefToCoords, getSurroundingSquares} from './grid';
 import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
@@ -10,7 +9,7 @@ import { debounce } from './utils';
 
 // Models the world in which our tiles live
 
-export class World extends EventTarget {
+export class World extends THREE.EventDispatcher {
 
     loader: Loader; // TODO Make private
 
@@ -120,7 +119,7 @@ export class World extends EventTarget {
 
     addToWorld(mesh: THREE.Mesh) {
         this.scene.add(mesh);
-        this.dispatchEvent(new Event('update'));
+        this.dispatchEvent({type: 'update'});
     }
 
     removeFromWorld(name: string) {

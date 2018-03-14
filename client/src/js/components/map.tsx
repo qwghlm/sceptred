@@ -1,10 +1,12 @@
+/// <reference path="../../../../node_modules/@types/three/three-trackballcontrols.d.ts" />
+
 import { h, Component } from "preact";
 import * as THREE from 'three';
+import TrackballControls from 'three-trackballcontrols';
 
 import Stats from "stats";
 import * as Modernizr from 'Modernizr';
 
-import '../vendor/TrackballControls';
 import { World } from '../lib/world';
 
 type PropsType = {
@@ -16,7 +18,7 @@ export class Map extends Component<PropsType, StateType> {
 
     world: World;
     renderer: THREE.WebGLRenderer;
-    controls: THREE.TrackballControls;
+    controls: TrackballControls;
     stats: Stats;
 
     componentDidMount() {
@@ -42,7 +44,7 @@ export class Map extends Component<PropsType, StateType> {
         renderer.shadowMap.enabled = true;
 
         // Setup trackball controls
-        var controls = this.controls = new THREE.TrackballControls(world.camera, canvas);
+        var controls = this.controls = new TrackballControls(world.camera, canvas);
         controls.rotateSpeed = 1.0;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
