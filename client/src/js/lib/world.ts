@@ -2,6 +2,7 @@ import * as THREE from 'three';
 
 import { materials, colors } from './constants';
 import { parseGridSquare } from './data';
+import { EventTarget } from './event';
 import { coordsToGridref, gridrefToCoords,
     getGridSquareSize, getSurroundingSquares} from './grid';
 import { Loader } from './loader';
@@ -9,23 +10,6 @@ import { makeTransform, makeScale } from './scale';
 import { debounce } from './utils';
 
 // Models the world in which our tiles live
-
-class EventTarget {
-
-    addEventListener: (s: string, f: Function) => void;
-    removeEventListener: (s: string, f: Function) => void;
-    dispatchEvent: (e: Event) => void;
-
-    constructor() {
-
-        var target = document.createTextNode("");
-
-        // Pass EventTarget interface calls to DOM EventTarget object
-        this.addEventListener = target.addEventListener.bind(target);
-        this.removeEventListener = target.removeEventListener.bind(target);
-        this.dispatchEvent = target.dispatchEvent.bind(target);
-    }
-}
 
 export class World extends EventTarget {
 
@@ -106,7 +90,7 @@ export class World extends EventTarget {
         this.loader.load(url)
             .then((json) => {
 
-                this.replaceEmpty(gridSquare);
+                this.removeFromWorld("empty-" + gridSquare);
                 let geometry = parseGridSquare(json, this.transform);
                 geometry.computeBoundingBox();
 
@@ -121,7 +105,7 @@ export class World extends EventTarget {
             })
             .catch((errorResponse) => {
                 if (errorResponse.status == 204) {
-                    this.replaceEmpty(gridSquare);
+                    this.removeFromWorld("empty-" + gridSquare);
                     this.addToWorld(this.makeSea(gridSquare));
                 }
                 else {
@@ -136,8 +120,8 @@ export class World extends EventTarget {
     // And this functions makeEmptyGeometry, makeMeshGeometry, that generate the geometry passed
 
     makeSea(gridSquare: string) {
-        let sea = new THREE.Mesh(this.makeSquare(gridSquare),
-        materials.meshLambert(colors.seaColor));
+
+        let sea = new THREE.Mesh(this.makeSquare(gridSquare), materials.meshLambert(colors.seaColor));
         sea.name = 'sea-' + gridSquare;
         return sea;
     }
@@ -167,20 +151,23 @@ export class World extends EventTarget {
 
     }
 
-    // TODO Convert to removeFromWorld
-    replaceEmpty(gridSquare: string) {
+    // Manipulating meshes
 
-        var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == "empty-" + gridSquare);
+    addToWorld(mesh: THREE.Mesh) {
+        this.scene.add(mesh);
+        this.dispatchEvent(new Event('update'));
+    }
+
+    removeFromWorld(name: string) {
+
+        var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == name);
         if (toReplace.length) {
             toReplace.forEach(d => this.scene.remove(d));
         }
 
     }
 
-    addToWorld(mesh: THREE.Mesh) {
-        this.scene.add(mesh);
-        this.dispatchEvent(new Event('update'));
-    }
+    // Checking to see
 
     _update() {
 

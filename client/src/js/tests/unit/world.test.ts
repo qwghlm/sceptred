@@ -70,8 +70,9 @@ test('World works', async () => {
     expect(meshes.filter(landFilter).length).toBe(1);
     expect(meshes.filter(emptyFilter).length).toBe(80);
 
-    // Run times, which triggers the updateMap() function
-    await world.updateWorld();
+    // Trigger the update function manually
+    world.update();
+    await jest.runAllTimers();
 
     // There should now be more proper meshes in the camera view (4x4)
     var meshes = world.scene.children.filter(d => d.type == "Mesh");
