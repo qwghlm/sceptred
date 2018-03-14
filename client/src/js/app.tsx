@@ -47,11 +47,7 @@ export class App extends Component<AppProps, AppState> {
     render(props: AppProps, state: AppState) {
         return <div class="columns">
 
-            <div class="column col-12">
-                <div class="canvas-wrapper"></div>
-            </div>
-
-            <div class="column col-10 mt-2">
+            <div class="column col-10">
 
                 <input className="form-input" type="text" value={this.state.value}
                     onChange={this.checkEnabled} onKeyUp={this.checkEnabled}
@@ -59,12 +55,17 @@ export class App extends Component<AppProps, AppState> {
 
             </div>
 
-            <div class="column col-2 mt-2">
+            <div class="column col-2">
 
                 <button className={"col-12 btn btn-primary " + (this.state.loading ? "loading" : "")}
                     disabled={!this.state.enabled} onClick={this.handleClick} >Go</button>
 
             </div>
+
+            <div class="column col-12 mt-2">
+                <div class="canvas-wrapper"></div>
+            </div>
+
         </div>
     }
 

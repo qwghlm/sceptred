@@ -1177,7 +1177,7 @@ var App = exports.App = function (_Component) {
     }, {
         key: 'render',
         value: function render(props, state) {
-            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12" }, (0, _preact.h)("div", { class: "canvas-wrapper" })), (0, _preact.h)("div", { class: "column col-10 mt-2" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2 mt-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")));
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)("div", { class: "canvas-wrapper" })));
         }
     }]);
 
