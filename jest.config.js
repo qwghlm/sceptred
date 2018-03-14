@@ -11,8 +11,8 @@ module.exports = {
 
     "collectCoverage": true,
     "collectCoverageFrom": [
-      // Only code in libs is testable with coverage in Jest/jsdom
-      "client/src/js/lib/*.ts"
+      "client/src/js/components/*.tsx",
+      "client/src/js/lib/*.ts",
     ],
     "coverageDirectory": "./client/coverage",
     "coverageReporters": [

@@ -1,9 +1,10 @@
-import * as THREE from 'three';
 import * as Modernizr from 'modernizr';
 import { h, Component } from "preact";
-import Stats from "../../../node_modules/stats.js/src/Stats.js";
-import './vendor/TrackballControls';
-import { World } from './lib/world';
+import Stats from "../../../../node_modules/stats.js/src/Stats.js";
+import * as THREE from 'three';
+
+import '../vendor/TrackballControls';
+import { World } from '../lib/world';
 
 type PropsType = {
     debug: boolean,

@@ -47260,10 +47260,6 @@ exports.Map = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(0);
-
-var THREE = _interopRequireWildcard(_three);
-
 var _modernizr = __webpack_require__(8);
 
 var Modernizr = _interopRequireWildcard(_modernizr);
@@ -47273,6 +47269,10 @@ var _preact = __webpack_require__(1);
 var _Stats = __webpack_require__(9);
 
 var _Stats2 = _interopRequireDefault(_Stats);
+
+var _three = __webpack_require__(0);
+
+var THREE = _interopRequireWildcard(_three);
 
 __webpack_require__(10);
 
@@ -47298,7 +47298,7 @@ var Map = exports.Map = function (_Component) {
     }
 
     _createClass(Map, [{
-        key: 'componentDidMount',
+        key: "componentDidMount",
         value: function componentDidMount() {
             if (!this.base.querySelector('canvas')) {
                 return;
@@ -47344,7 +47344,7 @@ var Map = exports.Map = function (_Component) {
             world.navigateTo('NT27');
         }
     }, {
-        key: 'onWindowResize',
+        key: "onWindowResize",
         value: function onWindowResize() {
             var width = this.base.offsetWidth;
             var height = Math.floor(width * 0.8);
@@ -47352,7 +47352,7 @@ var Map = exports.Map = function (_Component) {
             this.renderer.setSize(width, height);
         }
     }, {
-        key: 'renderWorld',
+        key: "renderWorld",
         value: function renderWorld() {
             this.stats.begin();
             this.renderer.render(this.world.scene, this.world.camera);
@@ -47360,7 +47360,7 @@ var Map = exports.Map = function (_Component) {
             this.world.update();
         }
     }, {
-        key: 'animateWorld',
+        key: "animateWorld",
         value: function animateWorld() {
             requestAnimationFrame(this.animateWorld.bind(this));
             this.controls.update();
@@ -47368,7 +47368,7 @@ var Map = exports.Map = function (_Component) {
         // Render function that re-renders the renderer, and calls for an update from the world
 
     }, {
-        key: 'render',
+        key: "render",
         value: function render() {
             if (!Modernizr.webgl) {
                 return (0, _preact.h)("div", null, (0, _preact.h)("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));

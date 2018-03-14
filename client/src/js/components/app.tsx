@@ -1,6 +1,6 @@
 import { h, Component } from "preact";
 import { Map } from './map'
-import { isValidGridref } from './lib/grid';
+import { isValidGridref } from '../lib/grid';
 
 interface AppProps {}
 interface AppState {
