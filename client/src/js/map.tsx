@@ -1,66 +1,110 @@
 import * as THREE from 'three';
-import Stats from 'stats.js';
 import * as Modernizr from 'modernizr';
-
-// TODO Fix import error
+import { h, Component } from "preact";
+import Stats from 'stats.js';
+import './vendor/TrackballControls';
 import { BaseMap } from './lib/map.base';
 
-class DummyStats {
-    dom : null;
-    begin() {}
-    end() {}
-    showPanel() {}
-}
+type PropsType = {
+    // debug: boolean,
+};
+type StateType = {};
 
-export class Map extends BaseMap {
+// class DummyStats {
+//     dom : null;
+//     begin() {}
+//     end() {}
+//     showPanel() {}
+// }
+
+export class Map extends Component<PropsType, StateType> {
 
     renderer: THREE.WebGLRenderer;
-    stats: Stats | DummyStats;
+    // controls: THREE.TrackballControls;
 
-    initializeRenderer() {
+    componentDidMount() {
 
-        // Add WebGL error message...
-        if (!Modernizr.webgl) {
-            this.wrapper.removeAttribute("style")
-            this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>"
-            throw Error("Cannot create a WebGL instance, quitting")
+        if (!this.base.querySelector('canvas')) {
+            return;
         }
+        var canvas = this.base.querySelector('canvas') as HTMLCanvasElement;
 
-        // Renderer
+        var width = this.base.offsetWidth;
+        var height = Math.floor(width * 0.8);
+
+        // Setup renderer
         var renderer = this.renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true,
+            canvas: canvas,
         });
         renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(this.width, this.height);
+        renderer.setSize(width, height);
         renderer.setClearColor(0x444444);
         renderer.shadowMap.enabled = true;
-        this.wrapper.appendChild(renderer.domElement);
 
-    }
+        // Setup trackball controls
+        // var controls = this.controls = new THREE.TrackballControls(camera, canvas);
+        // controls.rotateSpeed = 1.0;
+        // controls.zoomSpeed = 1.2;
+        // controls.panSpeed = 0.8;
+        // controls.noZoom = false;
+        // controls.noPan = false;
+        // controls.staticMoving = true;
+        // controls.dynamicDampingFactor = 0.3;
 
-    initializeDebugger() {
-        if (this.config.debug) {
-            this.stats = new Stats();
-            this.stats.showPanel(1);
-            this.stats.dom.className = 'debug-stats';
-            (this.wrapper.parentNode as HTMLElement).appendChild(this.stats.dom);
+        // Shift+ drag to zoom, Ctrl+ drag to pan
+        // controls.keys = [-1, 16, 17];
+
+        if (true) {
+            var stats = new Stats();
+            stats.showPanel(1);
+            stats.dom.className = 'debug-stats';
+            (this.base.parentNode as HTMLElement).appendChild(stats.dom);
         }
         else {
-            this.stats = new DummyStats();
+//             this.stats = new DummyStats();
         }
+
+
+        var world = new BaseMap({
+            origin : [325000, 675000],
+            width,
+            height
+        });
+        renderer.render(world.scene, world.camera);
+
+        // controls.addEventListener('change', this.renderMap.bind(this));
+        window.addEventListener('resize', this.onWindowResize.bind(this), false);
+
     }
 
     onWindowResize() {
-        super.onWindowResize();
-        this.renderer.setSize(this.width, this.height);
+        var width = this.base.offsetWidth;
+        var height = Math.floor(width * 0.8);
+        this.renderer.setSize(width, height);
+        // TODO Update the world size too
     }
 
-    renderMap() {
-        this.stats.begin();
-        this.renderer.render(this.scene, this.camera);
-        this.stats.end();
-        super.renderMap();
-    }
+    // animateMap() {
+    //     requestAnimationFrame(this.animateMap.bind(this));
+    //     // this.controls.update();
+    // }
 
+    // TODO
+    // Render function that re-renders the renderer, and calls for an update from the world
+    //     renderMap() {
+    //         this.stats.begin();
+    //         this.renderer.render(this.scene, this.camera);
+    //         this.stats.end();
+    //         super.renderMap();
+    //     }
+
+    render() {
+
+        if (!Modernizr.webgl) {
+            return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
+        }
+        return <div class="canvas-wrapper"><canvas></canvas></div>;
+    }
 }

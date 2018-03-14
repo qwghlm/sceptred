@@ -61,40 +61,11 @@ var SCEPTRED =
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 0);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-__webpack_require__(1);
-
-__webpack_require__(2);
-
-var _preact = __webpack_require__(3);
-
-var _app = __webpack_require__(4);
-
-(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-// removed by extract-text-webpack-plugin
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__.p + "favicon.ico";
-
-/***/ }),
-/* 3 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1115,6 +1086,35 @@ var preact = {
 
 
 /***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+__webpack_require__(2);
+
+__webpack_require__(3);
+
+var _preact = __webpack_require__(0);
+
+var _app = __webpack_require__(4);
+
+(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+// removed by extract-text-webpack-plugin
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
 /* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1128,11 +1128,11 @@ exports.App = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _preact = __webpack_require__(3);
+var _preact = __webpack_require__(0);
 
-var _map = __webpack_require__(8);
+var _map = __webpack_require__(10);
 
-var _grid = __webpack_require__(13);
+var _grid = __webpack_require__(5);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1165,19 +1165,9 @@ var App = exports.App = function (_Component) {
     }
 
     _createClass(App, [{
-        key: 'componentDidMount',
-        value: function componentDidMount() {
-            var element = this.base.querySelector('.canvas-wrapper');
-            new _map.Map(element, {
-                origin: [325000, 675000],
-                heightFactor: 2,
-                debug: true
-            });
-        }
-    }, {
         key: 'render',
         value: function render(props, state) {
-            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)("div", { class: "canvas-wrapper" })));
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, null)));
         }
     }]);
 
@@ -1185,10 +1175,7 @@ var App = exports.App = function (_Component) {
 }(_preact.Component);
 
 /***/ }),
-/* 5 */,
-/* 6 */,
-/* 7 */,
-/* 8 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1197,119 +1184,128 @@ var App = exports.App = function (_Component) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Map = undefined;
+exports.isValidGridref = isValidGridref;
+exports.gridrefToCoords = gridrefToCoords;
+exports.coordsToGridref = coordsToGridref;
+exports.getGridSquareSize = getGridSquareSize;
+exports.getSurroundingSquares = getSurroundingSquares;
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-// TODO Fix import error
-
-
-var _three = __webpack_require__(9);
+var _three = __webpack_require__(6);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _stats = __webpack_require__(10);
-
-var _stats2 = _interopRequireDefault(_stats);
-
-var _modernizr = __webpack_require__(11);
-
-var Modernizr = _interopRequireWildcard(_modernizr);
-
-var _map = __webpack_require__(12);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var DummyStats = function () {
-    function DummyStats() {
-        _classCallCheck(this, DummyStats);
+// Grid conversion functions are based upon
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+function isValidGridref(gridref) {
+    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
+}
+// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
+// Grid reference can have spaces, but no commas
+function gridrefToCoords(gridref) {
+    gridref = gridref.replace(/ +/g, "");
+    // Validate format
+    if (!isValidGridref(gridref)) {
+        throw new Error('Invalid grid reference');
     }
-
-    _createClass(DummyStats, [{
-        key: 'begin',
-        value: function begin() {}
-    }, {
-        key: 'end',
-        value: function end() {}
-    }, {
-        key: 'showPanel',
-        value: function showPanel() {}
-    }]);
-
-    return DummyStats;
-}();
-
-var Map = exports.Map = function (_BaseMap) {
-    _inherits(Map, _BaseMap);
-
-    function Map() {
-        _classCallCheck(this, Map);
-
-        return _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
+    var letter1 = letterToNumber(gridref.substr(0, 1));
+    var letter2 = letterToNumber(gridref.substr(1, 1));
+    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
+    var e100km = (letter1 - 2) % 5 * 5 + letter2 % 5;
+    var n100km = 19 - Math.floor(letter1 / 5) * 5 - Math.floor(letter2 / 5);
+    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
+        throw new Error('Grid reference outside of UK');
     }
+    // Get number pair out
+    var numbers = gridref.slice(2);
+    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
+    // Standardise to 10-digit refs (metres)
+    var vector = new THREE.Vector3(parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
+    return vector;
+}
+// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
+function coordsToGridref(coords) {
+    var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
 
-    _createClass(Map, [{
-        key: 'initializeRenderer',
-        value: function initializeRenderer() {
-            // Add WebGL error message...
-            if (!Modernizr.webgl) {
-                this.wrapper.removeAttribute("style");
-                this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
-                throw Error("Cannot create a WebGL instance, quitting");
+    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
+        throw new RangeError('Invalid precision ‘' + digits + '’');
+    }
+    // Get the 100km-grid indices
+    var eastings = coords.x;
+    var northings = coords.y;
+    var e100k = Math.floor(eastings / 100000),
+        n100k = Math.floor(northings / 100000);
+    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
+        throw new Error("Co-ordinates are not within UK National Grid");
+    }
+    // Translate those into numeric equivalents of the grid letters
+    var number1 = 19 - n100k - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
+    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
+    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
+    // Strip 100km-grid indices from easting & northing, and reduce precision
+    digits /= 2;
+    eastings = Math.floor(eastings % 100000 / Math.pow(10, 5 - digits));
+    northings = Math.floor(northings % 100000 / Math.pow(10, 5 - digits));
+    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    var eastingsString = eastings.toString().padStart(digits, '0');
+    var northingsString = northings.toString().padStart(digits, '0');
+    return '' + gridSquare + eastingsString + northingsString;
+}
+// Return a vector for the grid square size, based on the accuracy
+// (i.e. string length) of the reference, in meters
+function getGridSquareSize(gridref) {
+    var accuracy = (12 - gridref.length) / 2;
+    var squareSize = Math.pow(10, accuracy);
+    return new THREE.Vector3(squareSize, squareSize, 0);
+}
+// Return an array of grid references for the squares surrounding this one
+function getSurroundingSquares(gridref, radius) {
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+    // Get X and Y vectors for one square along and one up
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
+    // Go for radius around in both X and Y directions
+    var squares = [];
+    for (var x = -radius; x <= radius; x++) {
+        for (var y = -radius; y <= radius; y++) {
+            // Skip the centre
+            if (x === 0 && y === 0) {
+                continue;
             }
-            // Renderer
-            var renderer = this.renderer = new THREE.WebGLRenderer({
-                antialias: true,
-                alpha: true
-            });
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(this.width, this.height);
-            renderer.setClearColor(0x444444);
-            renderer.shadowMap.enabled = true;
-            this.wrapper.appendChild(renderer.domElement);
-        }
-    }, {
-        key: 'initializeDebugger',
-        value: function initializeDebugger() {
-            if (this.config.debug) {
-                this.stats = new _stats2.default();
-                this.stats.showPanel(1);
-                this.stats.dom.className = 'debug-stats';
-                this.wrapper.parentNode.appendChild(this.stats.dom);
-            } else {
-                this.stats = new DummyStats();
+            // Calculate the origin of the square X and Y steps away from the origin
+            // i.e. C = O + xX + yY
+            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+            // Convert back into gridref
+            try {
+                var neighbor = coordsToGridref(coords, gridref.length - 2);
+                squares.push(neighbor);
+            } catch (error) {
+                // Do nothing, square may be e.g. outside of the national grid and unmappable
             }
         }
-    }, {
-        key: 'onWindowResize',
-        value: function onWindowResize() {
-            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'onWindowResize', this).call(this);
-            this.renderer.setSize(this.width, this.height);
-        }
-    }, {
-        key: 'renderMap',
-        value: function renderMap() {
-            this.stats.begin();
-            this.renderer.render(this.scene, this.camera);
-            this.stats.end();
-            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'renderMap', this).call(this);
-        }
-    }]);
-
-    return Map;
-}(_map.BaseMap);
+    }
+    return squares;
+}
+// Utils
+// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
+function letterToNumber(letter) {
+    if (letter.toUpperCase() === 'I') {
+        throw new Error("I is not used in the grid system");
+    }
+    var index = letter.toUpperCase().charCodeAt(0) - 65;
+    // As I is not used, if greater than I, return one less
+    return index > 7 ? index - 1 : index;
+}
+function numberToLetter(n) {
+    // Compensate for skipped 'I' and build grid letter-pairs
+    if (n > 7) n++;
+    return String.fromCharCode(n + 65);
+}
 
 /***/ }),
-/* 9 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47251,15 +47247,147 @@ function LensFlare() {
 
 
 /***/ }),
+/* 7 */,
+/* 8 */,
+/* 9 */,
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// stats.js - http://github.com/mrdoob/stats.js
-(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
-u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
-1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
-b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
+"use strict";
 
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Map = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _three = __webpack_require__(6);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _modernizr = __webpack_require__(11);
+
+var Modernizr = _interopRequireWildcard(_modernizr);
+
+var _preact = __webpack_require__(0);
+
+var _stats = __webpack_require__(12);
+
+var _stats2 = _interopRequireDefault(_stats);
+
+__webpack_require__(14);
+
+var _map = __webpack_require__(13);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+// class DummyStats {
+//     dom : null;
+//     begin() {}
+//     end() {}
+//     showPanel() {}
+// }
+var Map = exports.Map = function (_Component) {
+    _inherits(Map, _Component);
+
+    function Map() {
+        _classCallCheck(this, Map);
+
+        return _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
+    }
+
+    _createClass(Map, [{
+        key: 'componentDidMount',
+
+        // controls: THREE.TrackballControls;
+        value: function componentDidMount() {
+            if (!this.base.querySelector('canvas')) {
+                return;
+            }
+            var canvas = this.base.querySelector('canvas');
+            var width = this.base.offsetWidth;
+            var height = Math.floor(width * 0.8);
+            // Setup renderer
+            var renderer = this.renderer = new THREE.WebGLRenderer({
+                antialias: true,
+                alpha: true,
+                canvas: canvas
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+            renderer.setClearColor(0x444444);
+            renderer.shadowMap.enabled = true;
+            // Setup trackball controls
+            // var controls = this.controls = new THREE.TrackballControls(camera, canvas);
+            // controls.rotateSpeed = 1.0;
+            // controls.zoomSpeed = 1.2;
+            // controls.panSpeed = 0.8;
+            // controls.noZoom = false;
+            // controls.noPan = false;
+            // controls.staticMoving = true;
+            // controls.dynamicDampingFactor = 0.3;
+            // Shift+ drag to zoom, Ctrl+ drag to pan
+            // controls.keys = [-1, 16, 17];
+            if (true) {
+                var stats = new _stats2.default();
+                stats.showPanel(1);
+                stats.dom.className = 'debug-stats';
+                this.base.parentNode.appendChild(stats.dom);
+            } else {
+                //             this.stats = new DummyStats();
+            }
+            var world = new _map.BaseMap({
+                origin: [325000, 675000],
+                width: width,
+                height: height
+            });
+            renderer.render(world.scene, world.camera);
+            // controls.addEventListener('change', this.renderMap.bind(this));
+            window.addEventListener('resize', this.onWindowResize.bind(this), false);
+        }
+    }, {
+        key: 'onWindowResize',
+        value: function onWindowResize() {
+            var width = this.base.offsetWidth;
+            var height = Math.floor(width * 0.8);
+            this.renderer.setSize(width, height);
+            // TODO Update the world size too
+        }
+        // animateMap() {
+        //     requestAnimationFrame(this.animateMap.bind(this));
+        //     // this.controls.update();
+        // }
+        // TODO
+        // Render function that re-renders the renderer, and calls for an update from the world
+        //     renderMap() {
+        //         this.stats.begin();
+        //         this.renderer.render(this.scene, this.camera);
+        //         this.stats.end();
+        //         super.renderMap();
+        //     }
+
+    }, {
+        key: 'render',
+        value: function render() {
+            if (!Modernizr.webgl) {
+                return (0, _preact.h)("div", null, (0, _preact.h)("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
+            }
+            return (0, _preact.h)("div", { class: "canvas-wrapper" }, (0, _preact.h)("canvas", null));
+        }
+    }]);
+
+    return Map;
+}(_preact.Component);
 
 /***/ }),
 /* 11 */
@@ -47534,6 +47662,17 @@ else { delete window.Modernizr; }
 /* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
+// stats.js - http://github.com/mrdoob/stats.js
+(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
+u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
+1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
+b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
+
+
+/***/ }),
+/* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
 
 
@@ -47544,17 +47683,15 @@ exports.BaseMap = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(9);
+var _three = __webpack_require__(6);
 
 var THREE = _interopRequireWildcard(_three);
-
-__webpack_require__(14);
 
 var _constants = __webpack_require__(15);
 
 var _data = __webpack_require__(16);
 
-var _grid = __webpack_require__(13);
+var _grid = __webpack_require__(5);
 
 var _loader = __webpack_require__(17);
 
@@ -47566,57 +47703,27 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// TODO Call this "World" or something
 var BaseMap = exports.BaseMap = function () {
-    function BaseMap(wrapper, config) {
+    function BaseMap(config) {
         _classCallCheck(this, BaseMap);
 
         // Setup config
         this.config = config;
-        this.loaded = false;
         this.updateMap = (0, _utils.debounce)(this._updateMap.bind(this), 500);
         // Initialize the view and the renderer
-        this.initializeWrapper(wrapper);
-        this.initializeWorld();
-        try {
-            this.initializeRenderer();
-        } catch (error) {
-            console.error("Error initialising renderer, aborting load");
-            return;
-        }
-        this.initializeDebugger();
+        this.initializeWorld(config.width, config.height);
         // Initialize the transforms within the world, and load
         this.initializeTransform();
         this.initializeLoad();
-        // Render the map
-        this.renderMap();
-        this.animateMap();
-        this.loaded = true;
     }
 
     _createClass(BaseMap, [{
-        key: 'initializeWrapper',
-        value: function initializeWrapper(wrapper) {
-            this.wrapper = wrapper;
-            this.sizeWrapper();
-        }
-    }, {
         key: 'initializeWorld',
-        value: function initializeWorld() {
+        value: function initializeWorld(width, height) {
             // Setup camera
-            var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
-            camera.position.z = Math.min(this.width, this.height) * 0.75;
-            // Setup trackball controls
-            var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
-            controls.rotateSpeed = 1.0;
-            controls.zoomSpeed = 1.2;
-            controls.panSpeed = 0.8;
-            controls.noZoom = false;
-            controls.noPan = false;
-            controls.staticMoving = true;
-            controls.dynamicDampingFactor = 0.3;
-            // Shift+ drag to zoom, Ctrl+ drag to pan
-            controls.keys = [-1, 16, 17];
-            controls.addEventListener('change', this.renderMap.bind(this));
+            var camera = this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
+            camera.position.z = Math.min(width, height) * 0.75;
             // Setup scene
             var scene = this.scene = new THREE.Scene();
             // Lights
@@ -47629,30 +47736,20 @@ var BaseMap = exports.BaseMap = function () {
             scene.add(spotLight);
             var ambientLight = new THREE.AmbientLight(0x080808);
             scene.add(ambientLight);
-            window.addEventListener('resize', this.onWindowResize.bind(this), false);
         }
-    }, {
-        key: 'initializeRenderer',
-        value: function initializeRenderer() {
-            // This must be overridden
-        }
-    }, {
-        key: 'initializeDebugger',
-        value: function initializeDebugger() {}
-        // This must be overridden
-
         // Setup transform from real-world to 3D world coordinates
 
     }, {
         key: 'initializeTransform',
         value: function initializeTransform() {
-            var metresPerPixel = 50; // TODO
+            var metresPerPixel = 50; // TODO turn into a config?
+            var heightFactor = 2;
             // Calculate the world origin (i.e. where the world is centred),
             // the model origin (i.e (0, 0, 0))
             // and the scale to get from one to the other
             var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
             var modelOrigin = new THREE.Vector3(0, 0, 0);
-            var scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
+            var scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
             this.scale = (0, _scale.makeScale)(scale);
             this.transform = (0, _scale.makeTransform)(worldOrigin, modelOrigin, scale);
         }
@@ -47671,17 +47768,9 @@ var BaseMap = exports.BaseMap = function () {
             });
         }
     }, {
-        key: 'sizeWrapper',
-        value: function sizeWrapper() {
-            var width = this.width = this.wrapper.offsetWidth === 0 ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
-            var height = this.height = 0.8 * width;
-            this.wrapper.style.height = height + 'px';
-        }
-    }, {
-        key: 'onWindowResize',
-        value: function onWindowResize() {
-            this.sizeWrapper();
-            this.camera.aspect = this.width / this.height;
+        key: 'setSize',
+        value: function setSize(width, height) {
+            this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         }
     }, {
@@ -47761,18 +47850,7 @@ var BaseMap = exports.BaseMap = function () {
         key: 'addToMap',
         value: function addToMap(mesh) {
             this.scene.add(mesh);
-            this.renderMap();
-        }
-    }, {
-        key: 'renderMap',
-        value: function renderMap() {
-            this.updateMap();
-        }
-    }, {
-        key: 'animateMap',
-        value: function animateMap() {
-            requestAnimationFrame(this.animateMap.bind(this));
-            this.controls.update();
+            // TODO Trigger some sort of event that the parent knows to re-render
         }
         // Not usually called directly, but called by debounced version
 
@@ -47813,136 +47891,6 @@ var BaseMap = exports.BaseMap = function () {
 }();
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.isValidGridref = isValidGridref;
-exports.gridrefToCoords = gridrefToCoords;
-exports.coordsToGridref = coordsToGridref;
-exports.getGridSquareSize = getGridSquareSize;
-exports.getSurroundingSquares = getSurroundingSquares;
-
-var _three = __webpack_require__(9);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-// Grid conversion functions are based upon
-// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
-function isValidGridref(gridref) {
-    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
-}
-// Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
-// Grid reference can have spaces, but no commas
-function gridrefToCoords(gridref) {
-    gridref = gridref.replace(/ +/g, "");
-    // Validate format
-    if (!isValidGridref(gridref)) {
-        throw new Error('Invalid grid reference');
-    }
-    var letter1 = letterToNumber(gridref.substr(0, 1));
-    var letter2 = letterToNumber(gridref.substr(1, 1));
-    // Convert grid letters into 100km-square indexes from false origin (grid square SV):
-    var e100km = (letter1 - 2) % 5 * 5 + letter2 % 5;
-    var n100km = 19 - Math.floor(letter1 / 5) * 5 - Math.floor(letter2 / 5);
-    if (e100km < 0 || e100km > 6 || n100km < 0 || n100km > 12) {
-        throw new Error('Grid reference outside of UK');
-    }
-    // Get number pair out
-    var numbers = gridref.slice(2);
-    var eastingsNorthings = [numbers.slice(0, numbers.length / 2), numbers.slice(numbers.length / 2)];
-    // Standardise to 10-digit refs (metres)
-    var vector = new THREE.Vector3(parseInt(e100km + eastingsNorthings[0].padEnd(5, '0')), parseInt(n100km + eastingsNorthings[1].padEnd(5, '0')), 0);
-    return vector;
-}
-// Converts an Easting/Northings {x:520000, y:270000, z:0} to grid reference (e.g. TL27)
-function coordsToGridref(coords) {
-    var digits = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 10;
-
-    if (digits % 2 !== 0 || digits < 0 || digits > 16) {
-        throw new RangeError('Invalid precision ‘' + digits + '’');
-    }
-    // Get the 100km-grid indices
-    var eastings = coords.x;
-    var northings = coords.y;
-    var e100k = Math.floor(eastings / 100000),
-        n100k = Math.floor(northings / 100000);
-    if (e100k < 0 || e100k > 6 || n100k < 0 || n100k > 12) {
-        throw new Error("Co-ordinates are not within UK National Grid");
-    }
-    // Translate those into numeric equivalents of the grid letters
-    var number1 = 19 - n100k - (19 - n100k) % 5 + Math.floor((e100k + 10) / 5);
-    var number2 = (19 - n100k) * 5 % 25 + e100k % 5;
-    var gridSquare = [numberToLetter(number1), numberToLetter(number2)].join('');
-    // Strip 100km-grid indices from easting & northing, and reduce precision
-    digits /= 2;
-    eastings = Math.floor(eastings % 100000 / Math.pow(10, 5 - digits));
-    northings = Math.floor(northings % 100000 / Math.pow(10, 5 - digits));
-    // Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
-    var eastingsString = eastings.toString().padStart(digits, '0');
-    var northingsString = northings.toString().padStart(digits, '0');
-    return '' + gridSquare + eastingsString + northingsString;
-}
-// Return a vector for the grid square size, based on the accuracy
-// (i.e. string length) of the reference, in meters
-function getGridSquareSize(gridref) {
-    var accuracy = (12 - gridref.length) / 2;
-    var squareSize = Math.pow(10, accuracy);
-    return new THREE.Vector3(squareSize, squareSize, 0);
-}
-// Return an array of grid references for the squares surrounding this one
-function getSurroundingSquares(gridref, radius) {
-    // Origin of this square
-    var origin = gridrefToCoords(gridref);
-    // Get X and Y vectors for one square along and one up
-    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
-    // Go for radius around in both X and Y directions
-    var squares = [];
-    for (var x = -radius; x <= radius; x++) {
-        for (var y = -radius; y <= radius; y++) {
-            // Skip the centre
-            if (x === 0 && y === 0) {
-                continue;
-            }
-            // Calculate the origin of the square X and Y steps away from the origin
-            // i.e. C = O + xX + yY
-            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
-            // Convert back into gridref
-            try {
-                var neighbor = coordsToGridref(coords, gridref.length - 2);
-                squares.push(neighbor);
-            } catch (error) {
-                // Do nothing, square may be e.g. outside of the national grid and unmappable
-            }
-        }
-    }
-    return squares;
-}
-// Utils
-// Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
-function letterToNumber(letter) {
-    if (letter.toUpperCase() === 'I') {
-        throw new Error("I is not used in the grid system");
-    }
-    var index = letter.toUpperCase().charCodeAt(0) - 65;
-    // As I is not used, if greater than I, return one less
-    return index > 7 ? index - 1 : index;
-}
-function numberToLetter(n) {
-    // Compensate for skipped 'I' and build grid letter-pairs
-    if (n > 7) n++;
-    return String.fromCharCode(n + 65);
-}
-
-/***/ }),
 /* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -47953,7 +47901,7 @@ function numberToLetter(n) {
  * @author Luca Antiga  / http://lantiga.github.io
  */
 
-const THREE = __webpack_require__(9);
+const THREE = __webpack_require__(6);
 
 const TrackballControls = function ( object, domElement ) {
 
@@ -48592,7 +48540,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.materials = exports.colors = undefined;
 
-var _three = __webpack_require__(9);
+var _three = __webpack_require__(6);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -48642,11 +48590,11 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseGridSquare = parseGridSquare;
 
-var _three = __webpack_require__(9);
+var _three = __webpack_require__(6);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _grid = __webpack_require__(13);
+var _grid = __webpack_require__(5);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -48759,7 +48707,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeTransform = makeTransform;
 exports.makeScale = makeScale;
 
-var _three = __webpack_require__(9);
+var _three = __webpack_require__(6);
 
 var THREE = _interopRequireWildcard(_three);
 

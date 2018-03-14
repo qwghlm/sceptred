@@ -16,20 +16,6 @@ export class App extends Component<AppProps, AppState> {
         this.state = { enabled: false, value: "", loading: false}
     }
 
-    componentDidMount() {
-
-        var element = this.base.querySelector('.canvas-wrapper') as HTMLElement;
-        new Map(
-            element,
-            {
-                origin : [325000, 675000],
-                heightFactor: 2,
-                debug : true,
-            }
-        );
-
-    }
-
     checkEnabled = (e: Event) => {
         var target = e.target as HTMLTextAreaElement;
         this.setState({
@@ -63,7 +49,7 @@ export class App extends Component<AppProps, AppState> {
             </div>
 
             <div class="column col-12 mt-2">
-                <div class="canvas-wrapper"></div>
+                <Map />
             </div>
 
         </div>
