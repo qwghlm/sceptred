@@ -1,16 +1,16 @@
 import * as THREE from 'three';
-import { parseGridSquare } from '../../lib/data';
+import { makeLandGeometry } from '../../lib/data';
 
 jest.mock('../../lib/grid', () => ({
     gridrefToCoords: jest.fn(() => ({x:520000, y:270000}))
 }));
 
-test('parseGridSquare() works properly', () => {
+test('makeLandGeometry() works properly', () => {
 
     var transform = new THREE.Matrix4().identity();
 
     // Parse a very simple square
-    var geometry = parseGridSquare({
+    var geometry = makeLandGeometry({
         meta: {
             gridReference: 'TL27',
             squareSize: 50,

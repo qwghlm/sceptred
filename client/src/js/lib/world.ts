@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 
 import { materials, colors } from './constants';
-import { parseGridSquare } from './data';
+import { makeLandGeometry, makeEmptyGeometry } from './data';
 import { EventTarget } from './event';
-import { coordsToGridref, gridrefToCoords,
-    getGridSquareSize, getSurroundingSquares} from './grid';
+import { coordsToGridref, gridrefToCoords, getSurroundingSquares} from './grid';
 import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
 import { debounce } from './utils';
@@ -71,7 +70,10 @@ export class World extends EventTarget {
         // Work out our origin as a two-letter square
         var gridSquare = coordsToGridref(realOrigin, 2);
         this.load(gridSquare);
-        getSurroundingSquares(gridSquare, 4).forEach(gridref => this.loadEmpty(gridref));
+        getSurroundingSquares(gridSquare, 4).forEach(surroundingSquare => {
+            let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
+            this.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
+        });
 
     }
 
@@ -91,64 +93,27 @@ export class World extends EventTarget {
             .then((json) => {
 
                 this.removeFromWorld("empty-" + gridSquare);
-                let geometry = parseGridSquare(json, this.transform);
-                geometry.computeBoundingBox();
+                let geometry = makeLandGeometry(json, this.transform);
 
                 // Add mesh for this
-                let mesh = new THREE.Mesh(geometry, materials.phong(colors.landColor));
-                mesh.name = 'land-'+gridSquare;
-                this.addToWorld(mesh);
+                this.addToWorld(makeLand(geometry, "land-" + gridSquare));
 
                 if (geometry.boundingBox.min.z < 0) {
-                    this.addToWorld(this.makeSea(gridSquare));
+                    let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
+                    this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 }
             })
             .catch((errorResponse) => {
                 if (errorResponse.status == 204) {
                     this.removeFromWorld("empty-" + gridSquare);
-                    this.addToWorld(this.makeSea(gridSquare));
+
+                    let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
+                    this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 }
                 else {
                     console.error(errorResponse);
                 }
             });
-    }
-
-    // TODO Simple non-this functions makeSea, makeLand, makeEmpty, that each take a geometry
-    // and turn into relevant material
-
-    // And this functions makeEmptyGeometry, makeMeshGeometry, that generate the geometry passed
-
-    makeSea(gridSquare: string) {
-
-        let sea = new THREE.Mesh(this.makeSquare(gridSquare), materials.meshLambert(colors.seaColor));
-        sea.name = 'sea-' + gridSquare;
-        return sea;
-    }
-
-    makeSquare(gridSquare:string) {
-
-        // Get this grid square, scaled down to local size
-        let square = getGridSquareSize(gridSquare).applyMatrix4(makeScale(this.scale));
-
-        // Calculate position of square
-        // The half-square addition at the end is to take into account PlaneGeometry
-        // is created around the centre of the square and we want it to be bottom-left
-        let coords = gridrefToCoords(gridSquare).applyMatrix4(this.transform);
-        let geometry = new THREE.PlaneGeometry(square.x, square.y);
-        geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z)
-        geometry.computeBoundingBox();
-        return geometry;
-
-    }
-
-    loadEmpty(gridSquare: string) {
-
-        // Create a mesh out of it and add to map
-        let mesh = new THREE.Mesh(this.makeSquare(gridSquare), materials.meshWireFrame(0xFFFFFF));
-        mesh.name = 'empty-' + gridSquare;
-        this.addToWorld(mesh);
-
     }
 
     // Manipulating meshes
@@ -159,12 +124,10 @@ export class World extends EventTarget {
     }
 
     removeFromWorld(name: string) {
-
         var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == name);
         if (toReplace.length) {
             toReplace.forEach(d => this.scene.remove(d));
         }
-
     }
 
     // Checking to see
@@ -200,3 +163,24 @@ export class World extends EventTarget {
     }
 }
 
+
+function makeLand(geometry: THREE.BufferGeometry, name: string) {
+
+    let land = new THREE.Mesh(geometry, materials.phong(colors.landColor));
+    land.name = name;
+    return land;
+}
+
+function makeSea(geometry: THREE.Geometry, name: string) {
+
+    let sea = new THREE.Mesh(geometry, materials.meshLambert(colors.seaColor));
+    sea.name = name;
+    return sea;
+}
+
+function makeWireframe(geometry: THREE.Geometry, name: string) {
+
+    let wireframe = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
+    wireframe.name = name;
+    return wireframe;
+}

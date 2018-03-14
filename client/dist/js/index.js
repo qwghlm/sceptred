@@ -48489,33 +48489,25 @@ var _constants = __webpack_require__(12);
 
 var _data = __webpack_require__(13);
 
+var _event = __webpack_require__(14);
+
 var _grid = __webpack_require__(2);
 
-var _loader = __webpack_require__(14);
+var _loader = __webpack_require__(15);
 
-var _scale = __webpack_require__(15);
+var _scale = __webpack_require__(16);
 
-var _utils = __webpack_require__(19);
+var _utils = __webpack_require__(17);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 // Models the world in which our tiles live
-var EventTarget = function EventTarget() {
-    _classCallCheck(this, EventTarget);
-
-    var target = document.createTextNode("");
-    // Pass EventTarget interface calls to DOM EventTarget object
-    this.addEventListener = target.addEventListener.bind(target);
-    this.removeEventListener = target.removeEventListener.bind(target);
-    this.dispatchEvent = target.dispatchEvent.bind(target);
-};
-
 var World = exports.World = function (_EventTarget) {
     _inherits(World, _EventTarget);
 
@@ -48565,8 +48557,9 @@ var World = exports.World = function (_EventTarget) {
             // Work out our origin as a two-letter square
             var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
             this.load(gridSquare);
-            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (gridref) {
-                return _this2.loadEmpty(gridref);
+            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (surroundingSquare) {
+                var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this2.transform, _this2.scale);
+                _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
             });
         }
     }, {
@@ -48585,67 +48578,39 @@ var World = exports.World = function (_EventTarget) {
                 return;
             }
             this.loader.load(url).then(function (json) {
-                _this3.replaceEmpty(gridSquare);
-                var geometry = (0, _data.parseGridSquare)(json, _this3.transform);
-                geometry.computeBoundingBox();
+                _this3.removeFromWorld("empty-" + gridSquare);
+                var geometry = (0, _data.makeLandGeometry)(json, _this3.transform);
                 // Add mesh for this
-                var mesh = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
-                mesh.name = 'land-' + gridSquare;
-                _this3.addToWorld(mesh);
+                _this3.addToWorld(makeLand(geometry, "land-" + gridSquare));
                 if (geometry.boundingBox.min.z < 0) {
-                    _this3.addToWorld(_this3.makeSea(gridSquare));
+                    var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
+                    _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 }
             }).catch(function (errorResponse) {
                 if (errorResponse.status == 204) {
-                    _this3.replaceEmpty(gridSquare);
-                    _this3.addToWorld(_this3.makeSea(gridSquare));
+                    _this3.removeFromWorld("empty-" + gridSquare);
+                    var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
+                    _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 } else {
                     console.error(errorResponse);
                 }
             });
         }
-        // TODO Simple non-this functions makeSea, makeLand, makeEmpty, that each take a geometry
-        // and turn into relevant material
-        // And this functions makeEmptyGeometry, makeMeshGeometry, that generate the geometry passed
+        // Manipulating meshes
 
     }, {
-        key: 'makeSea',
-        value: function makeSea(gridSquare) {
-            var sea = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshLambert(_constants.colors.seaColor));
-            sea.name = 'sea-' + gridSquare;
-            return sea;
+        key: 'addToWorld',
+        value: function addToWorld(mesh) {
+            this.scene.add(mesh);
+            this.dispatchEvent(new Event('update'));
         }
     }, {
-        key: 'makeSquare',
-        value: function makeSquare(gridSquare) {
-            // Get this grid square, scaled down to local size
-            var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4((0, _scale.makeScale)(this.scale));
-            // Calculate position of square
-            // The half-square addition at the end is to take into account PlaneGeometry
-            // is created around the centre of the square and we want it to be bottom-left
-            var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(this.transform);
-            var geometry = new THREE.PlaneGeometry(square.x, square.y);
-            geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-            geometry.computeBoundingBox();
-            return geometry;
-        }
-    }, {
-        key: 'loadEmpty',
-        value: function loadEmpty(gridSquare) {
-            // Create a mesh out of it and add to map
-            var mesh = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshWireFrame(0xFFFFFF));
-            mesh.name = 'empty-' + gridSquare;
-            this.addToWorld(mesh);
-        }
-        // TODO Convert to removeFromWorld
-
-    }, {
-        key: 'replaceEmpty',
-        value: function replaceEmpty(gridSquare) {
+        key: 'removeFromWorld',
+        value: function removeFromWorld(name) {
             var _this4 = this;
 
             var toReplace = this.scene.children.filter(function (d) {
-                return d.type == "Mesh" && d.name == "empty-" + gridSquare;
+                return d.type == "Mesh" && d.name == name;
             });
             if (toReplace.length) {
                 toReplace.forEach(function (d) {
@@ -48653,12 +48618,8 @@ var World = exports.World = function (_EventTarget) {
                 });
             }
         }
-    }, {
-        key: 'addToWorld',
-        value: function addToWorld(mesh) {
-            this.scene.add(mesh);
-            this.dispatchEvent(new Event('update'));
-        }
+        // Checking to see
+
     }, {
         key: '_update',
         value: function _update() {
@@ -48693,7 +48654,23 @@ var World = exports.World = function (_EventTarget) {
     }]);
 
     return World;
-}(EventTarget);
+}(_event.EventTarget);
+
+function makeLand(geometry, name) {
+    var land = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
+    land.name = name;
+    return land;
+}
+function makeSea(geometry, name) {
+    var sea = new THREE.Mesh(geometry, _constants.materials.meshLambert(_constants.colors.seaColor));
+    sea.name = name;
+    return sea;
+}
+function makeWireframe(geometry, name) {
+    var wireframe = new THREE.Mesh(geometry, _constants.materials.meshWireFrame(0xFFFFFF));
+    wireframe.name = name;
+    return wireframe;
+}
 
 /***/ }),
 /* 12 */
@@ -48755,7 +48732,8 @@ var materials = exports.materials = {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseGridSquare = parseGridSquare;
+exports.makeLandGeometry = makeLandGeometry;
+exports.makeEmptyGeometry = makeEmptyGeometry;
 
 var _three = __webpack_require__(0);
 
@@ -48767,7 +48745,7 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 // Functions for parsing data from the API
-function parseGridSquare(data, transform) {
+function makeLandGeometry(data, transform) {
     var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
     var squareSize = data.meta.squareSize;
     var grid = data.data;
@@ -48804,11 +48782,47 @@ function parseGridSquare(data, transform) {
     geometry.addAttribute('position', verticesBuffer);
     geometry.setIndex(faces);
     geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    return geometry;
+}
+function makeEmptyGeometry(gridSquare, transform, scale) {
+    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
+    // Calculate position of square
+    // The half-square addition at the end is to take into account PlaneGeometry
+    // is created around the centre of the square and we want it to be bottom-left
+    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
+    var geometry = new THREE.PlaneGeometry(square.x, square.y);
+    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+    geometry.computeBoundingBox();
     return geometry;
 }
 
 /***/ }),
 /* 14 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// A very simple event listen/dispatch system
+var EventTarget = exports.EventTarget = function EventTarget() {
+    _classCallCheck(this, EventTarget);
+
+    var target = document.createTextNode("");
+    // Pass EventTarget interface calls to DOM EventTarget object
+    this.addEventListener = target.addEventListener.bind(target);
+    this.removeEventListener = target.removeEventListener.bind(target);
+    this.dispatchEvent = target.dispatchEvent.bind(target);
+};
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48862,7 +48876,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48894,10 +48908,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 16 */,
-/* 17 */,
-/* 18 */,
-/* 19 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
