@@ -29,7 +29,7 @@ export class World extends THREE.EventDispatcher {
 
         // Setup camera
         var camera = this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
-        camera.position.z = Math.min(width, height)*0.75;
+        camera.position.z = 384;
 
         // Setup scene
         var scene = this.scene = new THREE.Scene();

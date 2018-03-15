@@ -12,6 +12,8 @@ import { World } from '../lib/world';
 type PropsType = {
     debug: boolean,
     gridReference: string,
+    onError: () => void,
+    onLoadFinished: () => void,
 };
 type StateType = {};
 
@@ -25,6 +27,7 @@ export class Map extends Component<PropsType, StateType> {
     componentDidMount() {
 
         if (!this.base.querySelector('canvas')) {
+            this.props.onError();
             return;
         }
         var canvas = this.base.querySelector('canvas') as HTMLCanvasElement;

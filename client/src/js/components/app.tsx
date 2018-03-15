@@ -4,6 +4,8 @@ import { isValidGridref } from '../lib/grid';
 
 interface AppProps {}
 interface AppState {
+    error: boolean;
+
     enabled: boolean;
     loading: boolean;
 
@@ -16,7 +18,7 @@ export class App extends Component<AppProps, AppState> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { enabled: false, formValue: "", mapValue: "", loading: false}
+        this.state = { error: false, enabled: false, formValue: "", mapValue: "", loading: false}
     }
 
     checkEnabled = (e: Event) => {
@@ -34,16 +36,21 @@ export class App extends Component<AppProps, AppState> {
         });
     }
 
-    loadDone = (e: Event) => {
+    loadDone = () => {
         this.setState({
             loading: false
         });
     }
 
+    errorOn = () => {
+        this.setState({
+            error: true
+        });
+    }
+
     render(props: AppProps, state: AppState) {
 
-        // TODO Add loading state to button
-        return <div class="columns">
+        const form = this.state.error ? "" : <div class="columns">
 
             <div class="column col-10">
 
@@ -60,8 +67,15 @@ export class App extends Component<AppProps, AppState> {
 
             </div>
 
-            <div class="column col-12 mt-2">
-                <Map debug={true} gridReference={this.state.mapValue} />
+        </div>;
+
+        // TODO Add loading state to button
+        return <div>
+            { form }
+            <div class="columns">
+                <div class="column col-12 mt-2">
+                    <Map debug={true} gridReference={this.state.mapValue} onError={this.errorOn} onLoadFinished={this.loadDone} />
+                </div>
             </div>
 
         </div>
