@@ -91,6 +91,10 @@ test('World works', async () => {
     expect(meshes.filter(seaFilter).length).toBe(1);
     expect(meshes.filter(emptyFilter).length).toBe(65);
 
+    world.removeAllFromWorld();
+    var meshes = world.scene.children.filter(d => d.type == "Mesh");
+    expect(meshes.length).toBe(0);
+
     // Finally trigger a window resize to half the size, and test the resize handler
     world.setSize(640, 480);
     expect(world.camera.aspect).toEqual(4/3);
