@@ -59,8 +59,10 @@
   "dependencies": {
     "modernizr": "^3.3.1",
     "normalize.css": "^8.0.0",
+    "preact": "^8.2.7",
     "spectre.css": "^0.5.0",
     "stats.js": "^0.17.0",
-    "three": "^0.90.0"
+    "three": "^0.90.0",
+    "three-trackballcontrols": "0.0.7"
   }
 }

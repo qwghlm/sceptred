@@ -20,7 +20,7 @@ module.exports = function(env, caller) {
     process.env.BABEL_ENV = process.env.BABEL_ENV || (isProduction ? 'production' : 'development');
 
     var entry = entryNames.reduce((obj, d) => {
-        obj[d] = `./client/src/js/${d}.ts`;
+        obj[d] = `./client/src/js/${d}.tsx`;
         return obj;
     }, {});
 
@@ -80,7 +80,8 @@ module.exports = function(env, caller) {
 
         resolve: {
             alias: {
-                'modernizr': path.resolve(__dirname, ".modernizrrc"),
+                'Modernizr$': path.resolve(__dirname, ".modernizrrc"),
+                'stats': path.resolve(__dirname, "node_modules/stats.js/src/Stats.js"),
             },
             extensions: ['.tsx', '.ts', '.js'],
         },

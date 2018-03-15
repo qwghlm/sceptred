@@ -5,14 +5,20 @@ module.exports = {
     "moduleFileExtensions": ["ts", "tsx", "js", "jsx"],
     "projects": ["<rootDir>/client/js"],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+
     "transform": {
-      "^.+\\.tsx?$": "ts-jest"
+      "^.+\\.tsx?$": "ts-jest",
+      "^.+\\.js$": "babel-jest",
     },
 
     "collectCoverage": true,
     "collectCoverageFrom": [
-      // Only code in libs is testable with coverage in Jest/jsdom
-      "client/src/js/lib/*.ts"
+      "client/src/js/components/*.tsx",
+      "client/src/js/lib/*.ts",
+    ],
+    "coveragePathIgnorePatterns" : [
+      "node_modules",
+      "map.tsx"
     ],
     "coverageDirectory": "./client/coverage",
     "coverageReporters": [
@@ -22,7 +28,7 @@ module.exports = {
     ],
 
     "moduleNameMapper": {
-      "\\.(css|scss|gif|jpe?g|png|svg)$": "identity-obj-proxy"
+      "\\.(css|scss|gif|jpe?g|png|svg)$": "identity-obj-proxy",
     },
 
 };

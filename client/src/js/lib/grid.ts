@@ -3,6 +3,10 @@ import * as THREE from 'three';
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
 
+export function isValidGridref(gridref: string) {
+    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
+}
+
 // Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
 // Grid reference can have spaces, but no commas
 export function gridrefToCoords(gridref: string) {
@@ -10,7 +14,7 @@ export function gridrefToCoords(gridref: string) {
     gridref = gridref.replace(/ +/g, "");
 
     // Validate format
-    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+    if (!isValidGridref(gridref)) {
         throw new Error('Invalid grid reference');
     }
 

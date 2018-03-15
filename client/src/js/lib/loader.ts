@@ -32,9 +32,6 @@ export class Loader {
         return fetch(url)
             .then((response: Response): Promise<GridData> => {
                 this.status[url] = STATUS_LOADED;
-                if (!response.ok || response.status == 204) {
-                    throw response;
-                }
                 return response.json()
             });
     }

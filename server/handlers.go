@@ -73,18 +73,20 @@ func (h *DatabaseHandler) get (c echo.Context) error {
         }
         return nil
     })
+
+    var squares [][]int16
     if err != nil {
         if err.Error() == "Key not found" {
-            return echo.NewHTTPError(http.StatusNoContent, nil)
+            squares = make([][]int16, 0)
         } else {
             return echo.NewHTTPError(http.StatusInternalServerError, nil)
         }
-    }
-
-    // Turn linear array of squares into a 200x200 grid of them
-    squares := make([][]int16, gridSize)
-    for i:=0; i<gridSize; i++ {
-        squares[i] = linearSquares[i*gridSize:(i+1)*gridSize]
+    } else {
+        // Turn linear array of squares into a 200x200 grid of them
+        squares = make([][]int16, gridSize)
+        for i:=0; i<gridSize; i++ {
+            squares[i] = linearSquares[i*gridSize:(i+1)*gridSize]
+        }
     }
 
     // Return JSON

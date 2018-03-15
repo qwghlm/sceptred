@@ -4,7 +4,7 @@ global.fetch = require('jest-fetch-mock');
 
 test('Loader works properly', async () => {
 
-    fetch.mockResponse('{"foo": 3}')
+    fetch.mockResponseOnce('{"foo": 3}');
 
     const loader = new Loader();
     const url = '/dummy_url';
@@ -16,5 +16,17 @@ test('Loader works properly', async () => {
         expect(json).toEqual({foo: 3});
         expect(loader.isLoading(url)).toBe(false);
     })
+
+});
+
+test('Loader throws correctly', async () => {
+
+    fetch.mockRejectOnce(new Error("Service unavailable"));
+
+    const loader = new Loader();
+    const url = '/dummy_url';
+    const result = loader.load(url);
+
+    expect(result).rejects.toThrow();
 
 });

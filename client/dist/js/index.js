@@ -61,7 +61,7 @@ var SCEPTRED =
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 3);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -46008,6 +46008,1027 @@ function LensFlare() {
 
 /***/ }),
 /* 1 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "h", function() { return h; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "createElement", function() { return h; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "cloneElement", function() { return cloneElement; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Component", function() { return Component; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "render", function() { return render; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "rerender", function() { return rerender; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "options", function() { return options; });
+/** Virtual DOM Node */
+function VNode() {}
+
+/** Global options
+ *	@public
+ *	@namespace options {Object}
+ */
+var options = {
+
+	/** If `true`, `prop` changes trigger synchronous component updates.
+  *	@name syncComponentUpdates
+  *	@type Boolean
+  *	@default true
+  */
+	//syncComponentUpdates: true,
+
+	/** Processes all created VNodes.
+  *	@param {VNode} vnode	A newly-created VNode to normalize/process
+  */
+	//vnode(vnode) { }
+
+	/** Hook invoked after a component is mounted. */
+	// afterMount(component) { }
+
+	/** Hook invoked after the DOM is updated with a component's latest render. */
+	// afterUpdate(component) { }
+
+	/** Hook invoked immediately before a component is unmounted. */
+	// beforeUnmount(component) { }
+};
+
+var stack = [];
+
+var EMPTY_CHILDREN = [];
+
+/**
+ * JSX/hyperscript reviver.
+ * @see http://jasonformat.com/wtf-is-jsx
+ * Benchmarks: https://esbench.com/bench/57ee8f8e330ab09900a1a1a0
+ *
+ * Note: this is exported as both `h()` and `createElement()` for compatibility reasons.
+ *
+ * Creates a VNode (virtual DOM element). A tree of VNodes can be used as a lightweight representation
+ * of the structure of a DOM tree. This structure can be realized by recursively comparing it against
+ * the current _actual_ DOM structure, and applying only the differences.
+ *
+ * `h()`/`createElement()` accepts an element name, a list of attributes/props,
+ * and optionally children to append to the element.
+ *
+ * @example The following DOM tree
+ *
+ * `<div id="foo" name="bar">Hello!</div>`
+ *
+ * can be constructed using this function as:
+ *
+ * `h('div', { id: 'foo', name : 'bar' }, 'Hello!');`
+ *
+ * @param {string} nodeName	An element name. Ex: `div`, `a`, `span`, etc.
+ * @param {Object} attributes	Any attributes/props to set on the created element.
+ * @param rest			Additional arguments are taken to be children to append. Can be infinitely nested Arrays.
+ *
+ * @public
+ */
+function h(nodeName, attributes) {
+	var children = EMPTY_CHILDREN,
+	    lastSimple,
+	    child,
+	    simple,
+	    i;
+	for (i = arguments.length; i-- > 2;) {
+		stack.push(arguments[i]);
+	}
+	if (attributes && attributes.children != null) {
+		if (!stack.length) stack.push(attributes.children);
+		delete attributes.children;
+	}
+	while (stack.length) {
+		if ((child = stack.pop()) && child.pop !== undefined) {
+			for (i = child.length; i--;) {
+				stack.push(child[i]);
+			}
+		} else {
+			if (typeof child === 'boolean') child = null;
+
+			if (simple = typeof nodeName !== 'function') {
+				if (child == null) child = '';else if (typeof child === 'number') child = String(child);else if (typeof child !== 'string') simple = false;
+			}
+
+			if (simple && lastSimple) {
+				children[children.length - 1] += child;
+			} else if (children === EMPTY_CHILDREN) {
+				children = [child];
+			} else {
+				children.push(child);
+			}
+
+			lastSimple = simple;
+		}
+	}
+
+	var p = new VNode();
+	p.nodeName = nodeName;
+	p.children = children;
+	p.attributes = attributes == null ? undefined : attributes;
+	p.key = attributes == null ? undefined : attributes.key;
+
+	// if a "vnode hook" is defined, pass every created VNode to it
+	if (options.vnode !== undefined) options.vnode(p);
+
+	return p;
+}
+
+/**
+ *  Copy all properties from `props` onto `obj`.
+ *  @param {Object} obj		Object onto which properties should be copied.
+ *  @param {Object} props	Object from which to copy properties.
+ *  @returns obj
+ *  @private
+ */
+function extend(obj, props) {
+  for (var i in props) {
+    obj[i] = props[i];
+  }return obj;
+}
+
+/**
+ * Call a function asynchronously, as soon as possible. Makes
+ * use of HTML Promise to schedule the callback if available,
+ * otherwise falling back to `setTimeout` (mainly for IE<11).
+ *
+ * @param {Function} callback
+ */
+var defer = typeof Promise == 'function' ? Promise.resolve().then.bind(Promise.resolve()) : setTimeout;
+
+/**
+ * Clones the given VNode, optionally adding attributes/props and replacing its children.
+ * @param {VNode} vnode		The virutal DOM element to clone
+ * @param {Object} props	Attributes/props to add when cloning
+ * @param {VNode} rest		Any additional arguments will be used as replacement children.
+ */
+function cloneElement(vnode, props) {
+  return h(vnode.nodeName, extend(extend({}, vnode.attributes), props), arguments.length > 2 ? [].slice.call(arguments, 2) : vnode.children);
+}
+
+// DOM properties that should NOT have "px" added when numeric
+var IS_NON_DIMENSIONAL = /acit|ex(?:s|g|n|p|$)|rph|ows|mnc|ntw|ine[ch]|zoo|^ord/i;
+
+/** Managed queue of dirty components to be re-rendered */
+
+var items = [];
+
+function enqueueRender(component) {
+	if (!component._dirty && (component._dirty = true) && items.push(component) == 1) {
+		(options.debounceRendering || defer)(rerender);
+	}
+}
+
+function rerender() {
+	var p,
+	    list = items;
+	items = [];
+	while (p = list.pop()) {
+		if (p._dirty) renderComponent(p);
+	}
+}
+
+/**
+ * Check if two nodes are equivalent.
+ *
+ * @param {Node} node			DOM Node to compare
+ * @param {VNode} vnode			Virtual DOM node to compare
+ * @param {boolean} [hyrdating=false]	If true, ignores component constructors when comparing.
+ * @private
+ */
+function isSameNodeType(node, vnode, hydrating) {
+  if (typeof vnode === 'string' || typeof vnode === 'number') {
+    return node.splitText !== undefined;
+  }
+  if (typeof vnode.nodeName === 'string') {
+    return !node._componentConstructor && isNamedNode(node, vnode.nodeName);
+  }
+  return hydrating || node._componentConstructor === vnode.nodeName;
+}
+
+/**
+ * Check if an Element has a given nodeName, case-insensitively.
+ *
+ * @param {Element} node	A DOM Element to inspect the name of.
+ * @param {String} nodeName	Unnormalized name to compare against.
+ */
+function isNamedNode(node, nodeName) {
+  return node.normalizedNodeName === nodeName || node.nodeName.toLowerCase() === nodeName.toLowerCase();
+}
+
+/**
+ * Reconstruct Component-style `props` from a VNode.
+ * Ensures default/fallback values from `defaultProps`:
+ * Own-properties of `defaultProps` not present in `vnode.attributes` are added.
+ *
+ * @param {VNode} vnode
+ * @returns {Object} props
+ */
+function getNodeProps(vnode) {
+  var props = extend({}, vnode.attributes);
+  props.children = vnode.children;
+
+  var defaultProps = vnode.nodeName.defaultProps;
+  if (defaultProps !== undefined) {
+    for (var i in defaultProps) {
+      if (props[i] === undefined) {
+        props[i] = defaultProps[i];
+      }
+    }
+  }
+
+  return props;
+}
+
+/** Create an element with the given nodeName.
+ *	@param {String} nodeName
+ *	@param {Boolean} [isSvg=false]	If `true`, creates an element within the SVG namespace.
+ *	@returns {Element} node
+ */
+function createNode(nodeName, isSvg) {
+	var node = isSvg ? document.createElementNS('http://www.w3.org/2000/svg', nodeName) : document.createElement(nodeName);
+	node.normalizedNodeName = nodeName;
+	return node;
+}
+
+/** Remove a child node from its parent if attached.
+ *	@param {Element} node		The node to remove
+ */
+function removeNode(node) {
+	var parentNode = node.parentNode;
+	if (parentNode) parentNode.removeChild(node);
+}
+
+/** Set a named attribute on the given Node, with special behavior for some names and event handlers.
+ *	If `value` is `null`, the attribute/handler will be removed.
+ *	@param {Element} node	An element to mutate
+ *	@param {string} name	The name/key to set, such as an event or attribute name
+ *	@param {any} old	The last value that was set for this name/node pair
+ *	@param {any} value	An attribute value, such as a function to be used as an event handler
+ *	@param {Boolean} isSvg	Are we currently diffing inside an svg?
+ *	@private
+ */
+function setAccessor(node, name, old, value, isSvg) {
+	if (name === 'className') name = 'class';
+
+	if (name === 'key') {
+		// ignore
+	} else if (name === 'ref') {
+		if (old) old(null);
+		if (value) value(node);
+	} else if (name === 'class' && !isSvg) {
+		node.className = value || '';
+	} else if (name === 'style') {
+		if (!value || typeof value === 'string' || typeof old === 'string') {
+			node.style.cssText = value || '';
+		}
+		if (value && typeof value === 'object') {
+			if (typeof old !== 'string') {
+				for (var i in old) {
+					if (!(i in value)) node.style[i] = '';
+				}
+			}
+			for (var i in value) {
+				node.style[i] = typeof value[i] === 'number' && IS_NON_DIMENSIONAL.test(i) === false ? value[i] + 'px' : value[i];
+			}
+		}
+	} else if (name === 'dangerouslySetInnerHTML') {
+		if (value) node.innerHTML = value.__html || '';
+	} else if (name[0] == 'o' && name[1] == 'n') {
+		var useCapture = name !== (name = name.replace(/Capture$/, ''));
+		name = name.toLowerCase().substring(2);
+		if (value) {
+			if (!old) node.addEventListener(name, eventProxy, useCapture);
+		} else {
+			node.removeEventListener(name, eventProxy, useCapture);
+		}
+		(node._listeners || (node._listeners = {}))[name] = value;
+	} else if (name !== 'list' && name !== 'type' && !isSvg && name in node) {
+		setProperty(node, name, value == null ? '' : value);
+		if (value == null || value === false) node.removeAttribute(name);
+	} else {
+		var ns = isSvg && name !== (name = name.replace(/^xlink\:?/, ''));
+		if (value == null || value === false) {
+			if (ns) node.removeAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase());else node.removeAttribute(name);
+		} else if (typeof value !== 'function') {
+			if (ns) node.setAttributeNS('http://www.w3.org/1999/xlink', name.toLowerCase(), value);else node.setAttribute(name, value);
+		}
+	}
+}
+
+/** Attempt to set a DOM property to the given value.
+ *	IE & FF throw for certain property-value combinations.
+ */
+function setProperty(node, name, value) {
+	try {
+		node[name] = value;
+	} catch (e) {}
+}
+
+/** Proxy an event to hooked event handlers
+ *	@private
+ */
+function eventProxy(e) {
+	return this._listeners[e.type](options.event && options.event(e) || e);
+}
+
+/** Queue of components that have been mounted and are awaiting componentDidMount */
+var mounts = [];
+
+/** Diff recursion count, used to track the end of the diff cycle. */
+var diffLevel = 0;
+
+/** Global flag indicating if the diff is currently within an SVG */
+var isSvgMode = false;
+
+/** Global flag indicating if the diff is performing hydration */
+var hydrating = false;
+
+/** Invoke queued componentDidMount lifecycle methods */
+function flushMounts() {
+	var c;
+	while (c = mounts.pop()) {
+		if (options.afterMount) options.afterMount(c);
+		if (c.componentDidMount) c.componentDidMount();
+	}
+}
+
+/** Apply differences in a given vnode (and it's deep children) to a real DOM Node.
+ *	@param {Element} [dom=null]		A DOM node to mutate into the shape of the `vnode`
+ *	@param {VNode} vnode			A VNode (with descendants forming a tree) representing the desired DOM structure
+ *	@returns {Element} dom			The created/mutated element
+ *	@private
+ */
+function diff(dom, vnode, context, mountAll, parent, componentRoot) {
+	// diffLevel having been 0 here indicates initial entry into the diff (not a subdiff)
+	if (!diffLevel++) {
+		// when first starting the diff, check if we're diffing an SVG or within an SVG
+		isSvgMode = parent != null && parent.ownerSVGElement !== undefined;
+
+		// hydration is indicated by the existing element to be diffed not having a prop cache
+		hydrating = dom != null && !('__preactattr_' in dom);
+	}
+
+	var ret = idiff(dom, vnode, context, mountAll, componentRoot);
+
+	// append the element if its a new parent
+	if (parent && ret.parentNode !== parent) parent.appendChild(ret);
+
+	// diffLevel being reduced to 0 means we're exiting the diff
+	if (! --diffLevel) {
+		hydrating = false;
+		// invoke queued componentDidMount lifecycle methods
+		if (!componentRoot) flushMounts();
+	}
+
+	return ret;
+}
+
+/** Internals of `diff()`, separated to allow bypassing diffLevel / mount flushing. */
+function idiff(dom, vnode, context, mountAll, componentRoot) {
+	var out = dom,
+	    prevSvgMode = isSvgMode;
+
+	// empty values (null, undefined, booleans) render as empty Text nodes
+	if (vnode == null || typeof vnode === 'boolean') vnode = '';
+
+	// Fast case: Strings & Numbers create/update Text nodes.
+	if (typeof vnode === 'string' || typeof vnode === 'number') {
+
+		// update if it's already a Text node:
+		if (dom && dom.splitText !== undefined && dom.parentNode && (!dom._component || componentRoot)) {
+			/* istanbul ignore if */ /* Browser quirk that can't be covered: https://github.com/developit/preact/commit/fd4f21f5c45dfd75151bd27b4c217d8003aa5eb9 */
+			if (dom.nodeValue != vnode) {
+				dom.nodeValue = vnode;
+			}
+		} else {
+			// it wasn't a Text node: replace it with one and recycle the old Element
+			out = document.createTextNode(vnode);
+			if (dom) {
+				if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+				recollectNodeTree(dom, true);
+			}
+		}
+
+		out['__preactattr_'] = true;
+
+		return out;
+	}
+
+	// If the VNode represents a Component, perform a component diff:
+	var vnodeName = vnode.nodeName;
+	if (typeof vnodeName === 'function') {
+		return buildComponentFromVNode(dom, vnode, context, mountAll);
+	}
+
+	// Tracks entering and exiting SVG namespace when descending through the tree.
+	isSvgMode = vnodeName === 'svg' ? true : vnodeName === 'foreignObject' ? false : isSvgMode;
+
+	// If there's no existing element or it's the wrong type, create a new one:
+	vnodeName = String(vnodeName);
+	if (!dom || !isNamedNode(dom, vnodeName)) {
+		out = createNode(vnodeName, isSvgMode);
+
+		if (dom) {
+			// move children into the replacement node
+			while (dom.firstChild) {
+				out.appendChild(dom.firstChild);
+			} // if the previous Element was mounted into the DOM, replace it inline
+			if (dom.parentNode) dom.parentNode.replaceChild(out, dom);
+
+			// recycle the old element (skips non-Element node types)
+			recollectNodeTree(dom, true);
+		}
+	}
+
+	var fc = out.firstChild,
+	    props = out['__preactattr_'],
+	    vchildren = vnode.children;
+
+	if (props == null) {
+		props = out['__preactattr_'] = {};
+		for (var a = out.attributes, i = a.length; i--;) {
+			props[a[i].name] = a[i].value;
+		}
+	}
+
+	// Optimization: fast-path for elements containing a single TextNode:
+	if (!hydrating && vchildren && vchildren.length === 1 && typeof vchildren[0] === 'string' && fc != null && fc.splitText !== undefined && fc.nextSibling == null) {
+		if (fc.nodeValue != vchildren[0]) {
+			fc.nodeValue = vchildren[0];
+		}
+	}
+	// otherwise, if there are existing or new children, diff them:
+	else if (vchildren && vchildren.length || fc != null) {
+			innerDiffNode(out, vchildren, context, mountAll, hydrating || props.dangerouslySetInnerHTML != null);
+		}
+
+	// Apply attributes/props from VNode to the DOM Element:
+	diffAttributes(out, vnode.attributes, props);
+
+	// restore previous SVG mode: (in case we're exiting an SVG namespace)
+	isSvgMode = prevSvgMode;
+
+	return out;
+}
+
+/** Apply child and attribute changes between a VNode and a DOM Node to the DOM.
+ *	@param {Element} dom			Element whose children should be compared & mutated
+ *	@param {Array} vchildren		Array of VNodes to compare to `dom.childNodes`
+ *	@param {Object} context			Implicitly descendant context object (from most recent `getChildContext()`)
+ *	@param {Boolean} mountAll
+ *	@param {Boolean} isHydrating	If `true`, consumes externally created elements similar to hydration
+ */
+function innerDiffNode(dom, vchildren, context, mountAll, isHydrating) {
+	var originalChildren = dom.childNodes,
+	    children = [],
+	    keyed = {},
+	    keyedLen = 0,
+	    min = 0,
+	    len = originalChildren.length,
+	    childrenLen = 0,
+	    vlen = vchildren ? vchildren.length : 0,
+	    j,
+	    c,
+	    f,
+	    vchild,
+	    child;
+
+	// Build up a map of keyed children and an Array of unkeyed children:
+	if (len !== 0) {
+		for (var i = 0; i < len; i++) {
+			var _child = originalChildren[i],
+			    props = _child['__preactattr_'],
+			    key = vlen && props ? _child._component ? _child._component.__key : props.key : null;
+			if (key != null) {
+				keyedLen++;
+				keyed[key] = _child;
+			} else if (props || (_child.splitText !== undefined ? isHydrating ? _child.nodeValue.trim() : true : isHydrating)) {
+				children[childrenLen++] = _child;
+			}
+		}
+	}
+
+	if (vlen !== 0) {
+		for (var i = 0; i < vlen; i++) {
+			vchild = vchildren[i];
+			child = null;
+
+			// attempt to find a node based on key matching
+			var key = vchild.key;
+			if (key != null) {
+				if (keyedLen && keyed[key] !== undefined) {
+					child = keyed[key];
+					keyed[key] = undefined;
+					keyedLen--;
+				}
+			}
+			// attempt to pluck a node of the same type from the existing children
+			else if (!child && min < childrenLen) {
+					for (j = min; j < childrenLen; j++) {
+						if (children[j] !== undefined && isSameNodeType(c = children[j], vchild, isHydrating)) {
+							child = c;
+							children[j] = undefined;
+							if (j === childrenLen - 1) childrenLen--;
+							if (j === min) min++;
+							break;
+						}
+					}
+				}
+
+			// morph the matched/found/created DOM child to match vchild (deep)
+			child = idiff(child, vchild, context, mountAll);
+
+			f = originalChildren[i];
+			if (child && child !== dom && child !== f) {
+				if (f == null) {
+					dom.appendChild(child);
+				} else if (child === f.nextSibling) {
+					removeNode(f);
+				} else {
+					dom.insertBefore(child, f);
+				}
+			}
+		}
+	}
+
+	// remove unused keyed children:
+	if (keyedLen) {
+		for (var i in keyed) {
+			if (keyed[i] !== undefined) recollectNodeTree(keyed[i], false);
+		}
+	}
+
+	// remove orphaned unkeyed children:
+	while (min <= childrenLen) {
+		if ((child = children[childrenLen--]) !== undefined) recollectNodeTree(child, false);
+	}
+}
+
+/** Recursively recycle (or just unmount) a node and its descendants.
+ *	@param {Node} node						DOM node to start unmount/removal from
+ *	@param {Boolean} [unmountOnly=false]	If `true`, only triggers unmount lifecycle, skips removal
+ */
+function recollectNodeTree(node, unmountOnly) {
+	var component = node._component;
+	if (component) {
+		// if node is owned by a Component, unmount that component (ends up recursing back here)
+		unmountComponent(component);
+	} else {
+		// If the node's VNode had a ref function, invoke it with null here.
+		// (this is part of the React spec, and smart for unsetting references)
+		if (node['__preactattr_'] != null && node['__preactattr_'].ref) node['__preactattr_'].ref(null);
+
+		if (unmountOnly === false || node['__preactattr_'] == null) {
+			removeNode(node);
+		}
+
+		removeChildren(node);
+	}
+}
+
+/** Recollect/unmount all children.
+ *	- we use .lastChild here because it causes less reflow than .firstChild
+ *	- it's also cheaper than accessing the .childNodes Live NodeList
+ */
+function removeChildren(node) {
+	node = node.lastChild;
+	while (node) {
+		var next = node.previousSibling;
+		recollectNodeTree(node, true);
+		node = next;
+	}
+}
+
+/** Apply differences in attributes from a VNode to the given DOM Element.
+ *	@param {Element} dom		Element with attributes to diff `attrs` against
+ *	@param {Object} attrs		The desired end-state key-value attribute pairs
+ *	@param {Object} old			Current/previous attributes (from previous VNode or element's prop cache)
+ */
+function diffAttributes(dom, attrs, old) {
+	var name;
+
+	// remove attributes no longer present on the vnode by setting them to undefined
+	for (name in old) {
+		if (!(attrs && attrs[name] != null) && old[name] != null) {
+			setAccessor(dom, name, old[name], old[name] = undefined, isSvgMode);
+		}
+	}
+
+	// add new & update changed attributes
+	for (name in attrs) {
+		if (name !== 'children' && name !== 'innerHTML' && (!(name in old) || attrs[name] !== (name === 'value' || name === 'checked' ? dom[name] : old[name]))) {
+			setAccessor(dom, name, old[name], old[name] = attrs[name], isSvgMode);
+		}
+	}
+}
+
+/** Retains a pool of Components for re-use, keyed on component name.
+ *	Note: since component names are not unique or even necessarily available, these are primarily a form of sharding.
+ *	@private
+ */
+var components = {};
+
+/** Reclaim a component for later re-use by the recycler. */
+function collectComponent(component) {
+	var name = component.constructor.name;
+	(components[name] || (components[name] = [])).push(component);
+}
+
+/** Create a component. Normalizes differences between PFC's and classful Components. */
+function createComponent(Ctor, props, context) {
+	var list = components[Ctor.name],
+	    inst;
+
+	if (Ctor.prototype && Ctor.prototype.render) {
+		inst = new Ctor(props, context);
+		Component.call(inst, props, context);
+	} else {
+		inst = new Component(props, context);
+		inst.constructor = Ctor;
+		inst.render = doRender;
+	}
+
+	if (list) {
+		for (var i = list.length; i--;) {
+			if (list[i].constructor === Ctor) {
+				inst.nextBase = list[i].nextBase;
+				list.splice(i, 1);
+				break;
+			}
+		}
+	}
+	return inst;
+}
+
+/** The `.render()` method for a PFC backing instance. */
+function doRender(props, state, context) {
+	return this.constructor(props, context);
+}
+
+/** Set a component's `props` (generally derived from JSX attributes).
+ *	@param {Object} props
+ *	@param {Object} [opts]
+ *	@param {boolean} [opts.renderSync=false]	If `true` and {@link options.syncComponentUpdates} is `true`, triggers synchronous rendering.
+ *	@param {boolean} [opts.render=true]			If `false`, no render will be triggered.
+ */
+function setComponentProps(component, props, opts, context, mountAll) {
+	if (component._disable) return;
+	component._disable = true;
+
+	if (component.__ref = props.ref) delete props.ref;
+	if (component.__key = props.key) delete props.key;
+
+	if (!component.base || mountAll) {
+		if (component.componentWillMount) component.componentWillMount();
+	} else if (component.componentWillReceiveProps) {
+		component.componentWillReceiveProps(props, context);
+	}
+
+	if (context && context !== component.context) {
+		if (!component.prevContext) component.prevContext = component.context;
+		component.context = context;
+	}
+
+	if (!component.prevProps) component.prevProps = component.props;
+	component.props = props;
+
+	component._disable = false;
+
+	if (opts !== 0) {
+		if (opts === 1 || options.syncComponentUpdates !== false || !component.base) {
+			renderComponent(component, 1, mountAll);
+		} else {
+			enqueueRender(component);
+		}
+	}
+
+	if (component.__ref) component.__ref(component);
+}
+
+/** Render a Component, triggering necessary lifecycle events and taking High-Order Components into account.
+ *	@param {Component} component
+ *	@param {Object} [opts]
+ *	@param {boolean} [opts.build=false]		If `true`, component will build and store a DOM node if not already associated with one.
+ *	@private
+ */
+function renderComponent(component, opts, mountAll, isChild) {
+	if (component._disable) return;
+
+	var props = component.props,
+	    state = component.state,
+	    context = component.context,
+	    previousProps = component.prevProps || props,
+	    previousState = component.prevState || state,
+	    previousContext = component.prevContext || context,
+	    isUpdate = component.base,
+	    nextBase = component.nextBase,
+	    initialBase = isUpdate || nextBase,
+	    initialChildComponent = component._component,
+	    skip = false,
+	    rendered,
+	    inst,
+	    cbase;
+
+	// if updating
+	if (isUpdate) {
+		component.props = previousProps;
+		component.state = previousState;
+		component.context = previousContext;
+		if (opts !== 2 && component.shouldComponentUpdate && component.shouldComponentUpdate(props, state, context) === false) {
+			skip = true;
+		} else if (component.componentWillUpdate) {
+			component.componentWillUpdate(props, state, context);
+		}
+		component.props = props;
+		component.state = state;
+		component.context = context;
+	}
+
+	component.prevProps = component.prevState = component.prevContext = component.nextBase = null;
+	component._dirty = false;
+
+	if (!skip) {
+		rendered = component.render(props, state, context);
+
+		// context to pass to the child, can be updated via (grand-)parent component
+		if (component.getChildContext) {
+			context = extend(extend({}, context), component.getChildContext());
+		}
+
+		var childComponent = rendered && rendered.nodeName,
+		    toUnmount,
+		    base;
+
+		if (typeof childComponent === 'function') {
+			// set up high order component link
+
+			var childProps = getNodeProps(rendered);
+			inst = initialChildComponent;
+
+			if (inst && inst.constructor === childComponent && childProps.key == inst.__key) {
+				setComponentProps(inst, childProps, 1, context, false);
+			} else {
+				toUnmount = inst;
+
+				component._component = inst = createComponent(childComponent, childProps, context);
+				inst.nextBase = inst.nextBase || nextBase;
+				inst._parentComponent = component;
+				setComponentProps(inst, childProps, 0, context, false);
+				renderComponent(inst, 1, mountAll, true);
+			}
+
+			base = inst.base;
+		} else {
+			cbase = initialBase;
+
+			// destroy high order component link
+			toUnmount = initialChildComponent;
+			if (toUnmount) {
+				cbase = component._component = null;
+			}
+
+			if (initialBase || opts === 1) {
+				if (cbase) cbase._component = null;
+				base = diff(cbase, rendered, context, mountAll || !isUpdate, initialBase && initialBase.parentNode, true);
+			}
+		}
+
+		if (initialBase && base !== initialBase && inst !== initialChildComponent) {
+			var baseParent = initialBase.parentNode;
+			if (baseParent && base !== baseParent) {
+				baseParent.replaceChild(base, initialBase);
+
+				if (!toUnmount) {
+					initialBase._component = null;
+					recollectNodeTree(initialBase, false);
+				}
+			}
+		}
+
+		if (toUnmount) {
+			unmountComponent(toUnmount);
+		}
+
+		component.base = base;
+		if (base && !isChild) {
+			var componentRef = component,
+			    t = component;
+			while (t = t._parentComponent) {
+				(componentRef = t).base = base;
+			}
+			base._component = componentRef;
+			base._componentConstructor = componentRef.constructor;
+		}
+	}
+
+	if (!isUpdate || mountAll) {
+		mounts.unshift(component);
+	} else if (!skip) {
+		// Ensure that pending componentDidMount() hooks of child components
+		// are called before the componentDidUpdate() hook in the parent.
+		// Note: disabled as it causes duplicate hooks, see https://github.com/developit/preact/issues/750
+		// flushMounts();
+
+		if (component.componentDidUpdate) {
+			component.componentDidUpdate(previousProps, previousState, previousContext);
+		}
+		if (options.afterUpdate) options.afterUpdate(component);
+	}
+
+	if (component._renderCallbacks != null) {
+		while (component._renderCallbacks.length) {
+			component._renderCallbacks.pop().call(component);
+		}
+	}
+
+	if (!diffLevel && !isChild) flushMounts();
+}
+
+/** Apply the Component referenced by a VNode to the DOM.
+ *	@param {Element} dom	The DOM node to mutate
+ *	@param {VNode} vnode	A Component-referencing VNode
+ *	@returns {Element} dom	The created/mutated element
+ *	@private
+ */
+function buildComponentFromVNode(dom, vnode, context, mountAll) {
+	var c = dom && dom._component,
+	    originalComponent = c,
+	    oldDom = dom,
+	    isDirectOwner = c && dom._componentConstructor === vnode.nodeName,
+	    isOwner = isDirectOwner,
+	    props = getNodeProps(vnode);
+	while (c && !isOwner && (c = c._parentComponent)) {
+		isOwner = c.constructor === vnode.nodeName;
+	}
+
+	if (c && isOwner && (!mountAll || c._component)) {
+		setComponentProps(c, props, 3, context, mountAll);
+		dom = c.base;
+	} else {
+		if (originalComponent && !isDirectOwner) {
+			unmountComponent(originalComponent);
+			dom = oldDom = null;
+		}
+
+		c = createComponent(vnode.nodeName, props, context);
+		if (dom && !c.nextBase) {
+			c.nextBase = dom;
+			// passing dom/oldDom as nextBase will recycle it if unused, so bypass recycling on L229:
+			oldDom = null;
+		}
+		setComponentProps(c, props, 1, context, mountAll);
+		dom = c.base;
+
+		if (oldDom && dom !== oldDom) {
+			oldDom._component = null;
+			recollectNodeTree(oldDom, false);
+		}
+	}
+
+	return dom;
+}
+
+/** Remove a component from the DOM and recycle it.
+ *	@param {Component} component	The Component instance to unmount
+ *	@private
+ */
+function unmountComponent(component) {
+	if (options.beforeUnmount) options.beforeUnmount(component);
+
+	var base = component.base;
+
+	component._disable = true;
+
+	if (component.componentWillUnmount) component.componentWillUnmount();
+
+	component.base = null;
+
+	// recursively tear down & recollect high-order component children:
+	var inner = component._component;
+	if (inner) {
+		unmountComponent(inner);
+	} else if (base) {
+		if (base['__preactattr_'] && base['__preactattr_'].ref) base['__preactattr_'].ref(null);
+
+		component.nextBase = base;
+
+		removeNode(base);
+		collectComponent(component);
+
+		removeChildren(base);
+	}
+
+	if (component.__ref) component.__ref(null);
+}
+
+/** Base Component class.
+ *	Provides `setState()` and `forceUpdate()`, which trigger rendering.
+ *	@public
+ *
+ *	@example
+ *	class MyFoo extends Component {
+ *		render(props, state) {
+ *			return <div />;
+ *		}
+ *	}
+ */
+function Component(props, context) {
+	this._dirty = true;
+
+	/** @public
+  *	@type {object}
+  */
+	this.context = context;
+
+	/** @public
+  *	@type {object}
+  */
+	this.props = props;
+
+	/** @public
+  *	@type {object}
+  */
+	this.state = this.state || {};
+}
+
+extend(Component.prototype, {
+
+	/** Returns a `boolean` indicating if the component should re-render when receiving the given `props` and `state`.
+  *	@param {object} nextProps
+  *	@param {object} nextState
+  *	@param {object} nextContext
+  *	@returns {Boolean} should the component re-render
+  *	@name shouldComponentUpdate
+  *	@function
+  */
+
+	/** Update component state by copying properties from `state` to `this.state`.
+  *	@param {object} state		A hash of state properties to update with new values
+  *	@param {function} callback	A function to be called once component state is updated
+  */
+	setState: function setState(state, callback) {
+		var s = this.state;
+		if (!this.prevState) this.prevState = extend({}, s);
+		extend(s, typeof state === 'function' ? state(s, this.props) : state);
+		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
+		enqueueRender(this);
+	},
+
+
+	/** Immediately perform a synchronous re-render of the component.
+  *	@param {function} callback		A function to be called after component is re-rendered.
+  *	@private
+  */
+	forceUpdate: function forceUpdate(callback) {
+		if (callback) (this._renderCallbacks = this._renderCallbacks || []).push(callback);
+		renderComponent(this, 2);
+	},
+
+
+	/** Accepts `props` and `state`, and returns a new Virtual DOM tree to build.
+  *	Virtual DOM is generally constructed via [JSX](http://jasonformat.com/wtf-is-jsx).
+  *	@param {object} props		Props (eg: JSX attributes) received from parent element/component
+  *	@param {object} state		The component's current state
+  *	@param {object} context		Context object (if a parent component has provided context)
+  *	@returns VNode
+  */
+	render: function render() {}
+});
+
+/** Render JSX into a `parent` Element.
+ *	@param {VNode} vnode		A (JSX) VNode to render
+ *	@param {Element} parent		DOM element to render into
+ *	@param {Element} [merge]	Attempt to re-use an existing DOM tree rooted at `merge`
+ *	@public
+ *
+ *	@example
+ *	// render a div into <body>:
+ *	render(<div id="hello">hello!</div>, document.body);
+ *
+ *	@example
+ *	// render a "Thing" component into #foo:
+ *	const Thing = ({ name }) => <span>{ name }</span>;
+ *	render(<Thing name="one" />, document.querySelector('#foo'));
+ */
+function render(vnode, parent, merge) {
+  return diff(merge, vnode, {}, false, parent, false);
+}
+
+var preact = {
+	h: h,
+	createElement: h,
+	cloneElement: cloneElement,
+	Component: Component,
+	render: render,
+	rerender: rerender,
+	options: options
+};
+
+
+/* harmony default export */ __webpack_exports__["default"] = (preact);
+//# sourceMappingURL=preact.esm.js.map
+
+
+/***/ }),
+/* 2 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46016,6 +47037,7 @@ function LensFlare() {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.isValidGridref = isValidGridref;
 exports.gridrefToCoords = gridrefToCoords;
 exports.coordsToGridref = coordsToGridref;
 exports.getGridSquareSize = getGridSquareSize;
@@ -46029,12 +47051,15 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 // Grid conversion functions are based upon
 // https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+function isValidGridref(gridref) {
+    return !!gridref.match(/^[A-Z]{2}[0-9]*$/i) && gridref.length % 2 === 0;
+}
 // Converts a grid reference (e.g. TL27) to a Vector3 { x: 520000, y: 270000, z: 0 }
 // Grid reference can have spaces, but no commas
 function gridrefToCoords(gridref) {
     gridref = gridref.replace(/ +/g, "");
     // Validate format
-    if (!gridref.match(/^[A-Z]{2}[0-9]*$/i) || gridref.length % 2 !== 0) {
+    if (!isValidGridref(gridref)) {
         throw new Error('Invalid grid reference');
     }
     var letter1 = letterToNumber(gridref.substr(0, 1));
@@ -46133,41 +47158,103 @@ function numberToLetter(n) {
 }
 
 /***/ }),
-/* 2 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(3);
-
 __webpack_require__(4);
 
-var _map = __webpack_require__(5);
+__webpack_require__(5);
 
-document.addEventListener("DOMContentLoaded", function (e) {
-    var element = document.querySelector('#map-view-wrapper');
-    new _map.Map(element, {
-        origin: [325000, 675000],
-        heightFactor: 2,
-        debug: true
-    });
-});
+var _preact = __webpack_require__(1);
+
+var _app = __webpack_require__(6);
+
+(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
 
 /***/ }),
-/* 5 */
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.App = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _preact = __webpack_require__(1);
+
+var _map = __webpack_require__(7);
+
+var _grid = __webpack_require__(2);
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var App = exports.App = function (_Component) {
+    _inherits(App, _Component);
+
+    function App(props) {
+        _classCallCheck(this, App);
+
+        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+        _this.checkEnabled = function (e) {
+            var target = e.target;
+            _this.setState({
+                formValue: target.value,
+                enabled: (0, _grid.isValidGridref)(target.value)
+            });
+        };
+        _this.handleClick = function (e) {
+            _this.setState({
+                loading: true,
+                mapValue: _this.state.formValue
+            });
+        };
+        _this.loadDone = function (e) {
+            _this.setState({
+                loading: false
+            });
+        };
+        _this.state = { enabled: false, formValue: "", mapValue: "", loading: false };
+        return _this;
+    }
+
+    _createClass(App, [{
+        key: 'render',
+        value: function render(props, state) {
+            // TODO Add loading state to button
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true, gridReference: this.state.mapValue })));
+        }
+    }]);
+
+    return App;
+}(_preact.Component);
+
+/***/ }),
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46178,57 +47265,41 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.Map = undefined;
 
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-// TODO Fix import error
 
+var _preact = __webpack_require__(1);
 
 var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _stats = __webpack_require__(6);
+var _threeTrackballcontrols = __webpack_require__(8);
+
+var _threeTrackballcontrols2 = _interopRequireDefault(_threeTrackballcontrols);
+
+var _stats = __webpack_require__(9);
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _modernizr = __webpack_require__(7);
+var _Modernizr = __webpack_require__(10);
 
-var Modernizr = _interopRequireWildcard(_modernizr);
+var Modernizr = _interopRequireWildcard(_Modernizr);
 
-var _map = __webpack_require__(8);
+var _world = __webpack_require__(11);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var DummyStats = function () {
-    function DummyStats() {
-        _classCallCheck(this, DummyStats);
-    }
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-    _createClass(DummyStats, [{
-        key: 'begin',
-        value: function begin() {}
-    }, {
-        key: 'end',
-        value: function end() {}
-    }, {
-        key: 'showPanel',
-        value: function showPanel() {}
-    }]);
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /// <reference path="../../../../node_modules/@types/three/three-trackballcontrols.d.ts" />
 
-    return DummyStats;
-}();
 
-var Map = exports.Map = function (_BaseMap) {
-    _inherits(Map, _BaseMap);
+var Map = exports.Map = function (_Component) {
+    _inherits(Map, _Component);
 
     function Map() {
         _classCallCheck(this, Map);
@@ -46237,69 +47308,942 @@ var Map = exports.Map = function (_BaseMap) {
     }
 
     _createClass(Map, [{
-        key: 'initializeRenderer',
-        value: function initializeRenderer() {
-            // Add WebGL error message...
-            if (!Modernizr.webgl) {
-                this.wrapper.removeAttribute("style");
-                this.wrapper.innerHTML = "<p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p>";
-                throw Error("Cannot create a WebGL instance, quitting");
+        key: 'componentDidMount',
+        value: function componentDidMount() {
+            if (!this.base.querySelector('canvas')) {
+                return;
             }
-            // Renderer
+            var canvas = this.base.querySelector('canvas');
+            var width = this.base.offsetWidth;
+            var height = Math.floor(width * 0.8);
+            // Setup world & renderer
+            var world = this.world = new _world.World(width, height);
             var renderer = this.renderer = new THREE.WebGLRenderer({
                 antialias: true,
-                alpha: true
+                alpha: true,
+                canvas: canvas
             });
             renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.setSize(this.width, this.height);
+            renderer.setSize(width, height);
             renderer.setClearColor(0x444444);
             renderer.shadowMap.enabled = true;
-            this.wrapper.appendChild(renderer.domElement);
+            // Setup trackball controls
+            var controls = this.controls = new _threeTrackballcontrols2.default(world.camera, canvas);
+            controls.rotateSpeed = 1.0;
+            controls.zoomSpeed = 1.2;
+            controls.panSpeed = 0.8;
+            controls.noZoom = false;
+            controls.noPan = false;
+            controls.staticMoving = true;
+            controls.dynamicDampingFactor = 0.3;
+            // Shift+ drag to zoom, Ctrl+ drag to pan
+            controls.keys = [-1, 16, 17];
+            // Set up stats to record
+            var stats = this.stats = (0, _stats2.default)();
+            if (this.props.debug) {
+                stats.showPanel(1);
+                stats.dom.className = 'debug-stats';
+                this.base.parentNode.appendChild(stats.dom);
+            }
+            this.renderWorld();
+            this.animateWorld();
+            world.addEventListener('update', this.renderWorld.bind(this));
+            controls.addEventListener('change', this.renderWorld.bind(this));
+            window.addEventListener('resize', this.onWindowResize.bind(this), false);
         }
     }, {
-        key: 'initializeDebugger',
-        value: function initializeDebugger() {
-            if (this.config.debug) {
-                this.stats = new _stats2.default();
-                this.stats.showPanel(1);
-                this.stats.dom.className = 'debug-stats';
-                this.wrapper.parentNode.appendChild(this.stats.dom);
-            } else {
-                this.stats = new DummyStats();
+        key: 'shouldComponentUpdate',
+        value: function shouldComponentUpdate(nextProps, nextState) {
+            return this.props.gridReference !== nextProps.gridReference;
+        }
+    }, {
+        key: 'componentWillUpdate',
+        value: function componentWillUpdate(nextProps, nextState) {
+            if (nextProps.gridReference.length) {
+                this.world.navigateTo(nextProps.gridReference);
             }
         }
     }, {
         key: 'onWindowResize',
         value: function onWindowResize() {
-            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'onWindowResize', this).call(this);
-            this.renderer.setSize(this.width, this.height);
+            var width = this.base.offsetWidth;
+            var height = Math.floor(width * 0.8);
+            this.world.setSize(width, height);
+            this.renderer.setSize(width, height);
         }
     }, {
-        key: 'renderMap',
-        value: function renderMap() {
+        key: 'renderWorld',
+        value: function renderWorld() {
             this.stats.begin();
-            this.renderer.render(this.scene, this.camera);
+            this.renderer.render(this.world.scene, this.world.camera);
             this.stats.end();
-            _get(Map.prototype.__proto__ || Object.getPrototypeOf(Map.prototype), 'renderMap', this).call(this);
+            this.world.update();
+        }
+    }, {
+        key: 'animateWorld',
+        value: function animateWorld() {
+            requestAnimationFrame(this.animateWorld.bind(this));
+            this.controls.update();
+        }
+        // Render function that re-renders the renderer, and calls for an update from the world
+
+    }, {
+        key: 'render',
+        value: function render() {
+            if (!Modernizr.webgl) {
+                return (0, _preact.h)("div", null, (0, _preact.h)("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
+            }
+            return (0, _preact.h)("div", { class: "canvas-wrapper" }, (0, _preact.h)("canvas", null));
         }
     }]);
 
     return Map;
-}(_map.BaseMap);
+}(_preact.Component);
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-// stats.js - http://github.com/mrdoob/stats.js
-(function(f,e){ true?module.exports=e():"function"===typeof define&&define.amd?define(e):f.Stats=e()})(this,function(){var f=function(){function e(a){c.appendChild(a.dom);return a}function u(a){for(var d=0;d<c.children.length;d++)c.children[d].style.display=d===a?"block":"none";l=a}var l=0,c=document.createElement("div");c.style.cssText="position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000";c.addEventListener("click",function(a){a.preventDefault();
-u(++l%c.children.length)},!1);var k=(performance||Date).now(),g=k,a=0,r=e(new f.Panel("FPS","#0ff","#002")),h=e(new f.Panel("MS","#0f0","#020"));if(self.performance&&self.performance.memory)var t=e(new f.Panel("MB","#f08","#201"));u(0);return{REVISION:16,dom:c,addPanel:e,showPanel:u,begin:function(){k=(performance||Date).now()},end:function(){a++;var c=(performance||Date).now();h.update(c-k,200);if(c>g+1E3&&(r.update(1E3*a/(c-g),100),g=c,a=0,t)){var d=performance.memory;t.update(d.usedJSHeapSize/
-1048576,d.jsHeapSizeLimit/1048576)}return c},update:function(){k=this.end()},domElement:c,setMode:u}};f.Panel=function(e,f,l){var c=Infinity,k=0,g=Math.round,a=g(window.devicePixelRatio||1),r=80*a,h=48*a,t=3*a,v=2*a,d=3*a,m=15*a,n=74*a,p=30*a,q=document.createElement("canvas");q.width=r;q.height=h;q.style.cssText="width:80px;height:48px";var b=q.getContext("2d");b.font="bold "+9*a+"px Helvetica,Arial,sans-serif";b.textBaseline="top";b.fillStyle=l;b.fillRect(0,0,r,h);b.fillStyle=f;b.fillText(e,t,v);
-b.fillRect(d,m,n,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d,m,n,p);return{dom:q,update:function(h,w){c=Math.min(c,h);k=Math.max(k,h);b.fillStyle=l;b.globalAlpha=1;b.fillRect(0,0,r,m);b.fillStyle=f;b.fillText(g(h)+" "+e+" ("+g(c)+"-"+g(k)+")",t,v);b.drawImage(q,d+a,m,n-a,p,d,m,n-a,p);b.fillRect(d+n-a,m,a,p);b.fillStyle=l;b.globalAlpha=.9;b.fillRect(d+n-a,m,a,g((1-h/w)*p))}}};return f});
+/**
+ * @author Eberhard Graether / http://egraether.com/
+ * @author Mark Lundin 	/ http://mark-lundin.com
+ * @author Simone Manini / http://daron1337.github.io
+ * @author Luca Antiga 	/ http://lantiga.github.io
+
+ ** three-trackballcontrols module
+ ** @author Jon Lim / http://jonlim.ca
+ */
+
+var THREE = window.THREE || __webpack_require__(0);
+
+var TrackballControls;
+module.exports = TrackballControls = function ( object, domElement ) {
+
+	var _this = this;
+	var STATE = { NONE: - 1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
+
+	this.object = object;
+	this.domElement = ( domElement !== undefined ) ? domElement : document;
+
+	// API
+
+	this.enabled = true;
+
+	this.screen = { left: 0, top: 0, width: 0, height: 0 };
+
+	this.rotateSpeed = 1.0;
+	this.zoomSpeed = 1.2;
+	this.panSpeed = 0.3;
+
+	this.noRotate = false;
+	this.noZoom = false;
+	this.noPan = false;
+
+	this.staticMoving = false;
+	this.dynamicDampingFactor = 0.2;
+
+	this.minDistance = 0;
+	this.maxDistance = Infinity;
+
+	/**
+	 * `KeyboardEvent.keyCode` values which should trigger the different 
+	 * interaction states. Each element can be a single code or an array
+	 * of codes. All elements are required.
+	 */
+	this.keys = [ 65 /*A*/, 83 /*S*/, 68 /*D*/ ];
+
+	// internals
+
+	this.target = new THREE.Vector3();
+
+	var EPS = 0.000001;
+
+	var lastPosition = new THREE.Vector3();
+
+	var _state = STATE.NONE,
+	_prevState = STATE.NONE,
+
+	_eye = new THREE.Vector3(),
+
+	_movePrev = new THREE.Vector2(),
+	_moveCurr = new THREE.Vector2(),
+
+	_lastAxis = new THREE.Vector3(),
+	_lastAngle = 0,
+
+	_zoomStart = new THREE.Vector2(),
+	_zoomEnd = new THREE.Vector2(),
+
+	_touchZoomDistanceStart = 0,
+	_touchZoomDistanceEnd = 0,
+
+	_panStart = new THREE.Vector2(),
+	_panEnd = new THREE.Vector2();
+
+	// for reset
+
+	this.target0 = this.target.clone();
+	this.position0 = this.object.position.clone();
+	this.up0 = this.object.up.clone();
+
+	// events
+
+	var changeEvent = { type: 'change' };
+	var startEvent = { type: 'start' };
+	var endEvent = { type: 'end' };
+
+
+	// methods
+
+	this.handleResize = function () {
+
+		if ( this.domElement === document ) {
+
+			this.screen.left = 0;
+			this.screen.top = 0;
+			this.screen.width = window.innerWidth;
+			this.screen.height = window.innerHeight;
+
+		} else {
+
+			var box = this.domElement.getBoundingClientRect();
+			// adjustments come from similar code in the jquery offset() function
+			var d = this.domElement.ownerDocument.documentElement;
+			this.screen.left = box.left + window.pageXOffset - d.clientLeft;
+			this.screen.top = box.top + window.pageYOffset - d.clientTop;
+			this.screen.width = box.width;
+			this.screen.height = box.height;
+
+		}
+
+	};
+
+	this.handleEvent = function ( event ) {
+
+		if ( typeof this[ event.type ] == 'function' ) {
+
+			this[ event.type ]( event );
+
+		}
+
+	};
+
+	var getMouseOnScreen = ( function () {
+
+		var vector = new THREE.Vector2();
+
+		return function getMouseOnScreen( pageX, pageY ) {
+
+			vector.set(
+				( pageX - _this.screen.left ) / _this.screen.width,
+				( pageY - _this.screen.top ) / _this.screen.height
+			);
+
+			return vector;
+
+		};
+
+	}() );
+
+	var getMouseOnCircle = ( function () {
+
+		var vector = new THREE.Vector2();
+
+		return function getMouseOnCircle( pageX, pageY ) {
+
+			vector.set(
+				( ( pageX - _this.screen.width * 0.5 - _this.screen.left ) / ( _this.screen.width * 0.5 ) ),
+				( ( _this.screen.height + 2 * ( _this.screen.top - pageY ) ) / _this.screen.width ) // screen.width intentional
+			);
+
+			return vector;
+
+		};
+
+	}() );
+
+	this.rotateCamera = ( function() {
+
+		var axis = new THREE.Vector3(),
+			quaternion = new THREE.Quaternion(),
+			eyeDirection = new THREE.Vector3(),
+			objectUpDirection = new THREE.Vector3(),
+			objectSidewaysDirection = new THREE.Vector3(),
+			moveDirection = new THREE.Vector3(),
+			angle;
+
+		return function rotateCamera() {
+
+			moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
+			angle = moveDirection.length();
+
+			if ( angle ) {
+
+				_eye.copy( _this.object.position ).sub( _this.target );
+
+				eyeDirection.copy( _eye ).normalize();
+				objectUpDirection.copy( _this.object.up ).normalize();
+				objectSidewaysDirection.crossVectors( objectUpDirection, eyeDirection ).normalize();
+
+				objectUpDirection.setLength( _moveCurr.y - _movePrev.y );
+				objectSidewaysDirection.setLength( _moveCurr.x - _movePrev.x );
+
+				moveDirection.copy( objectUpDirection.add( objectSidewaysDirection ) );
+
+				axis.crossVectors( moveDirection, _eye ).normalize();
+
+				angle *= _this.rotateSpeed;
+				quaternion.setFromAxisAngle( axis, angle );
+
+				_eye.applyQuaternion( quaternion );
+				_this.object.up.applyQuaternion( quaternion );
+
+				_lastAxis.copy( axis );
+				_lastAngle = angle;
+
+			} else if ( ! _this.staticMoving && _lastAngle ) {
+
+				_lastAngle *= Math.sqrt( 1.0 - _this.dynamicDampingFactor );
+				_eye.copy( _this.object.position ).sub( _this.target );
+				quaternion.setFromAxisAngle( _lastAxis, _lastAngle );
+				_eye.applyQuaternion( quaternion );
+				_this.object.up.applyQuaternion( quaternion );
+
+			}
+
+			_movePrev.copy( _moveCurr );
+
+		};
+
+	}() );
+
+
+	this.zoomCamera = function () {
+
+		var factor;
+
+		if ( _state === STATE.TOUCH_ZOOM_PAN ) {
+
+			factor = _touchZoomDistanceStart / _touchZoomDistanceEnd;
+			_touchZoomDistanceStart = _touchZoomDistanceEnd;
+			_eye.multiplyScalar( factor );
+
+		} else {
+
+			factor = 1.0 + ( _zoomEnd.y - _zoomStart.y ) * _this.zoomSpeed;
+
+			if ( factor !== 1.0 && factor > 0.0 ) {
+
+				_eye.multiplyScalar( factor );
+
+			}
+
+			if ( _this.staticMoving ) {
+
+				_zoomStart.copy( _zoomEnd );
+
+			} else {
+
+				_zoomStart.y += ( _zoomEnd.y - _zoomStart.y ) * this.dynamicDampingFactor;
+
+			}
+
+		}
+
+	};
+
+	this.panCamera = ( function() {
+
+		var mouseChange = new THREE.Vector2(),
+			objectUp = new THREE.Vector3(),
+			pan = new THREE.Vector3();
+
+		return function panCamera() {
+
+			mouseChange.copy( _panEnd ).sub( _panStart );
+
+			if ( mouseChange.lengthSq() ) {
+
+				mouseChange.multiplyScalar( _eye.length() * _this.panSpeed );
+
+				pan.copy( _eye ).cross( _this.object.up ).setLength( mouseChange.x );
+				pan.add( objectUp.copy( _this.object.up ).setLength( mouseChange.y ) );
+
+				_this.object.position.add( pan );
+				_this.target.add( pan );
+
+				if ( _this.staticMoving ) {
+
+					_panStart.copy( _panEnd );
+
+				} else {
+
+					_panStart.add( mouseChange.subVectors( _panEnd, _panStart ).multiplyScalar( _this.dynamicDampingFactor ) );
+
+				}
+
+			}
+
+		};
+
+	}() );
+
+	this.checkDistances = function () {
+
+		if ( ! _this.noZoom || ! _this.noPan ) {
+
+			if ( _eye.lengthSq() > _this.maxDistance * _this.maxDistance ) {
+
+				_this.object.position.addVectors( _this.target, _eye.setLength( _this.maxDistance ) );
+				_zoomStart.copy( _zoomEnd );
+
+			}
+
+			if ( _eye.lengthSq() < _this.minDistance * _this.minDistance ) {
+
+				_this.object.position.addVectors( _this.target, _eye.setLength( _this.minDistance ) );
+				_zoomStart.copy( _zoomEnd );
+
+			}
+
+		}
+
+	};
+
+	this.update = function () {
+
+		_eye.subVectors( _this.object.position, _this.target );
+
+		if ( ! _this.noRotate ) {
+
+			_this.rotateCamera();
+
+		}
+
+		if ( ! _this.noZoom ) {
+
+			_this.zoomCamera();
+
+		}
+
+		if ( ! _this.noPan ) {
+
+			_this.panCamera();
+
+		}
+
+		_this.object.position.addVectors( _this.target, _eye );
+
+		_this.checkDistances();
+
+		_this.object.lookAt( _this.target );
+
+		if ( lastPosition.distanceToSquared( _this.object.position ) > EPS ) {
+
+			_this.dispatchEvent( changeEvent );
+
+			lastPosition.copy( _this.object.position );
+
+		}
+
+	};
+
+	this.reset = function () {
+
+		_state = STATE.NONE;
+		_prevState = STATE.NONE;
+
+		_this.target.copy( _this.target0 );
+		_this.object.position.copy( _this.position0 );
+		_this.object.up.copy( _this.up0 );
+
+		_eye.subVectors( _this.object.position, _this.target );
+
+		_this.object.lookAt( _this.target );
+
+		_this.dispatchEvent( changeEvent );
+
+		lastPosition.copy( _this.object.position );
+
+	};
+
+	// helpers
+
+	/**
+	 * Checks if the pressed key is any of the configured modifier keys for
+	 * a specified behavior.
+	 * 
+	 * @param {number | number[]} keys 
+	 * @param {number} key 
+	 * 
+	 * @returns {boolean} `true` if `keys` contains or equals `key`
+	 */
+	function containsKey(keys, key) {
+		if (Array.isArray(keys)) {
+			return keys.indexOf(key) !== -1;
+		} else {
+			return keys === key;
+		}
+	}
+
+	// listeners
+
+	function keydown( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		window.removeEventListener( 'keydown', keydown );
+
+		_prevState = _state;
+
+		if ( _state !== STATE.NONE ) {
+
+			return;
+
+		} else if ( containsKey( _this.keys[ STATE.ROTATE ], event.keyCode ) && ! _this.noRotate ) {
+
+			_state = STATE.ROTATE;
+
+		} else if ( containsKey( _this.keys[ STATE.ZOOM ], event.keyCode ) && ! _this.noZoom ) {
+
+			_state = STATE.ZOOM;
+
+		} else if ( containsKey( _this.keys[ STATE.PAN ], event.keyCode ) && ! _this.noPan ) {
+
+			_state = STATE.PAN;
+
+		}
+
+	}
+
+	function keyup( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		_state = _prevState;
+
+		window.addEventListener( 'keydown', keydown, false );
+
+	}
+
+	function mousedown( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		if ( _state === STATE.NONE ) {
+
+			_state = event.button;
+
+		}
+
+		if ( _state === STATE.ROTATE && ! _this.noRotate ) {
+
+			_moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
+			_movePrev.copy( _moveCurr );
+
+		} else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
+
+			_zoomStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+			_zoomEnd.copy( _zoomStart );
+
+		} else if ( _state === STATE.PAN && ! _this.noPan ) {
+
+			_panStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+			_panEnd.copy( _panStart );
+
+		}
+
+		document.addEventListener( 'mousemove', mousemove, false );
+		document.addEventListener( 'mouseup', mouseup, false );
+
+		_this.dispatchEvent( startEvent );
+
+	}
+
+	function mousemove( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		if ( _state === STATE.ROTATE && ! _this.noRotate ) {
+
+			_movePrev.copy( _moveCurr );
+			_moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
+
+		} else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
+
+			_zoomEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+
+		} else if ( _state === STATE.PAN && ! _this.noPan ) {
+
+			_panEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
+
+		}
+
+	}
+
+	function mouseup( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		_state = STATE.NONE;
+
+		document.removeEventListener( 'mousemove', mousemove );
+		document.removeEventListener( 'mouseup', mouseup );
+		_this.dispatchEvent( endEvent );
+
+	}
+
+	function mousewheel( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		switch ( event.deltaMode ) {
+
+			case 2:
+				// Zoom in pages
+				_zoomStart.y -= event.deltaY * 0.025;
+				break;
+
+			case 1:
+				// Zoom in lines
+				_zoomStart.y -= event.deltaY * 0.01;
+				break;
+
+			default:
+				// undefined, 0, assume pixels
+				_zoomStart.y -= event.deltaY * 0.00025;
+				break;
+
+		}
+
+		_this.dispatchEvent( startEvent );
+		_this.dispatchEvent( endEvent );
+
+	}
+
+	function touchstart( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		switch ( event.touches.length ) {
+
+			case 1:
+				_state = STATE.TOUCH_ROTATE;
+				_moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
+				_movePrev.copy( _moveCurr );
+				break;
+
+			default: // 2 or more
+				_state = STATE.TOUCH_ZOOM_PAN;
+				var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+				var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				_touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt( dx * dx + dy * dy );
+
+				var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
+				var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
+				_panStart.copy( getMouseOnScreen( x, y ) );
+				_panEnd.copy( _panStart );
+				break;
+
+		}
+
+		_this.dispatchEvent( startEvent );
+
+	}
+
+	function touchmove( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+		event.stopPropagation();
+
+		switch ( event.touches.length ) {
+
+			case 1:
+				_movePrev.copy( _moveCurr );
+				_moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
+				break;
+
+			default: // 2 or more
+				var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
+				var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
+				_touchZoomDistanceEnd = Math.sqrt( dx * dx + dy * dy );
+
+				var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
+				var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
+				_panEnd.copy( getMouseOnScreen( x, y ) );
+				break;
+
+		}
+
+	}
+
+	function touchend( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		switch ( event.touches.length ) {
+
+			case 0:
+				_state = STATE.NONE;
+				break;
+
+			case 1:
+				_state = STATE.TOUCH_ROTATE;
+				_moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
+				_movePrev.copy( _moveCurr );
+				break;
+
+		}
+
+		_this.dispatchEvent( endEvent );
+
+	}
+
+	function contextmenu( event ) {
+
+		if ( _this.enabled === false ) return;
+
+		event.preventDefault();
+
+	}
+
+	this.dispose = function() {
+
+		this.domElement.removeEventListener( 'contextmenu', contextmenu, false );
+		this.domElement.removeEventListener( 'mousedown', mousedown, false );
+		this.domElement.removeEventListener( 'wheel', mousewheel, false );
+
+		this.domElement.removeEventListener( 'touchstart', touchstart, false );
+		this.domElement.removeEventListener( 'touchend', touchend, false );
+		this.domElement.removeEventListener( 'touchmove', touchmove, false );
+
+		document.removeEventListener( 'mousemove', mousemove, false );
+		document.removeEventListener( 'mouseup', mouseup, false );
+
+		window.removeEventListener( 'keydown', keydown, false );
+		window.removeEventListener( 'keyup', keyup, false );
+
+	};
+
+	this.domElement.addEventListener( 'contextmenu', contextmenu, false );
+	this.domElement.addEventListener( 'mousedown', mousedown, false );
+	this.domElement.addEventListener( 'wheel', mousewheel, false );
+
+	this.domElement.addEventListener( 'touchstart', touchstart, false );
+	this.domElement.addEventListener( 'touchend', touchend, false );
+	this.domElement.addEventListener( 'touchmove', touchmove, false );
+
+	window.addEventListener( 'keydown', keydown, false );
+	window.addEventListener( 'keyup', keyup, false );
+
+	this.handleResize();
+
+	// force an update at start
+	this.update();
+
+};
+
+function preventEvent( event ) { event.preventDefault(); }
+
+TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
 
 
 /***/ }),
-/* 7 */
+/* 9 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Stats; });
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
+
+var Stats = function () {
+
+	var mode = 0;
+
+	var container = document.createElement( 'div' );
+	container.style.cssText = 'position:fixed;top:0;left:0;cursor:pointer;opacity:0.9;z-index:10000';
+	container.addEventListener( 'click', function ( event ) {
+
+		event.preventDefault();
+		showPanel( ++ mode % container.children.length );
+
+	}, false );
+
+	//
+
+	function addPanel( panel ) {
+
+		container.appendChild( panel.dom );
+		return panel;
+
+	}
+
+	function showPanel( id ) {
+
+		for ( var i = 0; i < container.children.length; i ++ ) {
+
+			container.children[ i ].style.display = i === id ? 'block' : 'none';
+
+		}
+
+		mode = id;
+
+	}
+
+	//
+
+	var beginTime = ( performance || Date ).now(), prevTime = beginTime, frames = 0;
+
+	var fpsPanel = addPanel( new Stats.Panel( 'FPS', '#0ff', '#002' ) );
+	var msPanel = addPanel( new Stats.Panel( 'MS', '#0f0', '#020' ) );
+
+	if ( self.performance && self.performance.memory ) {
+
+		var memPanel = addPanel( new Stats.Panel( 'MB', '#f08', '#201' ) );
+
+	}
+
+	showPanel( 0 );
+
+	return {
+
+		REVISION: 16,
+
+		dom: container,
+
+		addPanel: addPanel,
+		showPanel: showPanel,
+
+		begin: function () {
+
+			beginTime = ( performance || Date ).now();
+
+		},
+
+		end: function () {
+
+			frames ++;
+
+			var time = ( performance || Date ).now();
+
+			msPanel.update( time - beginTime, 200 );
+
+			if ( time > prevTime + 1000 ) {
+
+				fpsPanel.update( ( frames * 1000 ) / ( time - prevTime ), 100 );
+
+				prevTime = time;
+				frames = 0;
+
+				if ( memPanel ) {
+
+					var memory = performance.memory;
+					memPanel.update( memory.usedJSHeapSize / 1048576, memory.jsHeapSizeLimit / 1048576 );
+
+				}
+
+			}
+
+			return time;
+
+		},
+
+		update: function () {
+
+			beginTime = this.end();
+
+		},
+
+		// Backwards Compatibility
+
+		domElement: container,
+		setMode: showPanel
+
+	};
+
+};
+
+Stats.Panel = function ( name, fg, bg ) {
+
+	var min = Infinity, max = 0, round = Math.round;
+	var PR = round( window.devicePixelRatio || 1 );
+
+	var WIDTH = 80 * PR, HEIGHT = 48 * PR,
+			TEXT_X = 3 * PR, TEXT_Y = 2 * PR,
+			GRAPH_X = 3 * PR, GRAPH_Y = 15 * PR,
+			GRAPH_WIDTH = 74 * PR, GRAPH_HEIGHT = 30 * PR;
+
+	var canvas = document.createElement( 'canvas' );
+	canvas.width = WIDTH;
+	canvas.height = HEIGHT;
+	canvas.style.cssText = 'width:80px;height:48px';
+
+	var context = canvas.getContext( '2d' );
+	context.font = 'bold ' + ( 9 * PR ) + 'px Helvetica,Arial,sans-serif';
+	context.textBaseline = 'top';
+
+	context.fillStyle = bg;
+	context.fillRect( 0, 0, WIDTH, HEIGHT );
+
+	context.fillStyle = fg;
+	context.fillText( name, TEXT_X, TEXT_Y );
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	context.fillStyle = bg;
+	context.globalAlpha = 0.9;
+	context.fillRect( GRAPH_X, GRAPH_Y, GRAPH_WIDTH, GRAPH_HEIGHT );
+
+	return {
+
+		dom: canvas,
+
+		update: function ( value, maxValue ) {
+
+			min = Math.min( min, value );
+			max = Math.max( max, value );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 1;
+			context.fillRect( 0, 0, WIDTH, GRAPH_Y );
+			context.fillStyle = fg;
+			context.fillText( round( value ) + ' ' + name + ' (' + round( min ) + '-' + round( max ) + ')', TEXT_X, TEXT_Y );
+
+			context.drawImage( canvas, GRAPH_X + PR, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT, GRAPH_X, GRAPH_Y, GRAPH_WIDTH - PR, GRAPH_HEIGHT );
+
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, GRAPH_HEIGHT );
+
+			context.fillStyle = bg;
+			context.globalAlpha = 0.9;
+			context.fillRect( GRAPH_X + GRAPH_WIDTH - PR, GRAPH_Y, PR, round( ( 1 - ( value / maxValue ) ) * GRAPH_HEIGHT ) );
+
+		}
+
+	};
+
+};
+
+
+
+
+/***/ }),
+/* 10 */
 /***/ (function(module, exports) {
 
 ;(function(window){
@@ -46568,7 +48512,7 @@ else { delete window.Modernizr; }
 })(window);
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46577,7 +48521,7 @@ else { delete window.Modernizr; }
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.BaseMap = undefined;
+exports.World = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -46585,238 +48529,153 @@ var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
-__webpack_require__(9);
+var _constants = __webpack_require__(12);
 
-var _constants = __webpack_require__(10);
+var _data = __webpack_require__(13);
 
-var _data = __webpack_require__(11);
+var _grid = __webpack_require__(2);
 
-var _grid = __webpack_require__(1);
+var _loader = __webpack_require__(14);
 
-var _loader = __webpack_require__(12);
+var _scale = __webpack_require__(15);
 
-var _scale = __webpack_require__(13);
-
-var _utils = __webpack_require__(14);
+var _utils = __webpack_require__(16);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var BaseMap = exports.BaseMap = function () {
-    function BaseMap(wrapper, config) {
-        _classCallCheck(this, BaseMap);
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
-        // Setup config
-        this.config = config;
-        this.loaded = false;
-        this.updateMap = (0, _utils.debounce)(this._updateMap.bind(this), 500);
-        // Initialize the view and the renderer
-        this.initializeWrapper(wrapper);
-        this.initializeWorld();
-        try {
-            this.initializeRenderer();
-        } catch (error) {
-            console.error("Error initialising renderer, aborting load");
-            return;
-        }
-        this.initializeDebugger();
-        // Initialize the transforms within the world, and load
-        this.initializeTransform();
-        this.initializeLoad();
-        // Render the map
-        this.renderMap();
-        this.animateMap();
-        this.loaded = true;
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+// Models the world in which our tiles live
+var World = exports.World = function (_THREE$EventDispatche) {
+    _inherits(World, _THREE$EventDispatche);
+
+    function World(width, height) {
+        _classCallCheck(this, World);
+
+        var _this = _possibleConstructorReturn(this, (World.__proto__ || Object.getPrototypeOf(World)).call(this));
+
+        _this.update = (0, _utils.debounce)(_this._update.bind(_this), 500);
+        // Setup camera
+        var camera = _this.camera = new THREE.PerspectiveCamera(70, width / height, 1, 10000);
+        camera.position.z = Math.min(width, height) * 0.75;
+        // Setup scene
+        var scene = _this.scene = new THREE.Scene();
+        // Lights
+        var light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(1, 1, 1);
+        scene.add(light);
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-1000, -1000, 1000);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+        var ambientLight = new THREE.AmbientLight(0x080808);
+        scene.add(ambientLight);
+        // Set up scale
+        var metresPerPixel = 50; // TODO turn into a configurable property?
+        var heightFactor = 2;
+        _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
+        // Set up loader
+        _this.loader = new _loader.Loader();
+        return _this;
     }
+    // Setup transform from real-world to 3D world coordinates
 
-    _createClass(BaseMap, [{
-        key: 'initializeWrapper',
-        value: function initializeWrapper(wrapper) {
-            this.wrapper = wrapper;
-            this.sizeWrapper();
-        }
-    }, {
-        key: 'initializeWorld',
-        value: function initializeWorld() {
-            // Setup camera
-            var camera = this.camera = new THREE.PerspectiveCamera(70, this.width / this.height, 1, 10000);
-            camera.position.z = Math.min(this.width, this.height) * 0.75;
-            // Setup trackball controls
-            var controls = this.controls = new THREE.TrackballControls(camera, this.wrapper);
-            controls.rotateSpeed = 1.0;
-            controls.zoomSpeed = 1.2;
-            controls.panSpeed = 0.8;
-            controls.noZoom = false;
-            controls.noPan = false;
-            controls.staticMoving = true;
-            controls.dynamicDampingFactor = 0.3;
-            // Shift+ drag to zoom, Ctrl+ drag to pan
-            controls.keys = [-1, 16, 17];
-            controls.addEventListener('change', this.renderMap.bind(this));
-            // Setup scene
-            var scene = this.scene = new THREE.Scene();
-            // Lights
-            var light = new THREE.DirectionalLight(0xffffff);
-            light.position.set(1, 1, 1);
-            scene.add(light);
-            var spotLight = new THREE.SpotLight(0xffffff);
-            spotLight.position.set(-1000, -1000, 1000);
-            spotLight.castShadow = true;
-            scene.add(spotLight);
-            var ambientLight = new THREE.AmbientLight(0x080808);
-            scene.add(ambientLight);
-            window.addEventListener('resize', this.onWindowResize.bind(this), false);
-        }
-    }, {
-        key: 'initializeRenderer',
-        value: function initializeRenderer() {
-            // This must be overridden
-        }
-    }, {
-        key: 'initializeDebugger',
-        value: function initializeDebugger() {}
-        // This must be overridden
 
-        // Setup transform from real-world to 3D world coordinates
+    _createClass(World, [{
+        key: 'navigateTo',
+        value: function navigateTo(gridref) {
+            var _this2 = this;
 
-    }, {
-        key: 'initializeTransform',
-        value: function initializeTransform() {
-            var metresPerPixel = 50; // TODO
-            // Calculate the world origin (i.e. where the world is centred),
-            // the model origin (i.e (0, 0, 0))
-            // and the scale to get from one to the other
-            var worldOrigin = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-            var modelOrigin = new THREE.Vector3(0, 0, 0);
-            var scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, this.config.heightFactor / metresPerPixel);
-            this.scale = (0, _scale.makeScale)(scale);
-            this.transform = (0, _scale.makeTransform)(worldOrigin, modelOrigin, scale);
-        }
-    }, {
-        key: 'initializeLoad',
-        value: function initializeLoad() {
-            var _this = this;
-
-            this.loader = new _loader.Loader();
-            // Work out our origin
-            var coords = new THREE.Vector3(this.config.origin[0], this.config.origin[1], 0);
-            var gridSquare = (0, _grid.coordsToGridref)(coords, 2);
+            this.removeAllFromWorld();
+            // Calculate the real origin (i.e. where the world is centred),
+            // the world origin (i.e (0, 0, 0))
+            // and the transform to get from one to the other
+            var realOrigin = (0, _grid.gridrefToCoords)(gridref);
+            var worldOrigin = new THREE.Vector3(0, 0, 0);
+            this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
+            // Work out our origin as a two-letter square
+            var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
             this.load(gridSquare);
-            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (gridref) {
-                return _this.loadEmpty(gridref);
+            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (surroundingSquare) {
+                var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this2.transform, _this2.scale);
+                _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
             });
         }
     }, {
-        key: 'sizeWrapper',
-        value: function sizeWrapper() {
-            var width = this.width = this.wrapper.offsetWidth === 0 ? this.wrapper.parentNode.offsetWidth : this.wrapper.offsetWidth;
-            var height = this.height = 0.8 * width;
-            this.wrapper.style.height = height + 'px';
-        }
-    }, {
-        key: 'onWindowResize',
-        value: function onWindowResize() {
-            this.sizeWrapper();
-            this.camera.aspect = this.width / this.height;
+        key: 'setSize',
+        value: function setSize(width, height) {
+            this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         }
     }, {
         key: 'load',
         value: function load(gridSquare) {
-            var _this2 = this;
+            var _this3 = this;
 
             var url = '/data/' + gridSquare;
             if (this.loader.isLoading(url)) {
                 return;
             }
             this.loader.load(url).then(function (json) {
-                _this2.replaceEmpty(gridSquare);
-                var geometry = (0, _data.parseGridSquare)(json, _this2.transform);
-                geometry.computeBoundingBox();
-                // Add mesh for this
-                var mesh = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
-                mesh.name = 'land-' + gridSquare;
-                _this2.addToMap(mesh);
-                if (geometry.boundingBox.min.z < 0) {
-                    _this2.addToMap(_this2.makeSea(gridSquare));
+                _this3.removeFromWorld("empty-" + gridSquare);
+                var geometry = void 0;
+                // If data exists, then make a land geometry
+                if (json.data.length) {
+                    geometry = (0, _data.makeLandGeometry)(json, _this3.transform);
+                    _this3.addToWorld(makeLand(geometry, "land-" + gridSquare));
                 }
-                4;
+                // If no geometry, or the bounding box is underwater, add sea tile
+                if (!geometry || geometry.boundingBox.min.z < 0) {
+                    var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
+                    _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
+                }
             }).catch(function (errorResponse) {
-                if (errorResponse.status == 204) {
-                    _this2.replaceEmpty(gridSquare);
-                    _this2.addToMap(_this2.makeSea(gridSquare));
-                } else {
-                    console.error(errorResponse);
-                }
+                console.error(errorResponse);
             });
         }
+        // Manipulating meshes
+
     }, {
-        key: 'makeSea',
-        value: function makeSea(gridSquare) {
-            var sea = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshLambert(_constants.colors.seaColor));
-            sea.name = 'sea-' + gridSquare;
-            return sea;
+        key: 'addToWorld',
+        value: function addToWorld(mesh) {
+            this.scene.add(mesh);
+            this.dispatchEvent({ type: 'update' });
         }
     }, {
-        key: 'makeSquare',
-        value: function makeSquare(gridSquare) {
-            // Get this grid square, scaled down to local size
-            var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(this.scale);
-            // Calculate position of square
-            // The half-square addition at the end is to take into account PlaneGeometry
-            // is created around the centre of the square and we want it to be bottom-left
-            var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(this.transform);
-            var geometry = new THREE.PlaneGeometry(square.x, square.y);
-            geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-            geometry.computeBoundingBox();
-            return geometry;
-        }
-    }, {
-        key: 'loadEmpty',
-        value: function loadEmpty(gridSquare) {
-            // Create a mesh out of it and add to map
-            var mesh = new THREE.Mesh(this.makeSquare(gridSquare), _constants.materials.meshWireFrame(0xFFFFFF));
-            mesh.name = 'empty-' + gridSquare;
-            this.addToMap(mesh);
-        }
-    }, {
-        key: 'replaceEmpty',
-        value: function replaceEmpty(gridSquare) {
-            var _this3 = this;
+        key: 'removeFromWorld',
+        value: function removeFromWorld(name) {
+            var _this4 = this;
 
             var toReplace = this.scene.children.filter(function (d) {
-                return d.type == "Mesh" && d.name == "empty-" + gridSquare;
+                return d.type == "Mesh" && d.name == name;
             });
             if (toReplace.length) {
                 toReplace.forEach(function (d) {
-                    return _this3.scene.remove(d);
+                    return _this4.scene.remove(d);
                 });
             }
         }
     }, {
-        key: 'addToMap',
-        value: function addToMap(mesh) {
-            this.scene.add(mesh);
-            this.renderMap();
+        key: 'removeAllFromWorld',
+        value: function removeAllFromWorld() {
+            var _this5 = this;
+
+            this.scene.children.filter(function (d) {
+                return d.type == "Mesh";
+            }).forEach(function (d) {
+                return _this5.scene.remove(d);
+            });
         }
-    }, {
-        key: 'renderMap',
-        value: function renderMap() {
-            this.updateMap();
-        }
-    }, {
-        key: 'animateMap',
-        value: function animateMap() {
-            requestAnimationFrame(this.animateMap.bind(this));
-            this.controls.update();
-        }
-        // Not usually called directly, but called by debounced version
+        // Checking to see
 
     }, {
-        key: '_updateMap',
-        value: function _updateMap() {
-            var _this4 = this;
+        key: '_update',
+        value: function _update() {
+            var _this6 = this;
 
             // Calculate the frustum of this camera
             var frustum = new THREE.Frustum();
@@ -46841,654 +48700,32 @@ var BaseMap = exports.BaseMap = function () {
             });
             emptyMeshes.forEach(function (d) {
                 var id = d.name.split('-')[1];
-                _this4.load(id);
+                _this6.load(id);
             });
         }
     }]);
 
-    return BaseMap;
-}();
+    return World;
+}(THREE.EventDispatcher);
+
+function makeLand(geometry, name) {
+    var land = new THREE.Mesh(geometry, _constants.materials.phong(_constants.colors.landColor));
+    land.name = name;
+    return land;
+}
+function makeSea(geometry, name) {
+    var sea = new THREE.Mesh(geometry, _constants.materials.meshLambert(_constants.colors.seaColor));
+    sea.name = name;
+    return sea;
+}
+function makeWireframe(geometry, name) {
+    var wireframe = new THREE.Mesh(geometry, _constants.materials.meshWireFrame(0xFFFFFF));
+    wireframe.name = name;
+    return wireframe;
+}
 
 /***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-/**
- * @author Eberhard Graether / http://egraether.com/
- * @author Mark Lundin  / http://mark-lundin.com
- * @author Simone Manini / http://daron1337.github.io
- * @author Luca Antiga  / http://lantiga.github.io
- */
-
-const THREE = __webpack_require__(0);
-
-const TrackballControls = function ( object, domElement ) {
-
-    var _this = this;
-    var STATE = { NONE: - 1, ROTATE: 0, ZOOM: 1, PAN: 2, TOUCH_ROTATE: 3, TOUCH_ZOOM_PAN: 4 };
-
-    this.object = object;
-    this.domElement = ( domElement !== undefined ) ? domElement : document;
-
-    // API
-
-    this.enabled = true;
-
-    this.screen = { left: 0, top: 0, width: 0, height: 0 };
-
-    this.rotateSpeed = 1.0;
-    this.zoomSpeed = 1.2;
-    this.panSpeed = 0.3;
-
-    this.noRotate = false;
-    this.noZoom = false;
-    this.noPan = false;
-
-    this.staticMoving = false;
-    this.dynamicDampingFactor = 0.2;
-
-    this.minDistance = 0;
-    this.maxDistance = Infinity;
-
-    this.keys = [ 65 /*A*/, 83 /*S*/, 68 /*D*/ ];
-
-    // internals
-
-    this.target = new THREE.Vector3();
-
-    var EPS = 0.000001;
-
-    var lastPosition = new THREE.Vector3();
-
-    var _state = STATE.NONE,
-    _prevState = STATE.NONE,
-
-    _eye = new THREE.Vector3(),
-
-    _movePrev = new THREE.Vector2(),
-    _moveCurr = new THREE.Vector2(),
-
-    _lastAxis = new THREE.Vector3(),
-    _lastAngle = 0,
-
-    _zoomStart = new THREE.Vector2(),
-    _zoomEnd = new THREE.Vector2(),
-
-    _touchZoomDistanceStart = 0,
-    _touchZoomDistanceEnd = 0,
-
-    _panStart = new THREE.Vector2(),
-    _panEnd = new THREE.Vector2();
-
-    // for reset
-
-    this.target0 = this.target.clone();
-    this.position0 = this.object.position.clone();
-    this.up0 = this.object.up.clone();
-
-    // events
-
-    var changeEvent = { type: 'change' };
-    var startEvent = { type: 'start' };
-    var endEvent = { type: 'end' };
-
-
-    // methods
-
-    this.handleResize = function () {
-
-        if ( this.domElement === document ) {
-
-            this.screen.left = 0;
-            this.screen.top = 0;
-            this.screen.width = window.innerWidth;
-            this.screen.height = window.innerHeight;
-
-        } else {
-
-            var box = this.domElement.getBoundingClientRect();
-            // adjustments come from similar code in the jquery offset() function
-            var d = this.domElement.ownerDocument.documentElement;
-            this.screen.left = box.left + window.pageXOffset - d.clientLeft;
-            this.screen.top = box.top + window.pageYOffset - d.clientTop;
-            this.screen.width = box.width;
-            this.screen.height = box.height;
-
-        }
-
-    };
-
-    this.handleEvent = function ( event ) {
-
-        if ( typeof this[ event.type ] == 'function' ) {
-
-            this[ event.type ]( event );
-
-        }
-
-    };
-
-    var getMouseOnScreen = ( function () {
-
-        var vector = new THREE.Vector2();
-
-        return function getMouseOnScreen( pageX, pageY ) {
-
-            vector.set(
-                ( pageX - _this.screen.left ) / _this.screen.width,
-                ( pageY - _this.screen.top ) / _this.screen.height
-            );
-
-            return vector;
-
-        };
-
-    }() );
-
-    var getMouseOnCircle = ( function () {
-
-        var vector = new THREE.Vector2();
-
-        return function getMouseOnCircle( pageX, pageY ) {
-
-            vector.set(
-                ( ( pageX - _this.screen.width * 0.5 - _this.screen.left ) / ( _this.screen.width * 0.5 ) ),
-                ( ( _this.screen.height + 2 * ( _this.screen.top - pageY ) ) / _this.screen.width ) // screen.width intentional
-            );
-
-            return vector;
-
-        };
-
-    }() );
-
-    this.rotateCamera = ( function() {
-
-        var axis = new THREE.Vector3(),
-            quaternion = new THREE.Quaternion(),
-            eyeDirection = new THREE.Vector3(),
-            objectUpDirection = new THREE.Vector3(),
-            objectSidewaysDirection = new THREE.Vector3(),
-            moveDirection = new THREE.Vector3(),
-            angle;
-
-        return function rotateCamera() {
-
-            moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
-            angle = moveDirection.length();
-
-            if ( angle ) {
-
-                _eye.copy( _this.object.position ).sub( _this.target );
-
-                eyeDirection.copy( _eye ).normalize();
-                objectUpDirection.copy( _this.object.up ).normalize();
-                objectSidewaysDirection.crossVectors( objectUpDirection, eyeDirection ).normalize();
-
-                objectUpDirection.setLength( _moveCurr.y - _movePrev.y );
-                objectSidewaysDirection.setLength( _moveCurr.x - _movePrev.x );
-
-                moveDirection.copy( objectUpDirection.add( objectSidewaysDirection ) );
-
-                axis.crossVectors( moveDirection, _eye ).normalize();
-
-                angle *= _this.rotateSpeed;
-                quaternion.setFromAxisAngle( axis, angle );
-
-                _eye.applyQuaternion( quaternion );
-                _this.object.up.applyQuaternion( quaternion );
-
-                _lastAxis.copy( axis );
-                _lastAngle = angle;
-
-            } else if ( ! _this.staticMoving && _lastAngle ) {
-
-                _lastAngle *= Math.sqrt( 1.0 - _this.dynamicDampingFactor );
-                _eye.copy( _this.object.position ).sub( _this.target );
-                quaternion.setFromAxisAngle( _lastAxis, _lastAngle );
-                _eye.applyQuaternion( quaternion );
-                _this.object.up.applyQuaternion( quaternion );
-
-            }
-
-            _movePrev.copy( _moveCurr );
-
-        };
-
-    }() );
-
-
-    this.zoomCamera = function () {
-
-        var factor;
-
-        if ( _state === STATE.TOUCH_ZOOM_PAN ) {
-
-            factor = _touchZoomDistanceStart / _touchZoomDistanceEnd;
-            _touchZoomDistanceStart = _touchZoomDistanceEnd;
-            _eye.multiplyScalar( factor );
-
-        } else {
-
-            factor = 1.0 + ( _zoomEnd.y - _zoomStart.y ) * _this.zoomSpeed;
-
-            if ( factor !== 1.0 && factor > 0.0 ) {
-
-                _eye.multiplyScalar( factor );
-
-            }
-
-            if ( _this.staticMoving ) {
-
-                _zoomStart.copy( _zoomEnd );
-
-            } else {
-
-                _zoomStart.y += ( _zoomEnd.y - _zoomStart.y ) * this.dynamicDampingFactor;
-
-            }
-
-        }
-
-    };
-
-    this.panCamera = ( function() {
-
-        var mouseChange = new THREE.Vector2(),
-            objectUp = new THREE.Vector3(),
-            pan = new THREE.Vector3();
-
-        return function panCamera() {
-
-            mouseChange.copy( _panEnd ).sub( _panStart );
-
-            if ( mouseChange.lengthSq() ) {
-
-                mouseChange.multiplyScalar( _eye.length() * _this.panSpeed );
-
-                pan.copy( _eye ).cross( _this.object.up ).setLength( mouseChange.x );
-                pan.add( objectUp.copy( _this.object.up ).setLength( mouseChange.y ) );
-
-                _this.object.position.add( pan );
-                _this.target.add( pan );
-
-                if ( _this.staticMoving ) {
-
-                    _panStart.copy( _panEnd );
-
-                } else {
-
-                    _panStart.add( mouseChange.subVectors( _panEnd, _panStart ).multiplyScalar( _this.dynamicDampingFactor ) );
-
-                }
-
-            }
-
-        };
-
-    }() );
-
-    this.checkDistances = function () {
-
-        if ( ! _this.noZoom || ! _this.noPan ) {
-
-            if ( _eye.lengthSq() > _this.maxDistance * _this.maxDistance ) {
-
-                _this.object.position.addVectors( _this.target, _eye.setLength( _this.maxDistance ) );
-                _zoomStart.copy( _zoomEnd );
-
-            }
-
-            if ( _eye.lengthSq() < _this.minDistance * _this.minDistance ) {
-
-                _this.object.position.addVectors( _this.target, _eye.setLength( _this.minDistance ) );
-                _zoomStart.copy( _zoomEnd );
-
-            }
-
-        }
-
-    };
-
-    this.update = function () {
-
-        _eye.subVectors( _this.object.position, _this.target );
-
-        if ( ! _this.noRotate ) {
-
-            _this.rotateCamera();
-
-        }
-
-        if ( ! _this.noZoom ) {
-
-            _this.zoomCamera();
-
-        }
-
-        if ( ! _this.noPan ) {
-
-            _this.panCamera();
-
-        }
-
-        _this.object.position.addVectors( _this.target, _eye );
-
-        _this.checkDistances();
-
-        _this.object.lookAt( _this.target );
-
-        if ( lastPosition.distanceToSquared( _this.object.position ) > EPS ) {
-
-            _this.dispatchEvent( changeEvent );
-
-            lastPosition.copy( _this.object.position );
-
-        }
-
-    };
-
-    this.reset = function () {
-
-        _state = STATE.NONE;
-        _prevState = STATE.NONE;
-
-        _this.target.copy( _this.target0 );
-        _this.object.position.copy( _this.position0 );
-        _this.object.up.copy( _this.up0 );
-
-        _eye.subVectors( _this.object.position, _this.target );
-
-        _this.object.lookAt( _this.target );
-
-        _this.dispatchEvent( changeEvent );
-
-        lastPosition.copy( _this.object.position );
-
-    };
-
-    // listeners
-
-    function keydown( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        window.removeEventListener( 'keydown', keydown );
-
-        _prevState = _state;
-
-        if ( _state !== STATE.NONE ) {
-
-            // return;
-
-        } else if ( event.keyCode === _this.keys[ STATE.ROTATE ] && ! _this.noRotate ) {
-
-            _state = STATE.ROTATE;
-
-        } else if ( event.keyCode === _this.keys[ STATE.ZOOM ] && ! _this.noZoom ) {
-
-            _state = STATE.ZOOM;
-
-        } else if ( event.keyCode === _this.keys[ STATE.PAN ] && ! _this.noPan ) {
-
-            _state = STATE.PAN;
-
-        }
-
-    }
-
-    function keyup( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        _state = _prevState;
-
-        window.addEventListener( 'keydown', keydown, false );
-
-    }
-
-    function mousedown( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if ( _state === STATE.NONE ) {
-
-            _state = event.button;
-
-        }
-
-        if ( _state === STATE.ROTATE && ! _this.noRotate ) {
-
-            _moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
-            _movePrev.copy( _moveCurr );
-
-        } else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
-
-            _zoomStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
-            _zoomEnd.copy( _zoomStart );
-
-        } else if ( _state === STATE.PAN && ! _this.noPan ) {
-
-            _panStart.copy( getMouseOnScreen( event.pageX, event.pageY ) );
-            _panEnd.copy( _panStart );
-
-        }
-
-        document.addEventListener( 'mousemove', mousemove, false );
-        document.addEventListener( 'mouseup', mouseup, false );
-
-        _this.dispatchEvent( startEvent );
-
-    }
-
-    function mousemove( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        if ( _state === STATE.ROTATE && ! _this.noRotate ) {
-
-            _movePrev.copy( _moveCurr );
-            _moveCurr.copy( getMouseOnCircle( event.pageX, event.pageY ) );
-
-        } else if ( _state === STATE.ZOOM && ! _this.noZoom ) {
-
-            _zoomEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
-
-        } else if ( _state === STATE.PAN && ! _this.noPan ) {
-
-            _panEnd.copy( getMouseOnScreen( event.pageX, event.pageY ) );
-
-        }
-
-    }
-
-    function mouseup( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        _state = STATE.NONE;
-
-        document.removeEventListener( 'mousemove', mousemove );
-        document.removeEventListener( 'mouseup', mouseup );
-        _this.dispatchEvent( endEvent );
-
-    }
-
-    function mousewheel( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        switch ( event.deltaMode ) {
-
-            case 2:
-                // Zoom in pages
-                _zoomStart.y -= event.deltaY * 0.025;
-                break;
-
-            case 1:
-                // Zoom in lines
-                _zoomStart.y -= event.deltaY * 0.01;
-                break;
-
-            default:
-                // undefined, 0, assume pixels
-                _zoomStart.y -= event.deltaY * 0.00025;
-                break;
-
-        }
-
-        _this.dispatchEvent( startEvent );
-        _this.dispatchEvent( endEvent );
-
-    }
-
-    function touchstart( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        switch ( event.touches.length ) {
-
-            case 1:
-                _state = STATE.TOUCH_ROTATE;
-                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
-                _movePrev.copy( _moveCurr );
-                break;
-
-            default: // 2 or more
-                _state = STATE.TOUCH_ZOOM_PAN;
-                var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-                var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
-                _touchZoomDistanceEnd = _touchZoomDistanceStart = Math.sqrt( dx * dx + dy * dy );
-
-                var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
-                var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
-                _panStart.copy( getMouseOnScreen( x, y ) );
-                _panEnd.copy( _panStart );
-                break;
-
-        }
-
-        _this.dispatchEvent( startEvent );
-
-    }
-
-    function touchmove( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-        event.stopPropagation();
-
-        switch ( event.touches.length ) {
-
-            case 1:
-                _movePrev.copy( _moveCurr );
-                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
-                break;
-
-            default: // 2 or more
-                var dx = event.touches[ 0 ].pageX - event.touches[ 1 ].pageX;
-                var dy = event.touches[ 0 ].pageY - event.touches[ 1 ].pageY;
-                _touchZoomDistanceEnd = Math.sqrt( dx * dx + dy * dy );
-
-                var x = ( event.touches[ 0 ].pageX + event.touches[ 1 ].pageX ) / 2;
-                var y = ( event.touches[ 0 ].pageY + event.touches[ 1 ].pageY ) / 2;
-                _panEnd.copy( getMouseOnScreen( x, y ) );
-                break;
-
-        }
-
-    }
-
-    function touchend( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        switch ( event.touches.length ) {
-
-            case 0:
-                _state = STATE.NONE;
-                break;
-
-            case 1:
-                _state = STATE.TOUCH_ROTATE;
-                _moveCurr.copy( getMouseOnCircle( event.touches[ 0 ].pageX, event.touches[ 0 ].pageY ) );
-                _movePrev.copy( _moveCurr );
-                break;
-
-        }
-
-        _this.dispatchEvent( endEvent );
-
-    }
-
-    function contextmenu( event ) {
-
-        if ( _this.enabled === false ) return;
-
-        event.preventDefault();
-
-    }
-
-    this.dispose = function() {
-
-        this.domElement.removeEventListener( 'contextmenu', contextmenu, false );
-        this.domElement.removeEventListener( 'mousedown', mousedown, false );
-        this.domElement.removeEventListener( 'wheel', mousewheel, false );
-
-        this.domElement.removeEventListener( 'touchstart', touchstart, false );
-        this.domElement.removeEventListener( 'touchend', touchend, false );
-        this.domElement.removeEventListener( 'touchmove', touchmove, false );
-
-        document.removeEventListener( 'mousemove', mousemove, false );
-        document.removeEventListener( 'mouseup', mouseup, false );
-
-        window.removeEventListener( 'keydown', keydown, false );
-        window.removeEventListener( 'keyup', keyup, false );
-
-    };
-
-    this.domElement.addEventListener( 'contextmenu', contextmenu, false );
-    this.domElement.addEventListener( 'mousedown', mousedown, false );
-    this.domElement.addEventListener( 'wheel', mousewheel, false );
-
-    this.domElement.addEventListener( 'touchstart', touchstart, false );
-    this.domElement.addEventListener( 'touchend', touchend, false );
-    this.domElement.addEventListener( 'touchmove', touchmove, false );
-
-    window.addEventListener( 'keydown', keydown, false );
-    window.addEventListener( 'keyup', keyup, false );
-
-    this.handleResize();
-
-    // force an update at start
-    this.update();
-
-};
-
-TrackballControls.prototype = Object.create( THREE.EventDispatcher.prototype );
-TrackballControls.prototype.constructor = TrackballControls;
-
-THREE.TrackballControls = TrackballControls;
-
-module.exports = TrackballControls;
-
-
-
-/***/ }),
-/* 10 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47538,7 +48775,7 @@ var materials = exports.materials = {
 };
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47547,19 +48784,20 @@ var materials = exports.materials = {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.parseGridSquare = parseGridSquare;
+exports.makeLandGeometry = makeLandGeometry;
+exports.makeEmptyGeometry = makeEmptyGeometry;
 
 var _three = __webpack_require__(0);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _grid = __webpack_require__(1);
+var _grid = __webpack_require__(2);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 // Functions for parsing data from the API
-function parseGridSquare(data, transform) {
+function makeLandGeometry(data, transform) {
     var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
     var squareSize = data.meta.squareSize;
     var grid = data.data;
@@ -47596,11 +48834,23 @@ function parseGridSquare(data, transform) {
     geometry.addAttribute('position', verticesBuffer);
     geometry.setIndex(faces);
     geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    return geometry;
+}
+function makeEmptyGeometry(gridSquare, transform, scale) {
+    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
+    // Calculate position of square
+    // The half-square addition at the end is to take into account PlaneGeometry
+    // is created around the centre of the square and we want it to be bottom-left
+    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
+    var geometry = new THREE.PlaneGeometry(square.x, square.y);
+    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+    geometry.computeBoundingBox();
     return geometry;
 }
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47642,9 +48892,6 @@ var Loader = exports.Loader = function () {
             //
             return fetch(url).then(function (response) {
                 _this.status[url] = STATUS_LOADED;
-                if (!response.ok || response.status == 204) {
-                    throw response;
-                }
                 return response.json();
             });
         }
@@ -47654,7 +48901,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47686,7 +48933,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

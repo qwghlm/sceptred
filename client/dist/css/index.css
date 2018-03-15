@@ -2690,29 +2690,29 @@ header {
   background: url(../img/logo.svg) 8px 8px no-repeat;
   background-size: 40px 40px;
   padding: 1rem 0 1rem 56px;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   border-bottom: 1px solid #333;
   text-transform: uppercase;
   letter-spacing: 3px;
   font-size: 0.5rem;
   font-weight: bold; }
 
+.container {
+  margin: 0 auto; }
+  @media only screen and (max-width: 640px) {
+    .container {
+      width: 100%; } }
+  @media only screen and (min-width: 641px) {
+    .container {
+      max-width: 640px; } }
+
 .debug-stats {
   margin-top: 60px; }
 
 footer {
   padding-bottom: 2rem;
-  margin-top: 2rem;
+  margin-top: 1rem;
   font-size: 0.6rem;
   text-align: center; }
-
-#map-view-wrapper {
-  margin: 0 auto; }
-  @media only screen and (max-width: 640px) {
-    #map-view-wrapper {
-      width: 100%; } }
-  @media only screen and (min-width: 641px) {
-    #map-view-wrapper {
-      max-width: 640px; } }
 
 /*# sourceMappingURL=index.css.map*/
