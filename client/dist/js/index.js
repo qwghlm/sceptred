@@ -48590,6 +48590,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
         value: function navigateTo(gridref) {
             var _this2 = this;
 
+            this.removeAllFromWorld();
             // Calculate the real origin (i.e. where the world is centred),
             // the world origin (i.e (0, 0, 0))
             // and the transform to get from one to the other
@@ -48658,12 +48659,23 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 });
             }
         }
+    }, {
+        key: 'removeAllFromWorld',
+        value: function removeAllFromWorld() {
+            var _this5 = this;
+
+            this.scene.children.filter(function (d) {
+                return d.type == "Mesh";
+            }).forEach(function (d) {
+                return _this5.scene.remove(d);
+            });
+        }
         // Checking to see
 
     }, {
         key: '_update',
         value: function _update() {
-            var _this5 = this;
+            var _this6 = this;
 
             // Calculate the frustum of this camera
             var frustum = new THREE.Frustum();
@@ -48688,7 +48700,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             });
             emptyMeshes.forEach(function (d) {
                 var id = d.name.split('-')[1];
-                _this5.load(id);
+                _this6.load(id);
             });
         }
     }]);

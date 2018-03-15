@@ -59,6 +59,8 @@ export class World extends THREE.EventDispatcher {
     // Setup transform from real-world to 3D world coordinates
     navigateTo(gridref: string) {
 
+        this.removeAllFromWorld();
+
         // Calculate the real origin (i.e. where the world is centred),
         // the world origin (i.e (0, 0, 0))
         // and the transform to get from one to the other
@@ -124,6 +126,10 @@ export class World extends THREE.EventDispatcher {
         if (toReplace.length) {
             toReplace.forEach(d => this.scene.remove(d));
         }
+    }
+
+    removeAllFromWorld() {
+        this.scene.children.filter(d => d.type == "Mesh").forEach(d => this.scene.remove(d));
     }
 
     // Checking to see
