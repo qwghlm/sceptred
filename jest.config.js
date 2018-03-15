@@ -16,6 +16,10 @@ module.exports = {
       "client/src/js/components/*.tsx",
       "client/src/js/lib/*.ts",
     ],
+    "coveragePathIgnorePatterns" : [
+      "node_modules",
+      "map.tsx"
+    ],
     "coverageDirectory": "./client/coverage",
     "coverageReporters": [
       "text",
