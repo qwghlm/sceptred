@@ -47223,23 +47223,30 @@ var App = exports.App = function (_Component) {
         _this.checkEnabled = function (e) {
             var target = e.target;
             _this.setState({
-                value: target.value,
+                formValue: target.value,
                 enabled: (0, _grid.isValidGridref)(target.value)
             });
         };
         _this.handleClick = function (e) {
             _this.setState({
-                loading: true
+                loading: true,
+                mapValue: _this.state.formValue
             });
         };
-        _this.state = { enabled: false, value: "", loading: false };
+        _this.loadDone = function (e) {
+            _this.setState({
+                loading: false
+            });
+        };
+        _this.state = { enabled: false, formValue: "", mapValue: "", loading: false };
         return _this;
     }
 
     _createClass(App, [{
         key: 'render',
         value: function render(props, state) {
-            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.value, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true })));
+            // TODO Add loading state to button
+            return (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.handleClick }, "Go")), (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true, gridReference: this.state.mapValue })));
         }
     }]);
 
@@ -47343,8 +47350,18 @@ var Map = exports.Map = function (_Component) {
             world.addEventListener('update', this.renderWorld.bind(this));
             controls.addEventListener('change', this.renderWorld.bind(this));
             window.addEventListener('resize', this.onWindowResize.bind(this), false);
-            // TODO Get rid of this once interface is fully done
-            world.navigateTo('NT27');
+        }
+    }, {
+        key: 'shouldComponentUpdate',
+        value: function shouldComponentUpdate(nextProps, nextState) {
+            return this.props.gridReference !== nextProps.gridReference;
+        }
+    }, {
+        key: 'componentWillUpdate',
+        value: function componentWillUpdate(nextProps, nextState) {
+            if (nextProps.gridReference.length) {
+                this.world.navigateTo(nextProps.gridReference);
+            }
         }
     }, {
         key: 'onWindowResize',

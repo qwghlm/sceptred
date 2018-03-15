@@ -11,6 +11,7 @@ import { World } from '../lib/world';
 
 type PropsType = {
     debug: boolean,
+    gridReference: string,
 };
 type StateType = {};
 
@@ -71,9 +72,16 @@ export class Map extends Component<PropsType, StateType> {
         controls.addEventListener('change', this.renderWorld.bind(this));
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
-        // TODO Get rid of this once interface is fully done
-        world.navigateTo('NT27');
+    }
 
+    shouldComponentUpdate(nextProps: PropsType, nextState: StateType) {
+        return this.props.gridReference !== nextProps.gridReference;
+    }
+
+    componentWillUpdate(nextProps: PropsType, nextState: StateType) {
+        if (nextProps.gridReference.length) {
+            this.world.navigateTo(nextProps.gridReference);
+        }
     }
 
     onWindowResize() {
