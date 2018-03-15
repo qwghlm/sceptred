@@ -1,9 +1,5 @@
 import * as THREE from 'three';
-import { makeLandGeometry } from '../../lib/data';
-
-jest.mock('../../lib/grid', () => ({
-    gridrefToCoords: jest.fn(() => ({x:520000, y:270000}))
-}));
+import { makeLandGeometry, makeEmptyGeometry } from '../../lib/data';
 
 test('makeLandGeometry() works properly', () => {
 
@@ -52,3 +48,31 @@ test('makeLandGeometry() works properly', () => {
     expect(faces.array[5]).toEqual(2);
 
 });
+
+test('makeEmptyGeometry() works properly', () => {
+
+    var transform = new THREE.Matrix4().identity();
+    var scale = new THREE.Vector3(1, 1, 1);
+
+    var geometry = makeEmptyGeometry("TL27", transform, scale);
+
+    var vertices = geometry.vertices;
+    var faces = geometry.faces;
+
+    expect(vertices.length).toEqual(4);
+    expect(vertices[0].x).toEqual(520000);
+    expect(vertices[0].y).toEqual(280000);
+    expect(vertices[1].x).toEqual(530000);
+    expect(vertices[1].y).toEqual(280000);
+    expect(vertices[2].x).toEqual(520000);
+    expect(vertices[2].y).toEqual(270000);
+    expect(vertices[3].x).toEqual(530000);
+    expect(vertices[3].y).toEqual(270000);
+
+    expect(faces[0].a).toEqual(0);
+    expect(faces[0].b).toEqual(2);
+    expect(faces[0].c).toEqual(1);
+    expect(faces[1].a).toEqual(2);
+    expect(faces[1].b).toEqual(3);
+    expect(faces[1].c).toEqual(1);
+})

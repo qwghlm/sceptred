@@ -92,26 +92,23 @@ export class World extends THREE.EventDispatcher {
             .then((json) => {
 
                 this.removeFromWorld("empty-" + gridSquare);
-                let geometry = makeLandGeometry(json, this.transform);
 
-                // Add mesh for this
-                this.addToWorld(makeLand(geometry, "land-" + gridSquare));
+                let geometry;
 
-                if (geometry.boundingBox.min.z < 0) {
+                // If data exists, then make a land geometry
+                if (json.data.length) {                
+                    geometry = makeLandGeometry(json, this.transform);
+                    this.addToWorld(makeLand(geometry, "land-" + gridSquare));
+                }
+
+                // If no geometry, or the bounding box is underwater, add sea tile
+                if (!geometry || geometry.boundingBox.min.z < 0) {
                     let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
                     this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 }
             })
             .catch((errorResponse) => {
-                if (errorResponse.status == 204) {
-                    this.removeFromWorld("empty-" + gridSquare);
-
-                    let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
-                    this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
-                }
-                else {
-                    console.error(errorResponse);
-                }
+                console.error(errorResponse);
             });
     }
 

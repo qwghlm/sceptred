@@ -48604,21 +48604,19 @@ var World = exports.World = function (_THREE$EventDispatche) {
             }
             this.loader.load(url).then(function (json) {
                 _this3.removeFromWorld("empty-" + gridSquare);
-                var geometry = (0, _data.makeLandGeometry)(json, _this3.transform);
-                // Add mesh for this
-                _this3.addToWorld(makeLand(geometry, "land-" + gridSquare));
-                if (geometry.boundingBox.min.z < 0) {
+                var geometry = void 0;
+                // If data exists, then make a land geometry
+                if (json.data.length) {
+                    geometry = (0, _data.makeLandGeometry)(json, _this3.transform);
+                    _this3.addToWorld(makeLand(geometry, "land-" + gridSquare));
+                }
+                // If no geometry, or the bounding box is underwater, add sea tile
+                if (!geometry || geometry.boundingBox.min.z < 0) {
                     var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
                     _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
                 }
             }).catch(function (errorResponse) {
-                if (errorResponse.status == 204) {
-                    _this3.removeFromWorld("empty-" + gridSquare);
-                    var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
-                    _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
-                } else {
-                    console.error(errorResponse);
-                }
+                console.error(errorResponse);
             });
         }
         // Manipulating meshes
@@ -48865,9 +48863,6 @@ var Loader = exports.Loader = function () {
             //
             return fetch(url).then(function (response) {
                 _this.status[url] = STATUS_LOADED;
-                if (!response.ok || response.status == 204) {
-                    throw response;
-                }
                 return response.json();
             });
         }
