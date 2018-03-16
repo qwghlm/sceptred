@@ -57,7 +57,7 @@ module.exports = function(env, caller) {
     }
 
     if (isProduction) {
-        // plugins.push(new BundleAnalyzerPlugin());
+        plugins.push(new BundleAnalyzerPlugin());
     }
 
     var config = {
