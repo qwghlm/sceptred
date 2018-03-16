@@ -14,7 +14,14 @@ _Sceptred_ is a project to model the island of Great Britain in 3D, using open-s
 
 ## Overview
 
-This is very much a work in progress at the moment, all code is subject to change.
+Sceptred is a web application, split between a browser-based client and a server.
+
+* The client is written in Typescript, and depends on [Three.js](https://threejs.org) to render the terrain in a WebGL context.
+* The server is written in Go, and is ultimately backed by an adaptation of the Ordnance Survey's [Terrain 50](https://www.ordnancesurvey.co.uk/business-and-government/products/terrain-50.html) dataset.
+
+The project is designed to use modern web development tools & practices. The client is compiled into JavaScript with Webpack and Babel, and has automated testing in Jest. The server is packaged up & deployed with Docker, and the entire repo has integrations with Travis and Codecov.
+
+This is very much a work in progress at the moment, so code may change dramatically between versions.
 
 ## Developing
 
@@ -24,7 +31,7 @@ This assumes you have Go and Node install already - if not, install those first!
 
     $ npm install
 
-You will also need the database files. These are not included in the repo - they too large for Github so they are currently hosted on Amazon S3. To download them, run
+You will also need the database files that hold the terrain data. These are not included in the repo - they too large for Github so they are currently hosted on Amazon S3. To download them, run:
 
     $ ./install.sh
 
