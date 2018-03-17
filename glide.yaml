@@ -1,7 +1,7 @@
 package: sceptred
 import:
 - package: github.com/dgraph-io/badger
-  version: ~1.3.0
+  version: "dc0df253d239ff6abe3ffbbcdf3cb1e49e646369"
 - package: github.com/labstack/echo
   version: ~3.3.4
   subpackages:

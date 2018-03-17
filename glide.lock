@@ -1,10 +1,10 @@
-hash: 0ed7c4aaefc41c505a7d0f4b53724d12cd72912d4e61a94ba9f22f76fdae787f
-updated: 2018-03-17T14:34:40.882527Z
+hash: 1ec28ad4f577c2388343f2132d9a26c2e8898997756c7361c5ba28f6aa1d771b
+updated: 2018-03-17T14:44:34.258349Z
 imports:
 - name: github.com/AndreasBriese/bbloom
   version: 28f7e881ca57bc00e028f9ede9f0d9104cfeef5e
 - name: github.com/dgraph-io/badger
-  version: 69611218c7078be6de16f4ea13fb256e701b6b73
+  version: dc0df253d239ff6abe3ffbbcdf3cb1e49e646369
   subpackages:
   - options
   - protos
