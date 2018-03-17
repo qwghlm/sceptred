@@ -1,12 +1,16 @@
-# No node pls
+# Don't need .git
+.git
+
+# No node modules
 node_modules
 
-# No coverage or source TS
+# No coverage, and source code isn't needed either
 client/coverage
+**/*.out
+
+# Minor, but we don't need source files either
 client/src
-**/*.map
 
 # No tmp files or raw data files
 server/terrain/data
 server/tmp
-**/*.out
