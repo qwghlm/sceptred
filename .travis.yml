@@ -9,6 +9,7 @@ before_script:
   - ./install.sh
 
 script:
+  - glide install
   - npm run test:js
   - go test ./server -coverprofile=./server/cover.out -covermode=atomic -tags test
 
