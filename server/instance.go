@@ -5,6 +5,7 @@ import (
     "html/template"
     "io"
     "log"
+    "os"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
@@ -12,6 +13,7 @@ import (
 )
 // Constants
 
+// TODO Kill this
 // SRCPATH represents path to the src code
 var SRCPATH = build.Default.GOPATH + "/src/sceptred"
 
@@ -41,6 +43,11 @@ func instance() *echo.Echo {
     }
 
     // Setup database
+    _, err := os.Stat(dbDirectory)
+    if err != nil {
+        log.Fatal("No database directory found. Check to see if database has been installed, if not follow the instructions in the README")
+    }
+
     opts := badger.DefaultOptions
     opts.Dir = dbDirectory
     opts.ValueDir = dbDirectory
@@ -49,7 +56,6 @@ func instance() *echo.Echo {
     if err != nil {
         log.Fatal("Error connecting to database. Check to see if database has been installed, if not follow the instructions in the README");
     }
-
     dataHandler := &DatabaseHandler{db: db}
 
     // Handlers are in handlers.go
@@ -60,6 +66,5 @@ func instance() *echo.Echo {
     return e
 
     // TODO Gracefully close DB connection on end
-
 
 }

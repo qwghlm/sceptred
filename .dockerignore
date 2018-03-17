@@ -4,6 +4,9 @@
 # No node modules
 node_modules
 
+# Or Go vendor files
+vendor
+
 # No coverage, and source code isn't needed either
 client/coverage
 **/*.out
