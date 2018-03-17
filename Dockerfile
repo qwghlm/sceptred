@@ -15,7 +15,7 @@ RUN glide install
 COPY ./server ./server
 COPY ./client ./client
 
-RUN go install -v ./server/...
+RUN go build -o /go/bin/server ./server/
 
 ENTRYPOINT ["/go/bin/server"]
 

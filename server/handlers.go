@@ -17,7 +17,7 @@ import (
 func handleIndex(c echo.Context) error {
 
     // Load JSON metdata
-    metadata, err := parseJSON(SRCPATH + "/client/dist/manifest.json")
+    metadata, err := parseJSON(srcPath + "/client/dist/manifest.json")
     if err != nil {
         return err
     }
@@ -38,7 +38,6 @@ type gridDataMeta struct {
     GridReference string   `json:"gridReference"`
 }
 
-const dbDirectory = "./terrain/db/"
 const gridSize = 200
 
 type DatabaseHandler struct {
@@ -58,7 +57,7 @@ func (h *DatabaseHandler) get (c echo.Context) error {
     // Get the big grid square's data
     squareSize := 50
 
-    // Squares to read into. Data has to be stored linearly, we then convert it to 
+    // Squares to read into. Data has to be stored linearly, we then convert it to
     // a 200x200 grid
     var linearSquares [gridSize*gridSize]int16
     err := h.db.View(func(txn *badger.Txn) error {

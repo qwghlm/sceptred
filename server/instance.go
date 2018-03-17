@@ -13,9 +13,7 @@ import (
 )
 // Constants
 
-// TODO Kill this
-// SRCPATH represents path to the src code
-var SRCPATH = build.Default.GOPATH + "/src/sceptred"
+var srcPath = build.Default.GOPATH + "/src/sceptred"
 
 // Renderer
 
@@ -39,10 +37,11 @@ func instance() *echo.Echo {
 
     // Setup template renderer
     e.Renderer = &renderer{
-        templates: template.Must(template.ParseGlob(SRCPATH + "/server/templates/*.html")),
+        templates: template.Must(template.ParseGlob(srcPath + "/server/templates/*.html")),
     }
 
     // Setup database
+    dbDirectory := srcPath + "/server/terrain/db/"
     _, err := os.Stat(dbDirectory)
     if err != nil {
         log.Fatal("No database directory found. Check to see if database has been installed, if not follow the instructions in the README")
@@ -61,8 +60,8 @@ func instance() *echo.Echo {
     // Handlers are in handlers.go
     e.GET("/", handleIndex)
     e.GET("/data/:gridSquare", dataHandler.get)
-    e.Static("/static", SRCPATH + "/client/dist/")
-    e.File("/favicon.ico", SRCPATH + "/client/dist/favicon.ico")
+    e.Static("/static", srcPath + "/client/dist/")
+    e.File("/favicon.ico", srcPath + "/client/dist/favicon.ico")
     return e
 
     // TODO Gracefully close DB connection on end
