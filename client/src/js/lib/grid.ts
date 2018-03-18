@@ -94,7 +94,7 @@ export function getSurroundingSquares(gridref: string, radius: number) {
     var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
 
     // Go for radius around in both X and Y directions
-    let squares = [];
+    let squares: string[] = [];
     for (var x=-radius; x<=radius; x++) {
         for (var y=-radius; y<=radius; y++) {
 

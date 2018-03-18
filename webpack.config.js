@@ -138,9 +138,15 @@ module.exports = function(env, caller) {
                 },
 
                 {
+                    test: /\.json$/,
+                    loader: "json-loader"
+                },
+
+                {
                     test: /\.modernizrrc$/,
                     loader: "modernizr-loader!json-loader"
                 },
+
 
                 {
                     test: /\.(png|jpe?g|gif|webm|svg|ico)$/,

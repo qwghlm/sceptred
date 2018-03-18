@@ -1,4 +1,4 @@
-/// <reference path="../../../../node_modules/@types/three/three-trackballcontrols.d.ts" />
+/// <reference types="three/three-trackballcontrols" />
 
 import { h, Component } from "preact";
 import * as THREE from 'three';

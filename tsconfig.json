@@ -6,12 +6,12 @@
     "baseUrl": "./",
     "paths": {
         "Modernizr" : [".modernizrrc"],
-        "stats" : ["node_modules/stats.js/src/Stats.js"]
+        "stats" : ["node_modules/stats.js/src/Stats.js"],
     },
     "outDir": "./client/dist/",
 
     "allowJs": true,
-    "noImplicitAny": true,
+    // "noImplicitAny": true, FIXME
     "noImplicitThis": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -24,6 +24,6 @@
 
   },
   "include": [
-    "./client/src/js/index.tsx"
+    "./client/src/js/types.d.ts"
   ]
 }

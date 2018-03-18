@@ -4,7 +4,7 @@ import * as chroma from 'chroma-js';
 import { gridrefToCoords, getGridSquareSize } from './grid';
 import { GridData } from './types';
 
-const colorRange = [0x3D7F28, 0x155B11, 0xC5BB52, 0xB37528, 0x999999, 0xCCCCCC];
+const colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
 const colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
