@@ -48802,14 +48802,17 @@ var App = exports.App = function (_Component) {
 
         var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-        _this.checkEnabled = function (e) {
+        _this.handleKey = function (e) {
             var target = e.target;
             _this.setState({
                 formValue: target.value,
                 enabled: (0, _grid.isValidGridref)(target.value)
             });
+            if (e.keyCode === 13) {
+                _this.doSearch(e);
+            }
         };
-        _this.handleClick = function (e) {
+        _this.doSearch = function (e) {
             _this.setState({
                 loading: true,
                 mapValue: _this.state.formValue
@@ -48832,7 +48835,7 @@ var App = exports.App = function (_Component) {
     _createClass(App, [{
         key: 'render',
         value: function render(props, state) {
-            var form = this.state.error ? "" : (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.checkEnabled, onKeyUp: this.checkEnabled, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.handleClick }, "Go")));
+            var form = this.state.error ? "" : (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.handleKey, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.doSearch }, "Go")));
             // TODO Add loading state to button
             return (0, _preact.h)("div", null, form, (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true, gridReference: this.state.mapValue, onError: this.errorOn, onLoadFinished: this.loadDone }))));
         }
@@ -48949,6 +48952,7 @@ var Map = exports.Map = function (_Component) {
         key: 'componentWillUpdate',
         value: function componentWillUpdate(nextProps, nextState) {
             if (nextProps.gridReference.length) {
+                this.controls.reset();
                 this.world.navigateTo(nextProps.gridReference);
             }
         }

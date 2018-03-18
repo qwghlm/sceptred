@@ -83,6 +83,7 @@ export class Map extends Component<PropsType, StateType> {
 
     componentWillUpdate(nextProps: PropsType, nextState: StateType) {
         if (nextProps.gridReference.length) {
+            this.controls.reset();
             this.world.navigateTo(nextProps.gridReference);
         }
     }

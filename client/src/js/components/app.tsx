@@ -21,15 +21,19 @@ export class App extends Component<AppProps, AppState> {
         this.state = { error: false, enabled: false, formValue: "", mapValue: "", loading: false}
     }
 
-    checkEnabled = (e: Event) => {
+    handleKey = (e: Event) => {
         var target = e.target as HTMLTextAreaElement;
         this.setState({
             formValue: target.value,
             enabled: isValidGridref(target.value),
         });
+
+        if ((e as KeyboardEvent).keyCode === 13) {
+            this.doSearch(e);
+        }
     }
 
-    handleClick = (e: Event) => {
+    doSearch = (e: Event) => {
         this.setState({
             loading: true,
             mapValue: this.state.formValue
@@ -55,7 +59,7 @@ export class App extends Component<AppProps, AppState> {
             <div class="column col-10">
 
                 <input className="form-input" type="text" value={this.state.formValue}
-                    onChange={this.checkEnabled} onKeyUp={this.checkEnabled}
+                    onChange={this.handleKey} onKeyUp={this.handleKey}
                     placeholder="Enter an OS grid reference e.g. NT27" />
 
             </div>
@@ -63,7 +67,7 @@ export class App extends Component<AppProps, AppState> {
             <div class="column col-2">
 
                 <button className={"col-12 btn btn-primary"}
-                    disabled={!this.state.enabled} onClick={this.handleClick} >Go</button>
+                    disabled={!this.state.enabled} onClick={this.doSearch} >Go</button>
 
             </div>
 
@@ -74,7 +78,8 @@ export class App extends Component<AppProps, AppState> {
             { form }
             <div class="columns">
                 <div class="column col-12 mt-2">
-                    <Map debug={true} gridReference={this.state.mapValue} onError={this.errorOn} onLoadFinished={this.loadDone} />
+                    <Map debug={true} gridReference={this.state.mapValue}
+                         onError={this.errorOn} onLoadFinished={this.loadDone} />
                 </div>
             </div>
 
