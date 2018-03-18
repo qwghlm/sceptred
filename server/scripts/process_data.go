@@ -34,14 +34,14 @@ func main() {
     }
 
     // Walk through the data directory
-    loadData(sourceDirectory)
+    loadData(sourceDirectory, "")
 
     elapsed := time.Since(start)
     log.Printf("Walk took %v\n", elapsed)
 
 }
 
-func loadData(pathname string) {
+func loadData(pathname string, filter string) {
 
     opts := badger.DefaultOptions
     opts.Dir = outputDirectory
@@ -65,15 +65,19 @@ func loadData(pathname string) {
 
             filename := file.Name()
             if filename[len(filename)-4:] != ".zip" {
-                continue;
+                continue
+            }
+
+            gridSquare := strings.Split(filename, "_")[0]
+            if (filter != "" && gridSquare != filter) {
+                continue
             }
 
             // Parse zipped file and get the square values. If an error occurs, skip & log
             squares, err := parseZippedAsc(directoryPath + "/" + filename)
-            gridSquare := strings.Split(filename, "_")[0]
             if err != nil {
                 log.Printf("Skipping %v\n", gridSquare)
-                continue;
+                continue
             }
 
             buf := new(bytes.Buffer)

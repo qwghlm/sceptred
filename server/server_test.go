@@ -39,6 +39,7 @@ func Test404(t *testing.T) {
 
 func TestData(t *testing.T) {
 
+    // Test for NT27, which is present in both the test DB and the production DB
     code, body := request(t, "GET", "/data/nt27", nil)
     assert.Equal(t, http.StatusOK, code)
     assert.Contains(t, body, "[-2,-2")
@@ -47,6 +48,7 @@ func TestData(t *testing.T) {
 
 func TestMissingData(t *testing.T) {
 
+    // Test for NT38, which is not present in both the test DB and the production DB
     code, body := request(t, "GET", "/data/nt38", nil)
     assert.Equal(t, http.StatusOK, code)
     assert.Contains(t, body, "[]")
