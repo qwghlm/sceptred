@@ -7,9 +7,10 @@ import (
     "log"
     "os"
 
+    "github.com/dgraph-io/badger"
+    "github.com/getsentry/raven-go"
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
-    "github.com/dgraph-io/badger"
 )
 // Constants
 
@@ -44,6 +45,7 @@ func instance() *echo.Echo {
     dbDirectory := srcPath + "/server/terrain/db/"
     _, err := os.Stat(dbDirectory)
     if err != nil {
+        raven.CaptureError(err, nil)
         log.Fatal("No database directory found. Check to see if database has been installed, if not follow the instructions in the README")
     }
 
@@ -53,9 +55,10 @@ func instance() *echo.Echo {
     opts.ReadOnly = true
     db, err := badger.Open(opts)
     if err != nil {
+        raven.CaptureError(err, nil)
         log.Fatal("Error connecting to database. Check to see if database has been installed, if not follow the instructions in the README");
     }
-    dataHandler := &DatabaseHandler{db: db}
+    dataHandler := &databaseHandler{db: db}
 
     // Handlers are in handlers.go
     e.GET("/", handleIndex)

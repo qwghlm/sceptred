@@ -8,8 +8,9 @@ import (
     "regexp"
     "strings"
 
-    "github.com/labstack/echo"
+    "github.com/getsentry/raven-go"
     "github.com/dgraph-io/badger"
+    "github.com/labstack/echo"
 )
 
 // Index
@@ -19,6 +20,7 @@ func handleIndex(c echo.Context) error {
     // Load JSON metdata
     metadata, err := parseJSON(srcPath + "/client/dist/manifest.json")
     if err != nil {
+        raven.CaptureError(err, nil)
         return err
     }
 
@@ -40,11 +42,11 @@ type gridDataMeta struct {
 
 const gridSize = 200
 
-type DatabaseHandler struct {
+type databaseHandler struct {
     db *badger.DB
 }
 
-func (h *DatabaseHandler) get (c echo.Context) error {
+func (h *databaseHandler) get (c echo.Context) error {
 
     // Get the grid square required
     gridSquare := strings.ToLower(c.Param("gridSquare"))
@@ -78,6 +80,7 @@ func (h *DatabaseHandler) get (c echo.Context) error {
         if err.Error() == "Key not found" {
             squares = make([][]int16, 0)
         } else {
+            raven.CaptureError(err, nil)
             return echo.NewHTTPError(http.StatusInternalServerError, nil)
         }
     } else {

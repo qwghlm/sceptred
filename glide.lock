@@ -1,8 +1,10 @@
-hash: 1ec28ad4f577c2388343f2132d9a26c2e8898997756c7361c5ba28f6aa1d771b
-updated: 2018-03-17T14:44:34.258349Z
+hash: edf31e21b0d284ec45da3736f3ac84edefdc8bf0b54d4f8e3e05800eedd8d345
+updated: 2018-03-18T15:19:57.199712Z
 imports:
 - name: github.com/AndreasBriese/bbloom
   version: 28f7e881ca57bc00e028f9ede9f0d9104cfeef5e
+- name: github.com/certifi/gocertifi
+  version: deb3ae2ef2610fde3330947281941c562861188b
 - name: github.com/dgraph-io/badger
   version: dc0df253d239ff6abe3ffbbcdf3cb1e49e646369
   subpackages:
@@ -15,6 +17,8 @@ imports:
   version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
 - name: github.com/dgryski/go-farm
   version: 2de33835d10275975374b37b2dcfd22c9020a1f5
+- name: github.com/getsentry/raven-go
+  version: 563b81fc02b75d664e54da31f787c2cc2186780b
 - name: github.com/golang/protobuf
   version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
   subpackages:
