@@ -4,10 +4,12 @@ import { isValidGridref } from '../lib/grid';
 
 interface AppProps {}
 interface AppState {
-    error: boolean;
+
+    webglEnabled: boolean;
 
     enabled: boolean;
     loading: boolean;
+    errorMessage: string;
 
     formValue: string;
     mapValue: string;
@@ -18,7 +20,8 @@ export class App extends Component<AppProps, AppState> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { error: false, enabled: false, formValue: "", mapValue: "", loading: false}
+        this.state = { webglEnabled: true, enabled: false,  loading: false, errorMessage: "",
+            formValue: "", mapValue: "" }
     }
 
     handleKey = (e: Event) => {
@@ -36,6 +39,7 @@ export class App extends Component<AppProps, AppState> {
     doSearch = (e: Event) => {
         this.setState({
             loading: true,
+            errorMessage: "",
             mapValue: this.state.formValue
         });
     }
@@ -46,15 +50,21 @@ export class App extends Component<AppProps, AppState> {
         });
     }
 
-    errorOn = () => {
+    handleWebglError = () => {
         this.setState({
-            error: true
+            webglEnabled: true
+        });
+    }
+
+    handleLoadError = (message: string) => {
+        this.setState({
+            errorMessage: message
         });
     }
 
     render(props: AppProps, state: AppState) {
 
-        const form = this.state.error ? "" : <div class="columns">
+        const form = this.state.webglEnabled ? <div class="columns">
 
             <div class="column col-10">
 
@@ -71,15 +81,22 @@ export class App extends Component<AppProps, AppState> {
 
             </div>
 
-        </div>;
+        </div> : "";
 
         // TODO Add loading state to button
         return <div>
             { form }
+            <div class={"columns " + (this.state.errorMessage ? "" : "d-none")}>
+                <div class="column col-12 mt-2 text-error">
+                    Error: {this.state.errorMessage}
+                </div>
+            </div>
             <div class="columns">
                 <div class="column col-12 mt-2">
                     <Map debug={true} gridReference={this.state.mapValue}
-                         onError={this.errorOn} onLoadFinished={this.loadDone} />
+                         onInitError={this.handleWebglError}
+                         onLoadError={this.handleLoadError}
+                         onLoadFinished={this.loadDone} />
                 </div>
             </div>
 

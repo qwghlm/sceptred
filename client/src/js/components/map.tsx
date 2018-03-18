@@ -12,7 +12,8 @@ import { World } from '../lib/world';
 type PropsType = {
     debug: boolean,
     gridReference: string,
-    onError: () => void,
+    onInitError: () => void,
+    onLoadError: (message: string) => void,
     onLoadFinished: () => void,
 };
 type StateType = {};
@@ -27,7 +28,7 @@ export class Map extends Component<PropsType, StateType> {
     componentDidMount() {
 
         if (!this.base.querySelector('canvas')) {
-            this.props.onError();
+            this.props.onInitError();
             return;
         }
         var canvas = this.base.querySelector('canvas') as HTMLCanvasElement;
@@ -82,9 +83,15 @@ export class Map extends Component<PropsType, StateType> {
     }
 
     componentWillUpdate(nextProps: PropsType, nextState: StateType) {
+
         if (nextProps.gridReference.length) {
-            this.controls.reset();
-            this.world.navigateTo(nextProps.gridReference);
+            try {
+                this.world.navigateTo(nextProps.gridReference);
+                this.controls.reset();
+            }
+            catch (e) {
+                this.props.onLoadError(e.message);
+            }
         }
     }
 

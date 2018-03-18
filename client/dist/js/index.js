@@ -48815,6 +48815,7 @@ var App = exports.App = function (_Component) {
         _this.doSearch = function (e) {
             _this.setState({
                 loading: true,
+                errorMessage: "",
                 mapValue: _this.state.formValue
             });
         };
@@ -48823,21 +48824,27 @@ var App = exports.App = function (_Component) {
                 loading: false
             });
         };
-        _this.errorOn = function () {
+        _this.handleWebglError = function () {
             _this.setState({
-                error: true
+                webglEnabled: true
             });
         };
-        _this.state = { error: false, enabled: false, formValue: "", mapValue: "", loading: false };
+        _this.handleLoadError = function (message) {
+            _this.setState({
+                errorMessage: message
+            });
+        };
+        _this.state = { webglEnabled: true, enabled: false, loading: false, errorMessage: "",
+            formValue: "", mapValue: "" };
         return _this;
     }
 
     _createClass(App, [{
         key: 'render',
         value: function render(props, state) {
-            var form = this.state.error ? "" : (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.handleKey, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.doSearch }, "Go")));
+            var form = this.state.webglEnabled ? (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-10" }, (0, _preact.h)("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: this.handleKey, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), (0, _preact.h)("div", { class: "column col-2" }, (0, _preact.h)("button", { className: "col-12 btn btn-primary", disabled: !this.state.enabled, onClick: this.doSearch }, "Go"))) : "";
             // TODO Add loading state to button
-            return (0, _preact.h)("div", null, form, (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true, gridReference: this.state.mapValue, onError: this.errorOn, onLoadFinished: this.loadDone }))));
+            return (0, _preact.h)("div", null, form, (0, _preact.h)("div", { class: "columns " + (this.state.errorMessage ? "" : "d-none") }, (0, _preact.h)("div", { class: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), (0, _preact.h)("div", { class: "columns" }, (0, _preact.h)("div", { class: "column col-12 mt-2" }, (0, _preact.h)(_map.Map, { debug: true, gridReference: this.state.mapValue, onInitError: this.handleWebglError, onLoadError: this.handleLoadError, onLoadFinished: this.loadDone }))));
         }
     }]);
 
@@ -48902,7 +48909,7 @@ var Map = exports.Map = function (_Component) {
         key: 'componentDidMount',
         value: function componentDidMount() {
             if (!this.base.querySelector('canvas')) {
-                this.props.onError();
+                this.props.onInitError();
                 return;
             }
             var canvas = this.base.querySelector('canvas');
@@ -48952,8 +48959,12 @@ var Map = exports.Map = function (_Component) {
         key: 'componentWillUpdate',
         value: function componentWillUpdate(nextProps, nextState) {
             if (nextProps.gridReference.length) {
-                this.controls.reset();
-                this.world.navigateTo(nextProps.gridReference);
+                try {
+                    this.world.navigateTo(nextProps.gridReference);
+                    this.controls.reset();
+                } catch (e) {
+                    this.props.onLoadError(e.message);
+                }
             }
         }
     }, {
