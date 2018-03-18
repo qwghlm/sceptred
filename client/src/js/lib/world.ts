@@ -39,7 +39,7 @@ export class World extends THREE.EventDispatcher {
         light.position.set(1, 1, 1);
         scene.add(light);
 
-        var spotLight = new THREE.SpotLight(0xffffff);
+        var spotLight = new THREE.SpotLight(0xcccccc);
         spotLight.position.set(-1000, -1000, 1000);
         spotLight.castShadow = true;
         scene.add(spotLight);
@@ -98,7 +98,7 @@ export class World extends THREE.EventDispatcher {
                 let geometry;
 
                 // If data exists, then make a land geometry
-                if (json.data.length) {                
+                if (json.data.length) {
                     geometry = makeLandGeometry(json, this.transform);
                     this.addToWorld(makeLand(geometry, "land-" + gridSquare));
                 }
@@ -168,7 +168,10 @@ export class World extends THREE.EventDispatcher {
 
 function makeLand(geometry: THREE.BufferGeometry, name: string) {
 
-    let land = new THREE.Mesh(geometry, materials.phong(colors.landColor));
+    let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+        vertexColors: THREE.VertexColors,
+        side: THREE.DoubleSide
+    }));
     land.name = name;
     return land;
 }

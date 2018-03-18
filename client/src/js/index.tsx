@@ -1,3 +1,5 @@
+import { version } from '../../../package.json';
+
 import '../sass/index.scss';
 import '../favicon.ico';
 
@@ -11,7 +13,7 @@ declare global {
 }
 
 Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
-    release: '0.0.4' // TODO Get this sanely from package.json
+    release: version
 }).install()
 Raven.context(function () {
     render(<App/>, document.getElementById('app'));
