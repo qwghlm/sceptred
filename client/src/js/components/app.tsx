@@ -1,4 +1,5 @@
-import { h, Component } from "preact";
+import * as React from "react";
+
 import { Map } from './map'
 import { isValidGridref } from '../lib/grid';
 
@@ -16,7 +17,9 @@ interface AppState {
 
 }
 
-export class App extends Component<AppProps, AppState> {
+export class App extends React.Component<AppProps, {}> {
+
+    state: AppState;
 
     constructor(props: AppProps) {
         super(props);
@@ -24,19 +27,21 @@ export class App extends Component<AppProps, AppState> {
             formValue: "", mapValue: "" }
     }
 
-    handleKey = (e: Event) => {
-        var target = e.target as HTMLTextAreaElement;
+    updateFormValue(value: string) {
         this.setState({
-            formValue: target.value,
-            enabled: isValidGridref(target.value),
+            formValue: value,
+            enabled: isValidGridref(value),
         });
+    }
 
-        if ((e as KeyboardEvent).keyCode === 13) {
-            this.doSearch(e);
+    handleKey = (e) => {
+        this.updateFormValue(e.target.value);
+        if (e.keyCode === 13) {
+            this.doSearch();
         }
     }
 
-    doSearch = (e: Event) => {
+    doSearch = () => {
         this.setState({
             loading: true,
             errorMessage: "",
@@ -62,22 +67,23 @@ export class App extends Component<AppProps, AppState> {
         });
     }
 
-    render(props: AppProps, state: AppState) {
+    render() {
 
-        const form = this.state.webglEnabled ? <div class="columns">
+        const form = this.state.webglEnabled ? <div className="columns">
 
-            <div class="column col-10">
+            <div className="column col-10">
 
                 <input className="form-input" type="text" value={this.state.formValue}
-                    onChange={this.handleKey} onKeyUp={this.handleKey}
+                    onChange={(e) => this.updateFormValue(e.target.value)}
+                    onKeyUp={this.handleKey}
                     placeholder="Enter an OS grid reference e.g. NT27" />
 
             </div>
 
-            <div class="column col-2">
+            <div className="column col-2">
 
                 <button className={"col-12 btn btn-primary"}
-                    disabled={!this.state.enabled} onClick={this.doSearch} >Go</button>
+                    disabled={!this.state.enabled} onClick={this.doSearch}>Go</button>
 
             </div>
 
@@ -86,13 +92,13 @@ export class App extends Component<AppProps, AppState> {
         // TODO Add loading state to button
         return <div>
             { form }
-            <div class={"columns " + (this.state.errorMessage ? "" : "d-none")}>
-                <div class="column col-12 mt-2 text-error">
+            <div className={"columns " + (this.state.errorMessage ? "" : "d-none")}>
+                <div className="column col-12 mt-2 text-error">
                     Error: {this.state.errorMessage}
                 </div>
             </div>
-            <div class="columns">
-                <div class="column col-12 mt-2">
+            <div className="columns">
+                <div className="column col-12 mt-2">
                     <Map debug={true} gridReference={this.state.mapValue}
                          onInitError={this.handleWebglError}
                          onLoadError={this.handleLoadError}

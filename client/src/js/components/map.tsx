@@ -1,6 +1,6 @@
-/// <reference types="three/three-trackballcontrols" />
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 
-import { h, Component } from "preact";
 import * as THREE from 'three';
 import TrackballControls from 'three-trackballcontrols';
 
@@ -9,16 +9,16 @@ import * as Modernizr from 'Modernizr';
 
 import { World } from '../lib/world';
 
-type PropsType = {
+type MapProps = {
     debug: boolean,
     gridReference: string,
     onInitError: () => void,
     onLoadError: (message: string) => void,
     onLoadFinished: () => void,
 };
-type StateType = {};
+type MapState = {};
 
-export class Map extends Component<PropsType, StateType> {
+export class Map extends React.Component<MapProps, {}> {
 
     world: World;
     renderer: THREE.WebGLRenderer;
@@ -27,13 +27,15 @@ export class Map extends Component<PropsType, StateType> {
 
     componentDidMount() {
 
-        if (!this.base.querySelector('canvas')) {
+        var base = ReactDOM.findDOMNode(this) as HTMLElement;
+
+        if (!base.querySelector('canvas')) {
             this.props.onInitError();
             return;
         }
-        var canvas = this.base.querySelector('canvas') as HTMLCanvasElement;
+        var canvas = base.querySelector('canvas') as HTMLCanvasElement;
 
-        var width = this.base.offsetWidth;
+        var width = base.offsetWidth;
         var height = Math.floor(width * 0.8);
 
         // Setup world & renderer
@@ -66,7 +68,7 @@ export class Map extends Component<PropsType, StateType> {
         if (this.props.debug) {
             stats.showPanel(1);
             stats.dom.className = 'debug-stats';
-            (this.base.parentNode as HTMLElement).appendChild(stats.dom);
+            (base.parentNode as HTMLElement).appendChild(stats.dom);
         }
 
         this.renderWorld();
@@ -78,12 +80,11 @@ export class Map extends Component<PropsType, StateType> {
 
     }
 
-    shouldComponentUpdate(nextProps: PropsType, nextState: StateType) {
+    shouldComponentUpdate(nextProps: MapProps, nextState: MapState) {
         return this.props.gridReference !== nextProps.gridReference;
     }
 
-    componentWillUpdate(nextProps: PropsType, nextState: StateType) {
-
+    componentWillUpdate(nextProps: MapProps, nextState: MapState) {
         if (nextProps.gridReference.length) {
             try {
                 this.world.navigateTo(nextProps.gridReference);
@@ -96,7 +97,8 @@ export class Map extends Component<PropsType, StateType> {
     }
 
     onWindowResize() {
-        var width = this.base.offsetWidth;
+        var base = ReactDOM.findDOMNode(this) as HTMLElement;
+        var width = base.offsetWidth;
         var height = Math.floor(width * 0.8);
         this.world.setSize(width, height);
         this.renderer.setSize(width, height);
@@ -121,8 +123,8 @@ export class Map extends Component<PropsType, StateType> {
         if (!Modernizr.webgl) {
             return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
         }
+        return <div className="canvas-wrapper"><canvas></canvas></div>;
 
-        return <div class="canvas-wrapper"><canvas></canvas></div>;
     }
 
 }

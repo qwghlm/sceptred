@@ -1,4 +1,6 @@
-import { h, render } from "preact";
+import React from 'react';
+import ReactDOM from 'react-dom';
+
 import { App } from './components/app';
 
 import { version } from '../../../package.json';
@@ -12,6 +14,7 @@ declare global {
 Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
     release: version
 }).install()
+
 Raven.context(function () {
-    render(<App/>, document.getElementById('app'));
+    ReactDOM.render(<App/>, document.getElementById('app'));
 });

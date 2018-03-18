@@ -20,7 +20,6 @@
     "target": "es2017",
 
     "jsx": "react",
-    "jsxFactory": "h"
 
   },
   "include": [
