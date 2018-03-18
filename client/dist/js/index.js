@@ -47238,7 +47238,12 @@ var _preact = __webpack_require__(1);
 
 var _app = __webpack_require__(13);
 
-(0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
+Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
+    release: '0.0.4' // TODO Get this sanely from package.json
+}).install();
+Raven.context(function () {
+    (0, _preact.render)((0, _preact.h)(_app.App, null), document.getElementById('app'));
+});
 
 /***/ }),
 /* 5 */
