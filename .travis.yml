@@ -1,8 +1,10 @@
-language: go
+if: branch = masterlanguage: go
 
 go:
   - "1.10"
 go_import_path: sceptred
+
+if: branch = master
 
 install:
   - curl https://glide.sh/get | sh && glide install
