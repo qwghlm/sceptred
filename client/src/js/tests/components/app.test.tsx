@@ -1,5 +1,10 @@
-import { h, render } from 'preact';
+import * as React from "react";
+import * as Enzyme from "enzyme";
+import * as Adapter from "enzyme-adapter-react-16";
+
 import { App } from '../../components/app';
+
+Enzyme.configure({ adapter: new Adapter() })
 
 jest.mock("../../components/map", () => {
 	return { Map : jest.fn(() => "") }
@@ -11,31 +16,69 @@ function fireEvent(target, eventType) {
 	    target.dispatchEvent(evt);
 }
 
-test('App component renders', async () => {
+test('App component loads and searches correctly', () => {
 
-	let mount = document.createElement('div');
-	let app = render(<App/>, mount);
-	document.body.appendChild(mount);
+	let app = Enzyme.shallow(<App/>);
 
-	let input = document.querySelector('input');
-	let button = document.querySelector('button');
+	let input = app.find('input');
+	let button = app.find('button');
 
-	// Initial state: empty input, disabled button
-	expect(input.value).toEqual("");
-	expect(button.disabled).toBe(true);
-	expect(button.className).not.toMatch(/loading/);
+	expect(app.state().formValue).toEqual("");
+	expect(app.state().buttonEnabled).toEqual(false);
 
 	// Enter some text, expect button to become enabled
-	input.value = "NT27";
-	await fireEvent(input, "change");
-	expect(button.disabled).toBe(false);
-	expect(button.className).not.toMatch(/loading/);
+	input.simulate('change', { target: { value: "NT27"} });
+	expect(app.state().formValue).toEqual("NT27");
+	expect(app.state().buttonEnabled).toEqual(true);
 
 	// Click the button, expect state to be loading
-	await fireEvent(button, "click");
-	expect(button.disabled).toBe(false);
-	// expect(button.className).toMatch(/loading/); TODO
+	button.simulate('click')
+	expect(app.state().loading).toEqual(true);
 
-	// TODO Check that <Map/> props have been updated
+	app.instance().loadDone();
+	expect(app.state().loading).toEqual(false);
+
+});
+
+test('App component loads on keypresses', () => {
+
+	let app = Enzyme.shallow(<App/>);
+
+	let input = app.find('input');
+
+	input.simulate('keyup', { target: { value: "NT2" }, keyCode: 50 });
+	expect(app.state().loading).toEqual(false);
+
+	input.simulate('keyup', { target: { value: "NT2" }, keyCode: 13 });
+	expect(app.state().loading).toEqual(false);
+
+	input.simulate('keyup', { target: { value: "NT27" }, keyCode: 55 });
+	expect(app.state().loading).toEqual(false);
+
+	input.simulate('keyup', { target: { value: "NT27" }, keyCode: 13 });
+	expect(app.state().loading).toEqual(true);
+
+});
+
+test('App component handles load failure correctly', () => {
+
+	let app = Enzyme.shallow(<App/>);
+
+	app.find('button').simulate('click')
+	expect(app.state().loading).toEqual(true);
+
+	app.instance().handleLoadError("Sorry, failed");
+	expect(app.state().loading).toEqual(false);
+	expect(app.state().errorMessage).toEqual("Sorry, failed");
+
+});
+
+test('App component handles WebGL failure correctly', () => {
+
+	let app = Enzyme.shallow(<App/>);
+	expect(app.state().webglEnabled).toEqual(true);
+
+	app.instance().handleWebglError();
+	expect(app.state().webglEnabled).toEqual(false);
 
 });

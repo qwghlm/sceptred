@@ -8,12 +8,12 @@ interface AppState {
 
     webglEnabled: boolean;
 
-    enabled: boolean;
-    loading: boolean;
-    errorMessage: string;
-
     formValue: string;
+    buttonEnabled: boolean;
+
+    loading: boolean;
     mapValue: string;
+    errorMessage: string;
 
 }
 
@@ -23,20 +23,26 @@ export class App extends React.Component<AppProps, {}> {
 
     constructor(props: AppProps) {
         super(props);
-        this.state = { webglEnabled: true, enabled: false,  loading: false, errorMessage: "",
+        this.state = { webglEnabled: true, buttonEnabled: false,  loading: false, errorMessage: "",
             formValue: "", mapValue: "" }
+    }
+
+    handleWebglError = () => {
+        this.setState({
+            webglEnabled: false
+        });
     }
 
     updateFormValue(value: string) {
         this.setState({
             formValue: value,
-            enabled: isValidGridref(value),
+            buttonEnabled: isValidGridref(value),
         });
     }
 
     handleKey = (e) => {
         this.updateFormValue(e.target.value);
-        if (e.keyCode === 13) {
+        if (this.state.buttonEnabled && e.keyCode === 13) {
             this.doSearch();
         }
     }
@@ -55,15 +61,10 @@ export class App extends React.Component<AppProps, {}> {
         });
     }
 
-    handleWebglError = () => {
-        this.setState({
-            webglEnabled: true
-        });
-    }
-
     handleLoadError = (message: string) => {
         this.setState({
-            errorMessage: message
+            errorMessage: message,
+            loading: false
         });
     }
 
@@ -83,7 +84,7 @@ export class App extends React.Component<AppProps, {}> {
             <div className="column col-2">
 
                 <button className={"col-12 btn btn-primary"}
-                    disabled={!this.state.enabled} onClick={this.doSearch}>Go</button>
+                    disabled={!this.state.buttonEnabled} onClick={this.doSearch}>Go</button>
 
             </div>
 
@@ -108,5 +109,4 @@ export class App extends React.Component<AppProps, {}> {
 
         </div>
     }
-
 }
