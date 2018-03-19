@@ -87,7 +87,8 @@ export class Map extends React.Component<MapProps, {}> {
     componentWillUpdate(nextProps: MapProps, nextState: MapState) {
         if (nextProps.gridReference.length) {
             try {
-                this.world.navigateTo(nextProps.gridReference);
+                this.world.navigateTo(nextProps.gridReference)
+                    .then(this.props.onLoadFinished);
                 this.controls.reset();
             }
             catch (e) {

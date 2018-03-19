@@ -61,7 +61,7 @@ export class App extends React.Component<AppProps, {}> {
         });
     }
 
-    handleLoadError = (message: string) => {
+    loadFailed = (message: string) => {
         this.setState({
             errorMessage: message,
             loading: false
@@ -83,14 +83,13 @@ export class App extends React.Component<AppProps, {}> {
 
             <div className="column col-2">
 
-                <button className={"col-12 btn btn-primary"}
+                <button className={"col-12 btn btn-primary " + (this.state.loading ? "loading" : "")}
                     disabled={!this.state.buttonEnabled} onClick={this.doSearch}>Go</button>
 
             </div>
 
         </div> : "";
 
-        // TODO Add loading state to button
         return <div>
             { form }
             <div className={"columns " + (this.state.errorMessage ? "" : "d-none")}>
@@ -102,7 +101,7 @@ export class App extends React.Component<AppProps, {}> {
                 <div className="column col-12 mt-2">
                     <Map debug={true} gridReference={this.state.mapValue}
                          onInitError={this.handleWebglError}
-                         onLoadError={this.handleLoadError}
+                         onLoadError={this.loadFailed}
                          onLoadFinished={this.loadDone} />
                 </div>
             </div>

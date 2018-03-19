@@ -67,7 +67,7 @@ test('App component handles load failure correctly', () => {
 	app.find('button').simulate('click')
 	expect(app.state().loading).toEqual(true);
 
-	app.instance().handleLoadError("Sorry, failed");
+	app.instance().loadFailed("Sorry, failed");
 	expect(app.state().loading).toEqual(false);
 	expect(app.state().errorMessage).toEqual("Sorry, failed");
 

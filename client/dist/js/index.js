@@ -256,6 +256,48 @@ process.umask = function() { return 0; };
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * Copyright (c) 2013-present, Facebook, Inc.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * 
+ */
+
+function makeEmptyFunction(arg) {
+  return function () {
+    return arg;
+  };
+}
+
+/**
+ * This function accepts and discards inputs; it has no side effects. This is
+ * primarily useful idiomatically for overridable function endpoints which
+ * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
+ */
+var emptyFunction = function emptyFunction() {};
+
+emptyFunction.thatReturns = makeEmptyFunction;
+emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
+emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
+emptyFunction.thatReturnsNull = makeEmptyFunction(null);
+emptyFunction.thatReturnsThis = function () {
+  return this;
+};
+emptyFunction.thatReturnsArgument = function (arg) {
+  return arg;
+};
+
+module.exports = emptyFunction;
+
+/***/ }),
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46197,48 +46239,6 @@ function LensFlare() {
 
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-/**
- * Copyright (c) 2013-present, Facebook, Inc.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * 
- */
-
-function makeEmptyFunction(arg) {
-  return function () {
-    return arg;
-  };
-}
-
-/**
- * This function accepts and discards inputs; it has no side effects. This is
- * primarily useful idiomatically for overridable function endpoints which
- * always need to be callable, since JS lacks a null-call idiom ala Cocoa.
- */
-var emptyFunction = function emptyFunction() {};
-
-emptyFunction.thatReturns = makeEmptyFunction;
-emptyFunction.thatReturnsFalse = makeEmptyFunction(false);
-emptyFunction.thatReturnsTrue = makeEmptyFunction(true);
-emptyFunction.thatReturnsNull = makeEmptyFunction(null);
-emptyFunction.thatReturnsThis = function () {
-  return this;
-};
-emptyFunction.thatReturnsArgument = function (arg) {
-  return arg;
-};
-
-module.exports = emptyFunction;
-
-/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -46449,7 +46449,7 @@ module.exports = invariant;
 
 
 
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(1);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -46519,7 +46519,7 @@ exports.coordsToGridref = coordsToGridref;
 exports.getGridSquareSize = getGridSquareSize;
 exports.getSurroundingSquares = getSurroundingSquares;
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -46801,7 +46801,7 @@ module.exports = ExecutionEnvironment;
  * @typechecks
  */
 
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(1);
 
 /**
  * Upstream version of event listener. Does not take into account specific
@@ -47133,13 +47133,13 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(30);
 
-var _package = __webpack_require__(43);
+var _package = __webpack_require__(42);
 
-__webpack_require__(44);
+__webpack_require__(43);
+
+__webpack_require__(48);
 
 __webpack_require__(49);
-
-__webpack_require__(50);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47164,7 +47164,7 @@ Raven.context(function () {
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(4),n=__webpack_require__(5),p=__webpack_require__(2),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
+var m=__webpack_require__(4),n=__webpack_require__(5),p=__webpack_require__(1),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
 function y(a){for(var b=arguments.length-1,e="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);b=Error(e+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}
 var z={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};function A(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}A.prototype.isReactComponent={};A.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?y("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};A.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};
 function B(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}function C(){}C.prototype=A.prototype;var D=B.prototype=new C;D.constructor=B;m(D,A.prototype);D.isPureReactComponent=!0;function E(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}var F=E.prototype=new C;F.constructor=E;m(F,A.prototype);F.unstable_isAsyncReactComponent=!0;F.render=function(){return this.props.children};var G={current:null},H=Object.prototype.hasOwnProperty,I={key:!0,ref:!0,__self:!0,__source:!0};
@@ -47204,7 +47204,7 @@ var _assign = __webpack_require__(4);
 var emptyObject = __webpack_require__(5);
 var invariant = __webpack_require__(6);
 var warning = __webpack_require__(7);
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(1);
 var checkPropTypes = __webpack_require__(9);
 
 // TODO: this is special because it gets imported during build.
@@ -48579,7 +48579,7 @@ module.exports = ReactPropTypesSecret;
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(3),l=__webpack_require__(11),B=__webpack_require__(4),C=__webpack_require__(2),ba=__webpack_require__(12),da=__webpack_require__(13),ea=__webpack_require__(14),fa=__webpack_require__(15),ia=__webpack_require__(16),D=__webpack_require__(5);
+var aa=__webpack_require__(3),l=__webpack_require__(11),B=__webpack_require__(4),C=__webpack_require__(1),ba=__webpack_require__(12),da=__webpack_require__(13),ea=__webpack_require__(14),fa=__webpack_require__(15),ia=__webpack_require__(16),D=__webpack_require__(5);
 function E(a){for(var b=arguments.length-1,c="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);b=Error(c+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}aa?void 0:E("227");
 var oa={children:!0,dangerouslySetInnerHTML:!0,defaultValue:!0,defaultChecked:!0,innerHTML:!0,suppressContentEditableWarning:!0,suppressHydrationWarning:!0,style:!0};function pa(a,b){return(a&b)===b}
 var ta={MUST_USE_PROPERTY:1,HAS_BOOLEAN_VALUE:4,HAS_NUMERIC_VALUE:8,HAS_POSITIVE_NUMERIC_VALUE:24,HAS_OVERLOADED_BOOLEAN_VALUE:32,HAS_STRING_BOOLEAN_VALUE:64,injectDOMPropertyConfig:function(a){var b=ta,c=a.Properties||{},d=a.DOMAttributeNamespaces||{},e=a.DOMAttributeNames||{};a=a.DOMMutationMethods||{};for(var f in c){ua.hasOwnProperty(f)?E("48",f):void 0;var g=f.toLowerCase(),h=c[f];g={attributeName:g,attributeNamespace:null,propertyName:f,mutationMethod:null,mustUseProperty:pa(h,b.MUST_USE_PROPERTY),
@@ -48881,7 +48881,7 @@ var invariant = __webpack_require__(6);
 var warning = __webpack_require__(7);
 var ExecutionEnvironment = __webpack_require__(11);
 var _assign = __webpack_require__(4);
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(1);
 var EventListener = __webpack_require__(12);
 var getActiveElement = __webpack_require__(13);
 var shallowEqual = __webpack_require__(14);
@@ -64473,7 +64473,7 @@ var App = exports.App = function (_React$Component) {
                 loading: false
             });
         };
-        _this.handleLoadError = function (message) {
+        _this.loadFailed = function (message) {
             _this.setState({
                 errorMessage: message,
                 loading: false
@@ -64499,9 +64499,8 @@ var App = exports.App = function (_React$Component) {
 
             var form = this.state.webglEnabled ? React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-10" }, React.createElement("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: function onChange(e) {
                     return _this2.updateFormValue(e.target.value);
-                }, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), React.createElement("div", { className: "column col-2" }, React.createElement("button", { className: "col-12 btn btn-primary", disabled: !this.state.buttonEnabled, onClick: this.doSearch }, "Go"))) : "";
-            // TODO Add loading state to button
-            return React.createElement("div", null, form, React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: true, gridReference: this.state.mapValue, onInitError: this.handleWebglError, onLoadError: this.handleLoadError, onLoadFinished: this.loadDone }))));
+                }, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), React.createElement("div", { className: "column col-2" }, React.createElement("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.buttonEnabled, onClick: this.doSearch }, "Go"))) : "";
+            return React.createElement("div", null, form, React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: true, gridReference: this.state.mapValue, onInitError: this.handleWebglError, onLoadError: this.loadFailed, onLoadFinished: this.loadDone }))));
         }
     }]);
 
@@ -64530,7 +64529,7 @@ var _reactDom = __webpack_require__(10);
 
 var ReactDOM = _interopRequireWildcard(_reactDom);
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -64623,7 +64622,7 @@ var Map = exports.Map = function (_React$Component) {
         value: function componentWillUpdate(nextProps, nextState) {
             if (nextProps.gridReference.length) {
                 try {
-                    this.world.navigateTo(nextProps.gridReference);
+                    this.world.navigateTo(nextProps.gridReference).then(this.props.onLoadFinished);
                     this.controls.reset();
                 } catch (e) {
                     this.props.onLoadError(e.message);
@@ -64682,7 +64681,7 @@ var Map = exports.Map = function (_React$Component) {
  ** @author Jon Lim / http://jonlim.ca
  */
 
-var THREE = window.THREE || __webpack_require__(1);
+var THREE = window.THREE || __webpack_require__(2);
 
 var TrackballControls;
 module.exports = TrackballControls = function ( object, domElement ) {
@@ -65793,21 +65792,19 @@ exports.World = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _constants = __webpack_require__(36);
-
-var _data = __webpack_require__(37);
+var _data = __webpack_require__(36);
 
 var _grid = __webpack_require__(8);
 
-var _loader = __webpack_require__(40);
+var _loader = __webpack_require__(39);
 
-var _scale = __webpack_require__(41);
+var _scale = __webpack_require__(40);
 
-var _utils = __webpack_require__(42);
+var _utils = __webpack_require__(41);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -65817,7 +65814,11 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var metresPerPixel = 50;
+var heightFactor = 2;
+var seaColor = 0x082044;
 // Models the world in which our tiles live
+
 var World = exports.World = function (_THREE$EventDispatche) {
     _inherits(World, _THREE$EventDispatche);
 
@@ -65843,8 +65844,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
         var ambientLight = new THREE.AmbientLight(0x080808);
         scene.add(ambientLight);
         // Set up scale
-        var metresPerPixel = 50; // TODO turn into a configurable property?
-        var heightFactor = 2;
         _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
         // Set up loader
         _this.loader = new _loader.Loader();
@@ -65867,11 +65866,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
             this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
             // Work out our origin as a two-letter square
             var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
-            this.load(gridSquare);
             (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (surroundingSquare) {
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this2.transform, _this2.scale);
                 _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
             });
+            return this.load(gridSquare);
         }
     }, {
         key: 'setSize',
@@ -65886,9 +65885,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
             var url = '/data/' + gridSquare;
             if (this.loader.isLoading(url)) {
-                return;
+                return Promise.resolve();
             }
-            this.loader.load(url).then(function (json) {
+            return this.loader.load(url).then(function (json) {
                 _this3.removeFromWorld("empty-" + gridSquare);
                 var geometry = void 0;
                 // If data exists, then make a land geometry
@@ -65985,12 +65984,19 @@ function makeLand(geometry, name) {
     return land;
 }
 function makeSea(geometry, name) {
-    var sea = new THREE.Mesh(geometry, _constants.materials.meshLambert(_constants.colors.seaColor));
+    var sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+        color: seaColor,
+        transparent: true
+    }));
     sea.name = name;
     return sea;
 }
 function makeWireframe(geometry, name) {
-    var wireframe = new THREE.Mesh(geometry, _constants.materials.meshWireFrame(0xFFFFFF));
+    var wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        wireframe: true
+    }));
     wireframe.name = name;
     return wireframe;
 }
@@ -66005,64 +66011,14 @@ function makeWireframe(geometry, name) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.materials = exports.colors = undefined;
-
-var _three = __webpack_require__(1);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var colors = exports.colors = {
-    landColor: 0x105520,
-    seaColor: 0x082044
-};
-var materials = exports.materials = {
-    phong: function phong(color) {
-        return new THREE.MeshPhongMaterial({
-            color: color,
-            side: THREE.DoubleSide
-        });
-    },
-    meshLambert: function meshLambert(color) {
-        return new THREE.MeshLambertMaterial({
-            color: color,
-            transparent: true
-        });
-    },
-    meshWireFrame: function meshWireFrame(color) {
-        return new THREE.MeshBasicMaterial({
-            color: color,
-            transparent: true,
-            wireframe: true
-        });
-    },
-    meshBasic: function meshBasic(color) {
-        return new THREE.MeshBasicMaterial({
-            color: color,
-            transparent: true
-        });
-    }
-};
-
-/***/ }),
-/* 37 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 exports.makeLandGeometry = makeLandGeometry;
 exports.makeEmptyGeometry = makeEmptyGeometry;
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _chromaJs = __webpack_require__(38);
+var _chromaJs = __webpack_require__(37);
 
 var chroma = _interopRequireWildcard(_chromaJs);
 
@@ -66135,7 +66091,7 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
 }
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
@@ -68895,10 +68851,10 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
 
 }).call(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(39)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -68926,7 +68882,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68977,7 +68933,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68989,7 +68945,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeTransform = makeTransform;
 exports.makeScale = makeScale;
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -69009,7 +68965,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69067,21 +69023,21 @@ function debounce(func) {
 }
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"sceptred","version":"0.0.6","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"@types/react":"^16.0.40","chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(45);
+__webpack_require__(44);
 
-__webpack_require__(48);
+__webpack_require__(47);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69155,18 +69111,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(46).polyfill();
+module.exports = __webpack_require__(45).polyfill();
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70349,10 +70305,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(47)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(46)))
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70379,20 +70335,20 @@ module.exports = g;
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 if (!window.fetch) window.fetch = __webpack_require__(17).default || __webpack_require__(17);
 
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";

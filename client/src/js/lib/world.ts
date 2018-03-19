@@ -1,24 +1,26 @@
 import * as THREE from 'three';
 
-import { materials, colors } from './constants';
 import { makeLandGeometry, makeEmptyGeometry } from './data';
 import { coordsToGridref, gridrefToCoords, getSurroundingSquares} from './grid';
 import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
 import { debounce } from './utils';
 
+const metresPerPixel = 50;
+const heightFactor = 2;
+
+const seaColor = 0x082044;
+
 // Models the world in which our tiles live
 
 export class World extends THREE.EventDispatcher {
 
-    loader: Loader; // TODO Make private
+    private loader: Loader;
+    private scale: THREE.Vector3;
+    private transform: THREE.Matrix4;
 
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
-
-    scale: THREE.Vector3; // TODO Make private
-    transform: THREE.Matrix4; // TODO Make private
-
     update: () => void;
 
     constructor(width: number, height: number) {
@@ -48,8 +50,6 @@ export class World extends THREE.EventDispatcher {
         scene.add(ambientLight);
 
         // Set up scale
-        const metresPerPixel = 50; // TODO turn into a configurable property?
-        const heightFactor = 2;
         this.scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, heightFactor/metresPerPixel);
 
         // Set up loader
@@ -70,11 +70,11 @@ export class World extends THREE.EventDispatcher {
 
         // Work out our origin as a two-letter square
         var gridSquare = coordsToGridref(realOrigin, 2);
-        this.load(gridSquare);
         getSurroundingSquares(gridSquare, 4).forEach(surroundingSquare => {
             let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
             this.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
         });
+        return this.load(gridSquare);
 
     }
 
@@ -87,10 +87,10 @@ export class World extends THREE.EventDispatcher {
 
         var url = `/data/${gridSquare}`;
         if (this.loader.isLoading(url)) {
-            return;
+            return Promise.resolve();
         }
 
-        this.loader.load(url)
+        return this.loader.load(url)
             .then((json) => {
 
                 this.removeFromWorld("empty-" + gridSquare);
@@ -178,14 +178,21 @@ function makeLand(geometry: THREE.BufferGeometry, name: string) {
 
 function makeSea(geometry: THREE.Geometry, name: string) {
 
-    let sea = new THREE.Mesh(geometry, materials.meshLambert(colors.seaColor));
+    let sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+        color: seaColor,
+        transparent: true
+    }))
     sea.name = name;
     return sea;
 }
 
 function makeWireframe(geometry: THREE.Geometry, name: string) {
 
-    let wireframe = new THREE.Mesh(geometry, materials.meshWireFrame(0xFFFFFF));
+    let wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+        color: 0xFFFFFF,
+        transparent: true,
+        wireframe: true,
+    }));
     wireframe.name = name;
     return wireframe;
 }
