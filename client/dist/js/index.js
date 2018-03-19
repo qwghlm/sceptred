@@ -46518,6 +46518,7 @@ exports.gridrefToCoords = gridrefToCoords;
 exports.coordsToGridref = coordsToGridref;
 exports.getGridSquareSize = getGridSquareSize;
 exports.getSurroundingSquares = getSurroundingSquares;
+exports.getNeighboringSquare = getNeighboringSquare;
 
 var _three = __webpack_require__(2);
 
@@ -46590,11 +46591,6 @@ function getGridSquareSize(gridref) {
 }
 // Return an array of grid references for the squares surrounding this one
 function getSurroundingSquares(gridref, radius) {
-    // Origin of this square
-    var origin = gridrefToCoords(gridref);
-    // Get X and Y vectors for one square along and one up
-    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
     // Go for radius around in both X and Y directions
     var squares = [];
     for (var x = -radius; x <= radius; x++) {
@@ -46603,12 +46599,9 @@ function getSurroundingSquares(gridref, radius) {
             if (x === 0 && y === 0) {
                 continue;
             }
-            // Calculate the origin of the square X and Y steps away from the origin
-            // i.e. C = O + xX + yY
-            var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
             // Convert back into gridref
             try {
-                var neighbor = coordsToGridref(coords, gridref.length - 2);
+                var neighbor = getNeighboringSquare(gridref, x, y);
                 squares.push(neighbor);
             } catch (error) {
                 // Do nothing, square may be e.g. outside of the national grid and unmappable
@@ -46616,6 +46609,21 @@ function getSurroundingSquares(gridref, radius) {
         }
     }
     return squares;
+}
+// Get the neighbouring square X horizontal & Y vertical spaces away
+function getNeighboringSquare(gridref, x, y) {
+    if (x === 0 && y === 0) {
+        return gridref;
+    }
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+    // Get X and Y vectors for one square along and one up
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
+    // Calculate the origin of the square X and Y steps away from the origin
+    // i.e. C = O + xX + yY
+    var coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+    return coordsToGridref(coords, gridref.length - 2);
 }
 // Utils
 // Converts a letter to number as used in the National Grid (A-Z -> 1-25, I not included)
@@ -65814,6 +65822,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+// Constants we use
 var metresPerPixel = 50;
 var heightFactor = 2;
 var seaColor = 0x082044;
@@ -65846,6 +65855,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
         // Set up scale
         _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
         // Set up loader
+        _this.geometries = {};
         _this.loader = new _loader.Loader();
         return _this;
     }
@@ -65888,24 +65898,54 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 return Promise.resolve();
             }
             return this.loader.load(url).then(function (json) {
-                _this3.removeFromWorld("empty-" + gridSquare);
-                var geometry = void 0;
-                // If data exists, then make a land geometry
-                if (json.data.length) {
-                    geometry = (0, _data.makeLandGeometry)(json, _this3.transform);
-                    _this3.addToWorld(makeLand(geometry, "land-" + gridSquare));
-                }
-                // If no geometry, or the bounding box is underwater, add sea tile
-                if (!geometry || geometry.boundingBox.min.z < 0) {
-                    var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, _this3.transform, _this3.scale);
-                    _this3.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
-                }
+                return _this3.onLoad(gridSquare, json);
             }).catch(function (errorResponse) {
                 console.error(errorResponse);
             });
         }
         // Manipulating meshes
 
+    }, {
+        key: 'onLoad',
+        value: function onLoad(gridSquare, grid) {
+            var _this4 = this;
+
+            this.removeFromWorld("empty-" + gridSquare);
+            var geometry = void 0;
+            // If data exists, then make a land geometry
+            if (grid.data.length) {
+                geometry = (0, _data.makeLandGeometry)(grid, this.transform);
+                this.geometries[gridSquare] = geometry;
+                // Try stitching this to existing geometries
+                var neighbors = {
+                    right: (0, _grid.getNeighboringSquare)(gridSquare, 1, 0),
+                    top: (0, _grid.getNeighboringSquare)(gridSquare, 0, 1),
+                    topRight: (0, _grid.getNeighboringSquare)(gridSquare, 1, 1)
+                };
+                Object.keys(neighbors).forEach(function (direction) {
+                    if (neighbors[direction] in _this4.geometries) {
+                        (0, _data.stitchGeometries)(geometry, _this4.geometries[neighbors[direction]], direction);
+                    }
+                });
+                this.addToWorld(makeLand(geometry, "land-" + gridSquare));
+                // Now go through existing geometries and stitch them to this
+                neighbors = {
+                    right: (0, _grid.getNeighboringSquare)(gridSquare, -1, 0),
+                    top: (0, _grid.getNeighboringSquare)(gridSquare, 0, -1),
+                    topRight: (0, _grid.getNeighboringSquare)(gridSquare, -1, -1)
+                };
+                Object.keys(neighbors).forEach(function (direction) {
+                    if (neighbors[direction] in _this4.geometries) {
+                        (0, _data.stitchGeometries)(_this4.geometries[neighbors[direction]], geometry, direction);
+                    }
+                });
+            }
+            // If no geometry, or the bounding box is underwater, add sea tile
+            if (!geometry || geometry.boundingBox.min.z <= 0) {
+                var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
+                this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
+            }
+        }
     }, {
         key: 'addToWorld',
         value: function addToWorld(mesh) {
@@ -65915,26 +65955,26 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'removeFromWorld',
         value: function removeFromWorld(name) {
-            var _this4 = this;
+            var _this5 = this;
 
             var toReplace = this.scene.children.filter(function (d) {
                 return d.type == "Mesh" && d.name == name;
             });
             if (toReplace.length) {
                 toReplace.forEach(function (d) {
-                    return _this4.scene.remove(d);
+                    return _this5.scene.remove(d);
                 });
             }
         }
     }, {
         key: 'removeAllFromWorld',
         value: function removeAllFromWorld() {
-            var _this5 = this;
+            var _this6 = this;
 
             this.scene.children.filter(function (d) {
                 return d.type == "Mesh";
             }).forEach(function (d) {
-                return _this5.scene.remove(d);
+                return _this6.scene.remove(d);
             });
         }
         // Checking to see
@@ -65942,7 +65982,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: '_update',
         value: function _update() {
-            var _this6 = this;
+            var _this7 = this;
 
             // Calculate the frustum of this camera
             var frustum = new THREE.Frustum();
@@ -65967,7 +66007,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             });
             emptyMeshes.forEach(function (d) {
                 var id = d.name.split('-')[1];
-                _this6.load(id);
+                _this7.load(id);
             });
         }
     }]);
@@ -66013,6 +66053,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeLandGeometry = makeLandGeometry;
 exports.makeEmptyGeometry = makeEmptyGeometry;
+exports.stitchGeometries = stitchGeometries;
 
 var _three = __webpack_require__(2);
 
@@ -66033,43 +66074,69 @@ var colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 function makeLandGeometry(data, transform) {
     var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
     var squareSize = data.meta.squareSize;
-    var grid = data.data;
-    var gridHeight = grid.length;
-    var gridWidth = grid[0].length;
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
+    var grid = data.data.reverse();
+    // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
+    // Naively at first, we just clone the values. This will cause discontinuities on mountainous
+    // terrain, so we later modify the grid if & when we find
+    grid.forEach(function (row) {
+        return row.push(row[row.length - 1]);
+    });
+    grid[grid.length] = grid[grid.length - 1];
+    // Calculate vertices and colors
+    var gridHeight = grid.length;
+    var gridWidth = grid[0].length;
     var vertices = new Float32Array(3 * gridHeight * gridWidth);
     var colors = new Uint8Array(3 * gridHeight * gridWidth);
-    var faces = [];
-    var n = 0;
     var colorFunction = chroma.scale(colorRange).domain(colorDomain).mode('lab');
-    grid.reverse().forEach(function (row, y) {
+    grid.forEach(function (row, y) {
         return row.forEach(function (z, x) {
+            // Work out index of this point in the vertices array
+            var i = x + gridWidth * y;
             // Assign vertices
-            vertices[n] = tileOrigin.x + x * squareSize;
-            vertices[n + 1] = tileOrigin.y + y * squareSize;
-            vertices[n + 2] = z;
+            // BufferGeometry stores each x, y, z value separately so we multiply by 3
+            // to get the position inside the
+            vertices[i * 3] = tileOrigin.x + x * squareSize;
+            vertices[i * 3 + 1] = tileOrigin.y + y * squareSize;
+            vertices[i * 3 + 2] = z;
+            // Assign colors
+            // Same for r, g, b
             var color = colorFunction(z).rgb();
-            colors[n] = color[0];
-            colors[n + 1] = color[1];
-            colors[n + 2] = color[2];
-            n += 3;
-            // If this point can form top-left of a square, add the two
-            // triangles that are formed by that square
-            if (x < gridWidth - 1 && y < gridHeight - 1) {
-                // Work out index of this point in the vertices array
-                var i = x + gridWidth * y;
-                faces.push(
-                // First triangle: top-left, top-right, bottom-left
-                i, i + 1, i + gridWidth,
-                // Second triangle: top-right, bottom-right, bottom-left
-                i + 1, i + gridWidth + 1, i + gridWidth);
+            colors[i * 3] = color[0];
+            colors[i * 3 + 1] = color[1];
+            colors[i * 3 + 2] = color[2];
+        });
+    });
+    // Calculate the faces - two triangles which form between them a square
+    var faces = [];
+    grid.forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
+            if (x == gridWidth - 1 || y == gridHeight - 1) {
+                return;
+            }
+            // Get indexes of the points for the square for which this point is the top-left
+            var i = x + gridWidth * y;
+            var a = i,
+                b = i + 1,
+                c = i + gridWidth,
+                d = i + gridWidth + 1;
+            // Only assign faces if all three vertices are above sea-level
+            // First triangle: top-left, top-right, bottom-left (clockwise)
+            if (vertices[a * 3 + 2] >= 0 || vertices[b * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
+                faces.push(a, b, c);
+            }
+            // Second triangle: top-right, bottom-right, bottom-left (clockwise)
+            if (vertices[b * 3 + 2] >= 0 || vertices[d * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
+                faces.push(b, d, c);
             }
         });
     });
+    // Build our buffer
     var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
     var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
-    // TODO OnUpload?
+    // And create a geometry from it
     var geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', verticesBuffer);
     geometry.addAttribute('color', colorsBuffer);
@@ -66088,6 +66155,54 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
     geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
     geometry.computeBoundingBox();
     return geometry;
+}
+// TODO Enum for relation?
+// Updates a target geometry's Z and color values along an edge to that of its neighbor,
+// with the relation being defined by the relation attribute
+function stitchGeometries(target, neighbor, relation) {
+    // Get the BufferAttribute positions of both
+    var targetPositions = target.getAttribute('position');
+    var neighbourPositions = neighbor.getAttribute('position');
+    var targetColors = target.getAttribute('color');
+    var neighbourColors = neighbor.getAttribute('color');
+    // Work out the height and width of the geometries (201 x 201)
+    var targetHeight = Math.sqrt(targetPositions.count);
+    var targetWidth = targetHeight;
+    // If the neighbor is to the top, then its bottom row [0] should be copied to the
+    // target's top [200]
+    if (relation == "top") {
+        for (var i = 0; i < targetWidth - 1; i++) {
+            var neighborIndex = i;
+            var targetIndex = targetWidth * (targetHeight - 1) + i;
+            targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
+            targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
+            targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
+            targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
+        }
+    } else if (relation == "right") {
+        for (var i = 0; i < targetHeight - 1; i++) {
+            var neighborIndex = i * targetWidth;
+            var targetIndex = (i + 1) * targetWidth - 1;
+            targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
+            targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
+            targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
+            targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
+        }
+    } else if (relation == "topRight") {
+        var neighborIndex = 0;
+        var targetIndex = targetHeight * targetWidth - 1;
+        targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
+        targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
+        targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
+        targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
+    }
+    // All done! Update the target with the new positions array
+    targetPositions.needsUpdate = true;
+    target.addAttribute('position', targetPositions);
+    targetColors.needsUpdate = true;
+    target.addAttribute('color', targetColors);
+    target.computeVertexNormals();
+    return target;
 }
 
 /***/ }),

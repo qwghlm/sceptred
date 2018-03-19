@@ -1,15 +1,24 @@
 import * as THREE from 'three';
 
-import { makeLandGeometry, makeEmptyGeometry } from './data';
-import { coordsToGridref, gridrefToCoords, getSurroundingSquares} from './grid';
+import { makeLandGeometry, makeEmptyGeometry, stitchGeometries } from './data';
+import { coordsToGridref, gridrefToCoords, getSurroundingSquares, getNeighboringSquare } from './grid';
 import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
+import { GridData } from './types';
 import { debounce } from './utils';
+
+// Constants we use
 
 const metresPerPixel = 50;
 const heightFactor = 2;
-
 const seaColor = 0x082044;
+
+// Geometries lookup
+
+interface Geometries {
+    [propName: string]: THREE.BufferGeometry;
+}
+
 
 // Models the world in which our tiles live
 
@@ -18,6 +27,7 @@ export class World extends THREE.EventDispatcher {
     private loader: Loader;
     private scale: THREE.Vector3;
     private transform: THREE.Matrix4;
+    private geometries: Geometries;
 
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
@@ -53,7 +63,9 @@ export class World extends THREE.EventDispatcher {
         this.scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, heightFactor/metresPerPixel);
 
         // Set up loader
+        this.geometries = {};
         this.loader = new Loader();
+
     }
 
     // Setup transform from real-world to 3D world coordinates
@@ -91,30 +103,58 @@ export class World extends THREE.EventDispatcher {
         }
 
         return this.loader.load(url)
-            .then((json) => {
-
-                this.removeFromWorld("empty-" + gridSquare);
-
-                let geometry;
-
-                // If data exists, then make a land geometry
-                if (json.data.length) {
-                    geometry = makeLandGeometry(json, this.transform);
-                    this.addToWorld(makeLand(geometry, "land-" + gridSquare));
-                }
-
-                // If no geometry, or the bounding box is underwater, add sea tile
-                if (!geometry || geometry.boundingBox.min.z < 0) {
-                    let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
-                    this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
-                }
-            })
+            .then((json) => this.onLoad(gridSquare, json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
             });
     }
 
     // Manipulating meshes
+
+    onLoad(gridSquare: string, grid: GridData) {
+
+        this.removeFromWorld("empty-" + gridSquare);
+
+        let geometry;
+
+        // If data exists, then make a land geometry
+        if (grid.data.length) {
+
+            geometry = makeLandGeometry(grid, this.transform);
+            this.geometries[gridSquare] = geometry;
+
+            // Try stitching this to existing geometries
+            var neighbors = {
+                right : getNeighboringSquare(gridSquare, 1, 0),
+                top : getNeighboringSquare(gridSquare, 0, 1),
+                topRight : getNeighboringSquare(gridSquare, 1, 1),
+            }
+            Object.keys(neighbors).forEach(direction => {
+                if (neighbors[direction] in this.geometries) {
+                    stitchGeometries(geometry, this.geometries[neighbors[direction]], direction);
+                }
+            });
+            this.addToWorld(makeLand(geometry, "land-" + gridSquare));
+
+            // Now go through existing geometries and stitch them to this
+            neighbors = {
+                right : getNeighboringSquare(gridSquare, -1, 0),
+                top : getNeighboringSquare(gridSquare, 0, -1),
+                topRight : getNeighboringSquare(gridSquare, -1, -1),
+            }
+            Object.keys(neighbors).forEach(direction => {
+                if (neighbors[direction] in this.geometries) {
+                    stitchGeometries(this.geometries[neighbors[direction]], geometry, direction);
+                }
+            });
+        }
+
+        // If no geometry, or the bounding box is underwater, add sea tile
+        if (!geometry || geometry.boundingBox.min.z <= 0) {
+            let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
+            this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
+        }
+    }
 
     addToWorld(mesh: THREE.Mesh) {
         this.scene.add(mesh);

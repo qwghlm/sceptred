@@ -1,14 +1,16 @@
 import { World } from '../../lib/world';
 
 const gridReference = 'NT27';
-const mockMetadata = {
+
+// Mocks are functions so that we don't use same copy of data over and over again
+const mockMetadata = () => ({
     squareSize: 50,
     gridReference
-}
-const mockData = {
-    meta: mockMetadata,   
-    data: [[4, 4], [5, 5]],
-}
+});
+const mockData = () => ({
+    meta: mockMetadata(),
+    data: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
+});
 
 //
 jest.mock('../../lib/loader', () => {
@@ -19,11 +21,11 @@ jest.mock('../../lib/loader', () => {
         load(url) {
             if (url.match(/NT37/)) {
                 return new Promise(
-                    (resolve, reject) => resolve({meta: mockMetadata, data: []})
+                    (resolve, reject) => resolve({meta: mockMetadata(), data: []})
                 )
             }
             return new Promise(
-                (resolve, reject) => resolve(mockData)
+                (resolve, reject) => resolve(mockData())
             )
 
         }

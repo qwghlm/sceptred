@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { gridrefToCoords, coordsToGridref, getGridSquareSize, getSurroundingSquares } from '../../lib/grid';
+import { gridrefToCoords, coordsToGridref, getGridSquareSize, getSurroundingSquares, getNeighboringSquare } from '../../lib/grid';
 
 test('gridrefToCoords() works properly', () => {
 
@@ -62,5 +62,10 @@ test('getSurroundingSquares() raises errors properly', () => {
         .toEqual(["NT199699", "NT199700", "NT199701", "NT200699",
                   "NT200701", "NT201699", "NT201700", "NT201701"]);
 
+});
+
+test('getNeighboringSquare() resolves properly', () => {
+
+    expect(getNeighboringSquare("NT27", 0, 0)).toEqual("NT27");
 
 });

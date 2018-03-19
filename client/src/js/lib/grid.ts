@@ -86,13 +86,6 @@ export function getGridSquareSize(gridref: string) {
 // Return an array of grid references for the squares surrounding this one
 export function getSurroundingSquares(gridref: string, radius: number) {
 
-    // Origin of this square
-    var origin = gridrefToCoords(gridref);
-
-    // Get X and Y vectors for one square along and one up
-    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
-    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
-
     // Go for radius around in both X and Y directions
     let squares: string[] = [];
     for (var x=-radius; x<=radius; x++) {
@@ -103,13 +96,9 @@ export function getSurroundingSquares(gridref: string, radius: number) {
                 continue;
             }
 
-            // Calculate the origin of the square X and Y steps away from the origin
-            // i.e. C = O + xX + yY
-            let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
-
             // Convert back into gridref
             try {
-                let neighbor = coordsToGridref(coords, gridref.length - 2)
+                let neighbor = getNeighboringSquare(gridref, x, y);
                 squares.push(neighbor);
             }
             catch (error) {
@@ -118,6 +107,28 @@ export function getSurroundingSquares(gridref: string, radius: number) {
         }
     }
     return squares
+}
+
+// Get the neighbouring square X horizontal & Y vertical spaces away
+export function getNeighboringSquare(gridref: string, x: number, y: number) {
+
+    if (x === 0 && y === 0) {
+        return gridref;
+    }
+
+    // Origin of this square
+    var origin = gridrefToCoords(gridref);
+
+    // Get X and Y vectors for one square along and one up
+    var xStep = new THREE.Vector3(getGridSquareSize(gridref).x, 0, 0);
+    var yStep = new THREE.Vector3(0, getGridSquareSize(gridref).y, 0);
+
+    // Calculate the origin of the square X and Y steps away from the origin
+    // i.e. C = O + xX + yY
+    let coords = origin.clone().addScaledVector(xStep, x).addScaledVector(yStep, y);
+
+    return coordsToGridref(coords, gridref.length - 2);
+
 }
 
 // Utils
