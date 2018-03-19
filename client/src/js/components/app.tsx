@@ -3,6 +3,8 @@ import * as React from "react";
 import { Map } from './map'
 import { isValidGridref } from '../lib/grid';
 
+// Types for props and state
+
 interface AppProps {}
 interface AppState {
 
@@ -17,22 +19,27 @@ interface AppState {
 
 }
 
+// Our app
+
 export class App extends React.Component<AppProps, {}> {
 
     state: AppState;
 
+    // Initialise default state
     constructor(props: AppProps) {
         super(props);
         this.state = { webglEnabled: true, buttonEnabled: false,  loading: false, errorMessage: "",
             formValue: "", mapValue: "" }
     }
 
+    // Handler for if there is a webgl error in the map
     handleWebglError = () => {
         this.setState({
             webglEnabled: false
         });
     }
 
+    // Updates when form value is changed
     updateFormValue(value: string) {
         this.setState({
             formValue: value,
@@ -40,6 +47,7 @@ export class App extends React.Component<AppProps, {}> {
         });
     }
 
+    // Handle keypress
     handleKey = (e) => {
         this.updateFormValue(e.target.value);
         if (this.state.buttonEnabled && e.keyCode === 13) {
@@ -47,6 +55,7 @@ export class App extends React.Component<AppProps, {}> {
         }
     }
 
+    // Perform search
     doSearch = () => {
         this.setState({
             loading: true,
@@ -55,12 +64,14 @@ export class App extends React.Component<AppProps, {}> {
         });
     }
 
+    // When load is done
     loadDone = () => {
         this.setState({
             loading: false
         });
     }
 
+    // When load fails
     loadFailed = (message: string) => {
         this.setState({
             errorMessage: message,
@@ -68,6 +79,7 @@ export class App extends React.Component<AppProps, {}> {
         });
     }
 
+    // Renderer
     render() {
 
         const form = this.state.webglEnabled ? <div className="columns">
@@ -90,6 +102,7 @@ export class App extends React.Component<AppProps, {}> {
 
         </div> : "";
 
+        // Render form, then error state, then map
         return <div>
             { form }
             <div className={"columns " + (this.state.errorMessage ? "" : "d-none")}>

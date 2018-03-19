@@ -31,6 +31,7 @@ export function extend(...args: any[]) {
   return out;
 }
 
+// Debounces a function so it is only called every `wait` seconds
 export function debounce(func: () => void, wait = 50) {
   let h: number;
   return () => {

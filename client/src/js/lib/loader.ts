@@ -28,7 +28,7 @@ export class Loader {
         // Update status for this URL
         this.status[url] = STATUS_LOADING;
 
-        //
+        // Fetch
         return fetch(url)
             .then((response: Response): Promise<GridData> => {
                 this.status[url] = STATUS_LOADED;

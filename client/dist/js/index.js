@@ -47151,9 +47151,11 @@ __webpack_require__(49);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+// Configure raven
 Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
     release: _package.version
 }).install();
+// Load app
 Raven.context(function () {
     _reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
 });
@@ -64450,12 +64452,15 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+// Our app
 var App = exports.App = function (_React$Component) {
     _inherits(App, _React$Component);
 
+    // Initialise default state
     function App(props) {
         _classCallCheck(this, App);
 
+        // Handler for if there is a webgl error in the map
         var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
         _this.handleWebglError = function () {
@@ -64463,12 +64468,14 @@ var App = exports.App = function (_React$Component) {
                 webglEnabled: false
             });
         };
+        // Handle keypress
         _this.handleKey = function (e) {
             _this.updateFormValue(e.target.value);
             if (_this.state.buttonEnabled && e.keyCode === 13) {
                 _this.doSearch();
             }
         };
+        // Perform search
         _this.doSearch = function () {
             _this.setState({
                 loading: true,
@@ -64476,11 +64483,13 @@ var App = exports.App = function (_React$Component) {
                 mapValue: _this.state.formValue
             });
         };
+        // When load is done
         _this.loadDone = function () {
             _this.setState({
                 loading: false
             });
         };
+        // When load fails
         _this.loadFailed = function (message) {
             _this.setState({
                 errorMessage: message,
@@ -64491,6 +64500,8 @@ var App = exports.App = function (_React$Component) {
             formValue: "", mapValue: "" };
         return _this;
     }
+    // Updates when form value is changed
+
 
     _createClass(App, [{
         key: 'updateFormValue',
@@ -64500,6 +64511,8 @@ var App = exports.App = function (_React$Component) {
                 buttonEnabled: (0, _grid.isValidGridref)(value)
             });
         }
+        // Renderer
+
     }, {
         key: 'render',
         value: function render() {
@@ -64508,6 +64521,7 @@ var App = exports.App = function (_React$Component) {
             var form = this.state.webglEnabled ? React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-10" }, React.createElement("input", { className: "form-input", type: "text", value: this.state.formValue, onChange: function onChange(e) {
                     return _this2.updateFormValue(e.target.value);
                 }, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" })), React.createElement("div", { className: "column col-2" }, React.createElement("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.buttonEnabled, onClick: this.doSearch }, "Go"))) : "";
+            // Render form, then error state, then map
             return React.createElement("div", null, form, React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: true, gridReference: this.state.mapValue, onInitError: this.handleWebglError, onLoadError: this.loadFailed, onLoadFinished: this.loadDone }))));
         }
     }]);
@@ -64565,6 +64579,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+// Map class
 var Map = exports.Map = function (_React$Component) {
     _inherits(Map, _React$Component);
 
@@ -64576,12 +64591,16 @@ var Map = exports.Map = function (_React$Component) {
 
     _createClass(Map, [{
         key: "componentDidMount",
+
+        // When map loads, render the webgl 3D context inside the canvas
         value: function componentDidMount() {
             var base = ReactDOM.findDOMNode(this);
+            // If no canvas, i.e. webgl doesn't exist, fire error
             if (!base.querySelector('canvas')) {
                 this.props.onInitError();
                 return;
             }
+            // Setup canvas
             var canvas = base.querySelector('canvas');
             var width = base.offsetWidth;
             var height = Math.floor(width * 0.8);
@@ -64614,29 +64633,42 @@ var Map = exports.Map = function (_React$Component) {
                 stats.dom.className = 'debug-stats';
                 base.parentNode.appendChild(stats.dom);
             }
+            // Render and animate
             this.renderWorld();
             this.animateWorld();
+            // Start listening to events
+            // Re-render if world updates, or if controls move camera
             world.addEventListener('update', this.renderWorld.bind(this));
             controls.addEventListener('change', this.renderWorld.bind(this));
+            // Resize the canvas if window resizes
             window.addEventListener('resize', this.onWindowResize.bind(this), false);
         }
+        // Only update the world if grid reference changes
+
     }, {
         key: "shouldComponentUpdate",
         value: function shouldComponentUpdate(nextProps, nextState) {
             return this.props.gridReference !== nextProps.gridReference;
         }
+        // If a grid reference is supplied...
+
     }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(nextProps, nextState) {
+            // Try loading it and navigating to it
             if (nextProps.gridReference.length) {
                 try {
                     this.world.navigateTo(nextProps.gridReference).then(this.props.onLoadFinished);
                     this.controls.reset();
-                } catch (e) {
+                }
+                // If it fails, trigger an error
+                catch (e) {
                     this.props.onLoadError(e.message);
                 }
             }
         }
+        // Simple resizer
+
     }, {
         key: "onWindowResize",
         value: function onWindowResize() {
@@ -64646,6 +64678,8 @@ var Map = exports.Map = function (_React$Component) {
             this.world.setSize(width, height);
             this.renderer.setSize(width, height);
         }
+        // Renders the world, and updates the stats while we are at it
+
     }, {
         key: "renderWorld",
         value: function renderWorld() {
@@ -64654,13 +64688,15 @@ var Map = exports.Map = function (_React$Component) {
             this.stats.end();
             this.world.update();
         }
+        // Check in on the controls
+
     }, {
         key: "animateWorld",
         value: function animateWorld() {
             requestAnimationFrame(this.animateWorld.bind(this));
             this.controls.update();
         }
-        // Render function that re-renders the renderer, and calls for an update from the world
+        // Render function that outputs the canvas renderer
 
     }, {
         key: "render",
@@ -65831,9 +65867,13 @@ var seaColor = 0x082044;
 var World = exports.World = function (_THREE$EventDispatche) {
     _inherits(World, _THREE$EventDispatche);
 
+    // Start us up
     function World(width, height) {
         _classCallCheck(this, World);
 
+        // Debounce this._update so it can only be called every half-second max
+        // So if a user is continually moving camera, this will only be called
+        // once camera movement has ceased for 500ms
         var _this = _possibleConstructorReturn(this, (World.__proto__ || Object.getPrototypeOf(World)).call(this));
 
         _this.update = (0, _utils.debounce)(_this._update.bind(_this), 500);
@@ -65876,40 +65916,50 @@ var World = exports.World = function (_THREE$EventDispatche) {
             this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
             // Work out our origin as a two-letter square
             var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
+            // Queue the surrounding squares
             (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (surroundingSquare) {
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this2.transform, _this2.scale);
                 _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
             });
+            // Then load the square in the middle
             return this.load(gridSquare);
         }
+        // Resizes the world e.g. if the window has resized
+
     }, {
         key: 'setSize',
         value: function setSize(width, height) {
             this.camera.aspect = width / height;
             this.camera.updateProjectionMatrix();
         }
+        // Load the gridsquare
+
     }, {
         key: 'load',
         value: function load(gridSquare) {
             var _this3 = this;
 
             var url = '/data/' + gridSquare;
+            // Skip if already loading
             if (this.loader.isLoading(url)) {
                 return Promise.resolve();
             }
+            // Set load and error listeners
             return this.loader.load(url).then(function (json) {
-                return _this3.onLoad(gridSquare, json);
+                return _this3.onLoad(json);
             }).catch(function (errorResponse) {
                 console.error(errorResponse);
             });
         }
         // Manipulating meshes
+        // Loads the grid data from the API
 
     }, {
         key: 'onLoad',
-        value: function onLoad(gridSquare, grid) {
+        value: function onLoad(grid) {
             var _this4 = this;
 
+            var gridSquare = grid.meta.gridReference;
             this.removeFromWorld("empty-" + gridSquare);
             var geometry = void 0;
             // If data exists, then make a land geometry
@@ -65927,6 +65977,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                         (0, _data.stitchGeometries)(geometry, _this4.geometries[neighbors[direction]], direction);
                     }
                 });
+                // Add the geometry to the world
                 this.addToWorld(makeLand(geometry, "land-" + gridSquare));
                 // Now go through existing geometries and stitch them to this
                 neighbors = {
@@ -65940,18 +65991,22 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     }
                 });
             }
-            // If no geometry, or the bounding box is underwater, add sea tile
+            // If no geometry, or the bounding box has an underwater section, add sea tile
             if (!geometry || geometry.boundingBox.min.z <= 0) {
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
                 this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
             }
         }
+        // Generic adds a mesh to the world
+
     }, {
         key: 'addToWorld',
         value: function addToWorld(mesh) {
             this.scene.add(mesh);
             this.dispatchEvent({ type: 'update' });
         }
+        // Removes a mesh from the world
+
     }, {
         key: 'removeFromWorld',
         value: function removeFromWorld(name) {
@@ -65966,6 +66021,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 });
             }
         }
+        // Clears the entire world
+
     }, {
         key: 'removeAllFromWorld',
         value: function removeAllFromWorld() {
@@ -65977,7 +66034,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 return _this6.scene.remove(d);
             });
         }
-        // Checking to see
+        // Checking to see if any unloaded meshes can be loaded in
 
     }, {
         key: '_update',
@@ -65999,6 +66056,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             });
             // TODO Get where centre of view intersects z=0 plane and
             // measure distance from there
+            // Sort them by distance
             var getDistance = function getDistance(d) {
                 return d.geometry.boundingSphere.center.length();
             };
@@ -66014,6 +66072,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
     return World;
 }(THREE.EventDispatcher);
+// Generic mesh making functiins
+// Make a land mesh
+
 
 function makeLand(geometry, name) {
     var land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
@@ -66023,6 +66084,7 @@ function makeLand(geometry, name) {
     land.name = name;
     return land;
 }
+// Make a sea mesh
 function makeSea(geometry, name) {
     var sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
         color: seaColor,
@@ -66031,6 +66093,7 @@ function makeSea(geometry, name) {
     sea.name = name;
     return sea;
 }
+// Make a wireframe mesh for unloaded
 function makeWireframe(geometry, name) {
     var wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
@@ -66067,6 +66130,7 @@ var _grid = __webpack_require__(8);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
+// Colors for each altitude
 var colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC']; // Functions for parsing data from the API
 
 var colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
@@ -66078,18 +66142,21 @@ function makeLandGeometry(data, transform) {
     // so we reverse the rows first
     var grid = data.data.reverse();
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
-    // Naively at first, we just clone the values. This will cause discontinuities on mountainous
-    // terrain, so we later modify the grid if & when we find
+    // Naively at first, we just clone the values in the 200th row & column for 201st.
+    // This will cause discontinuities on mountainous terrain, so we later modify the grid if & when
+    // we find neighbouring tiles to the north and east
     grid.forEach(function (row) {
         return row.push(row[row.length - 1]);
     });
     grid[grid.length] = grid[grid.length - 1];
-    // Calculate vertices and colors
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
+    // Calculate vertices and colors
     var vertices = new Float32Array(3 * gridHeight * gridWidth);
     var colors = new Uint8Array(3 * gridHeight * gridWidth);
+    // Our colour scale maker
     var colorFunction = chroma.scale(colorRange).domain(colorDomain).mode('lab');
+    // Go through each row and then each column of the grid
     grid.forEach(function (row, y) {
         return row.forEach(function (z, x) {
             // Work out index of this point in the vertices array
@@ -66122,21 +66189,26 @@ function makeLandGeometry(data, transform) {
                 b = i + 1,
                 c = i + gridWidth,
                 d = i + gridWidth + 1;
-            // Only assign faces if all three vertices are above sea-level
-            // First triangle: top-left, top-right, bottom-left (clockwise)
+            // a--b
+            // |//|
+            // c--d
+            //
+            // NB Only assign faces if all three vertices are above sea-level
+            //
+            // First triangle
             if (vertices[a * 3 + 2] >= 0 || vertices[b * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
                 faces.push(a, b, c);
             }
-            // Second triangle: top-right, bottom-right, bottom-left (clockwise)
+            // Second triangle:
             if (vertices[b * 3 + 2] >= 0 || vertices[d * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
                 faces.push(b, d, c);
             }
         });
     });
-    // Build our buffer
+    // Build our buffers
     var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
     var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
-    // And create a geometry from it
+    // And create a geometry from them
     var geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', verticesBuffer);
     geometry.addAttribute('color', colorsBuffer);
@@ -66145,6 +66217,7 @@ function makeLandGeometry(data, transform) {
     geometry.computeBoundingBox();
     return geometry;
 }
+// Returns an empty square, useful for either the grid or an element of sea
 function makeEmptyGeometry(gridSquare, transform, scale) {
     var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
     // Calculate position of square
@@ -66156,8 +66229,7 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
     geometry.computeBoundingBox();
     return geometry;
 }
-// TODO Enum for relation?
-// Updates a target geometry's Z and color values along an edge to that of its neighbor,
+// Updates a target land geometry's Z and color values along an edge to that of its neighbor,
 // with the relation being defined by the relation attribute
 function stitchGeometries(target, neighbor, relation) {
     // Get the BufferAttribute positions of both
@@ -66201,6 +66273,7 @@ function stitchGeometries(target, neighbor, relation) {
     target.addAttribute('position', targetPositions);
     targetColors.needsUpdate = true;
     target.addAttribute('color', targetColors);
+    // And recalculate the normal vectors to smooth the shading
     target.computeVertexNormals();
     return target;
 }
@@ -69036,7 +69109,7 @@ var Loader = exports.Loader = function () {
 
             // Update status for this URL
             this.status[url] = STATUS_LOADING;
-            //
+            // Fetch
             return fetch(url).then(function (response) {
                 _this.status[url] = STATUS_LOADED;
                 return response.json();
@@ -69125,6 +69198,7 @@ function extend() {
     }
     return out;
 }
+// Debounces a function so it is only called every `wait` seconds
 function debounce(func) {
     var wait = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
 
@@ -69141,7 +69215,7 @@ function debounce(func) {
 /* 42 */
 /***/ (function(module, exports) {
 
-module.exports = {"name":"sceptred","version":"0.0.6","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"@types/react":"^16.0.40","chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
+module.exports = {"name":"sceptred","version":"0.0.7","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"@types/react":"^16.0.40","chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
 
 /***/ }),
 /* 43 */

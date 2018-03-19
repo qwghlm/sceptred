@@ -19,7 +19,6 @@ interface Geometries {
     [propName: string]: THREE.BufferGeometry;
 }
 
-
 // Models the world in which our tiles live
 
 export class World extends THREE.EventDispatcher {
@@ -33,10 +32,14 @@ export class World extends THREE.EventDispatcher {
     scene: THREE.Scene;
     update: () => void;
 
+    // Start us up
     constructor(width: number, height: number) {
 
         super();
 
+        // Debounce this._update so it can only be called every half-second max
+        // So if a user is continually moving camera, this will only be called
+        // once camera movement has ceased for 500ms
         this.update = debounce(this._update.bind(this), 500);
 
         // Setup camera
@@ -82,28 +85,37 @@ export class World extends THREE.EventDispatcher {
 
         // Work out our origin as a two-letter square
         var gridSquare = coordsToGridref(realOrigin, 2);
+
+        // Queue the surrounding squares
         getSurroundingSquares(gridSquare, 4).forEach(surroundingSquare => {
             let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
             this.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
         });
+
+        // Then load the square in the middle
         return this.load(gridSquare);
 
     }
 
+    // Resizes the world e.g. if the window has resized
     setSize(width: number, height: number) {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
     }
 
+    // Load the gridsquare
     load(gridSquare: string) {
 
         var url = `/data/${gridSquare}`;
+
+        // Skip if already loading
         if (this.loader.isLoading(url)) {
             return Promise.resolve();
         }
 
+        // Set load and error listeners
         return this.loader.load(url)
-            .then((json) => this.onLoad(gridSquare, json))
+            .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
             });
@@ -111,8 +123,10 @@ export class World extends THREE.EventDispatcher {
 
     // Manipulating meshes
 
-    onLoad(gridSquare: string, grid: GridData) {
+    // Loads the grid data from the API
+    onLoad(grid: GridData) {
 
+        let gridSquare = grid.meta.gridReference;
         this.removeFromWorld("empty-" + gridSquare);
 
         let geometry;
@@ -134,6 +148,8 @@ export class World extends THREE.EventDispatcher {
                     stitchGeometries(geometry, this.geometries[neighbors[direction]], direction);
                 }
             });
+
+            // Add the geometry to the world
             this.addToWorld(makeLand(geometry, "land-" + gridSquare));
 
             // Now go through existing geometries and stitch them to this
@@ -149,18 +165,20 @@ export class World extends THREE.EventDispatcher {
             });
         }
 
-        // If no geometry, or the bounding box is underwater, add sea tile
+        // If no geometry, or the bounding box has an underwater section, add sea tile
         if (!geometry || geometry.boundingBox.min.z <= 0) {
             let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
             this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
         }
     }
 
+    // Generic adds a mesh to the world
     addToWorld(mesh: THREE.Mesh) {
         this.scene.add(mesh);
         this.dispatchEvent({type: 'update'});
     }
 
+    // Removes a mesh from the world
     removeFromWorld(name: string) {
         var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == name);
         if (toReplace.length) {
@@ -168,12 +186,12 @@ export class World extends THREE.EventDispatcher {
         }
     }
 
+    // Clears the entire world
     removeAllFromWorld() {
         this.scene.children.filter(d => d.type == "Mesh").forEach(d => this.scene.remove(d));
     }
 
-    // Checking to see
-
+    // Checking to see if any unloaded meshes can be loaded in
     _update() {
 
         // Calculate the frustum of this camera
@@ -195,9 +213,9 @@ export class World extends THREE.EventDispatcher {
         // TODO Get where centre of view intersects z=0 plane and
         // measure distance from there
 
+        // Sort them by distance
         const getDistance = (d: THREE.Object3D) => (<THREE.Mesh>d).geometry.boundingSphere.center.length();
         emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
-
         emptyMeshes.forEach(d => {
             var id = d.name.split('-')[1];
             this.load(id);
@@ -205,7 +223,9 @@ export class World extends THREE.EventDispatcher {
     }
 }
 
+// Generic mesh making functiins
 
+// Make a land mesh
 function makeLand(geometry: THREE.BufferGeometry, name: string) {
 
     let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
@@ -216,6 +236,7 @@ function makeLand(geometry: THREE.BufferGeometry, name: string) {
     return land;
 }
 
+// Make a sea mesh
 function makeSea(geometry: THREE.Geometry, name: string) {
 
     let sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
@@ -226,6 +247,7 @@ function makeSea(geometry: THREE.Geometry, name: string) {
     return sea;
 }
 
+// Make a wireframe mesh for unloaded
 function makeWireframe(geometry: THREE.Geometry, name: string) {
 
     let wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({

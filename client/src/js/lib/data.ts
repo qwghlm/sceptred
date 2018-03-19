@@ -4,6 +4,7 @@ import * as chroma from 'chroma-js';
 import { gridrefToCoords, getGridSquareSize } from './grid';
 import { GridData } from './types';
 
+// Colors for each altitude
 const colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
 const colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 
@@ -18,20 +19,24 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
     var grid = data.data.reverse();
 
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
-    // Naively at first, we just clone the values. This will cause discontinuities on mountainous
-    // terrain, so we later modify the grid if & when we find
+    // Naively at first, we just clone the values in the 200th row & column for 201st.
+    // This will cause discontinuities on mountainous terrain, so we later modify the grid if & when
+    // we find neighbouring tiles to the north and east
     grid.forEach((row) => row.push(row[row.length - 1]));
     grid[grid.length] = grid[grid.length - 1];
-
-    // Calculate vertices and colors
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
+
+    // Calculate vertices and colors
     var vertices = new Float32Array(3*gridHeight*gridWidth);
     var colors = new Uint8Array(3*gridHeight*gridWidth);
+
+    // Our colour scale maker
     var colorFunction = chroma.scale(colorRange)
         .domain(colorDomain)
         .mode('lab');
 
+    // Go through each row and then each column of the grid
     grid.forEach((row, y) => row.forEach((z, x) => {
 
         // Work out index of this point in the vertices array
@@ -66,24 +71,29 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
         var i = x + gridWidth*y;
         var a = i, b = i+1, c = i+gridWidth, d = i+gridWidth+1;
 
-        // Only assign faces if all three vertices are above sea-level
-        // First triangle: top-left, top-right, bottom-left (clockwise)
+        // a--b
+        // |//|
+        // c--d
+        //
+        // NB Only assign faces if all three vertices are above sea-level
+        //
+        // First triangle
         if (vertices[a*3+2] >= 0 || vertices[b*3+2] >= 0 || vertices[c*3+2] >= 0) {
             faces.push(a, b, c);
         }
 
-        // Second triangle: top-right, bottom-right, bottom-left (clockwise)
+        // Second triangle:
         if (vertices[b*3+2] >= 0 || vertices[d*3+2] >= 0 || vertices[c*3+2] >= 0) {
             faces.push(b, d, c);
         }
 
     }));
 
-    // Build our buffer
+    // Build our buffers
     var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
     var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
 
-    // And create a geometry from it
+    // And create a geometry from them
     var geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', verticesBuffer);
     geometry.addAttribute('color', colorsBuffer);
@@ -94,6 +104,7 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
 
 }
 
+// Returns an empty square, useful for either the grid or an element of sea
 export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, scale: THREE.Vector3) {
 
     let square = getGridSquareSize(gridSquare).applyMatrix4((new THREE.Matrix4()).scale(scale));
@@ -110,9 +121,7 @@ export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, s
 
 }
 
-// TODO Enum for relation?
-
-// Updates a target geometry's Z and color values along an edge to that of its neighbor,
+// Updates a target land geometry's Z and color values along an edge to that of its neighbor,
 // with the relation being defined by the relation attribute
 export function stitchGeometries(target: THREE.BufferGeometry, neighbor: THREE.BufferGeometry, relation: string) {
 
@@ -172,6 +181,7 @@ export function stitchGeometries(target: THREE.BufferGeometry, neighbor: THREE.B
     targetColors.needsUpdate = true;
     target.addAttribute('color', targetColors);
 
+    // And recalculate the normal vectors to smooth the shading
     target.computeVertexNormals();
     return target;
 

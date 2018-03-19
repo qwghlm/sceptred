@@ -9,6 +9,8 @@ import * as Modernizr from 'Modernizr';
 
 import { World } from '../lib/world';
 
+// Properties that can be passed to map
+
 type MapProps = {
     debug: boolean,
     gridReference: string,
@@ -18,6 +20,7 @@ type MapProps = {
 };
 type MapState = {};
 
+// Map class
 export class Map extends React.Component<MapProps, {}> {
 
     world: World;
@@ -25,16 +28,19 @@ export class Map extends React.Component<MapProps, {}> {
     controls: TrackballControls;
     stats: Stats;
 
+    // When map loads, render the webgl 3D context inside the canvas
     componentDidMount() {
 
         var base = ReactDOM.findDOMNode(this) as HTMLElement;
 
+        // If no canvas, i.e. webgl doesn't exist, fire error
         if (!base.querySelector('canvas')) {
             this.props.onInitError();
             return;
         }
-        var canvas = base.querySelector('canvas') as HTMLCanvasElement;
 
+        // Setup canvas
+        var canvas = base.querySelector('canvas') as HTMLCanvasElement;
         var width = base.offsetWidth;
         var height = Math.floor(width * 0.8);
 
@@ -71,32 +77,45 @@ export class Map extends React.Component<MapProps, {}> {
             (base.parentNode as HTMLElement).appendChild(stats.dom);
         }
 
+        // Render and animate
         this.renderWorld();
         this.animateWorld();
 
+        // Start listening to events
+
+        // Re-render if world updates, or if controls move camera
         world.addEventListener('update', this.renderWorld.bind(this))
         controls.addEventListener('change', this.renderWorld.bind(this));
+
+        // Resize the canvas if window resizes
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
     }
 
+    // Only update the world if grid reference changes
     shouldComponentUpdate(nextProps: MapProps, nextState: MapState) {
         return this.props.gridReference !== nextProps.gridReference;
     }
 
+    // If a grid reference is supplied...
     componentWillUpdate(nextProps: MapProps, nextState: MapState) {
+
+        // Try loading it and navigating to it
         if (nextProps.gridReference.length) {
             try {
                 this.world.navigateTo(nextProps.gridReference)
                     .then(this.props.onLoadFinished);
                 this.controls.reset();
             }
+
+            // If it fails, trigger an error
             catch (e) {
                 this.props.onLoadError(e.message);
             }
         }
     }
 
+    // Simple resizer
     onWindowResize() {
         var base = ReactDOM.findDOMNode(this) as HTMLElement;
         var width = base.offsetWidth;
@@ -105,6 +124,7 @@ export class Map extends React.Component<MapProps, {}> {
         this.renderer.setSize(width, height);
     }
 
+    // Renders the world, and updates the stats while we are at it
     renderWorld() {
         this.stats.begin();
         this.renderer.render(this.world.scene, this.world.camera);
@@ -112,13 +132,13 @@ export class Map extends React.Component<MapProps, {}> {
         this.world.update();
     }
 
+    // Check in on the controls
     animateWorld() {
         requestAnimationFrame(this.animateWorld.bind(this));
         this.controls.update();
     }
 
-    // Render function that re-renders the renderer, and calls for an update from the world
-
+    // Render function that outputs the canvas renderer
     render() {
 
         if (!Modernizr.webgl) {
