@@ -79,6 +79,7 @@ export class World extends THREE.EventDispatcher {
         // Calculate the real origin (i.e. where the world is centred),
         // the world origin (i.e (0, 0, 0))
         // and the transform to get from one to the other
+        gridref = gridref.toUpperCase();
         var realOrigin = gridrefToCoords(gridref);
         var worldOrigin = new THREE.Vector3(0, 0, 0);
         this.transform = makeTransform(realOrigin, worldOrigin, this.scale);

@@ -1,31 +1,30 @@
 import { World } from '../../lib/world';
 
-const gridReference = 'NT27';
-
 // Mocks are functions so that we don't use same copy of data over and over again
-const mockMetadata = () => ({
+const mockMetadata = (gridReference) => ({
     squareSize: 50,
     gridReference
 });
-const mockData = () => ({
-    meta: mockMetadata(),
+const mockData = (gridReference) => ({
+    meta: mockMetadata(gridReference),
     data: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
 });
 
-//
+// Mock for the loader
 jest.mock('../../lib/loader', () => {
     class Loader{
         isLoading() { return false; }
 
         // Mock loader returns dummy data for every square except NT37, which is empty
         load(url) {
+            var gridSquare = url.slice(-4);
             if (url.match(/NT37/)) {
                 return new Promise(
-                    (resolve, reject) => resolve({meta: mockMetadata(), data: []})
+                    (resolve, reject) => resolve({meta: mockMetadata(gridSquare), data: []})
                 )
             }
             return new Promise(
-                (resolve, reject) => resolve(mockData())
+                (resolve, reject) => resolve(mockData(gridSquare))
             )
 
         }
@@ -66,7 +65,7 @@ test('World works', async () => {
     expect(world.camera.aspect).toBe(1.25);
 
     // Load a grid square
-    await world.navigateTo(gridReference);
+    await world.navigateTo("NT27");
 
     // Trigger these manually as we do not have a renderer
     world.camera.updateMatrixWorld();
