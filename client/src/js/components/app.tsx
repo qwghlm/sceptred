@@ -112,7 +112,7 @@ export class App extends React.Component<AppProps, {}> {
             </div>
             <div className="columns">
                 <div className="column col-12 mt-2">
-                    <Map debug={true} gridReference={this.state.mapValue}
+                    <Map debug={false} gridReference={this.state.mapValue}
                          onInitError={this.handleWebglError}
                          onLoadError={this.loadFailed}
                          onLoadFinished={this.loadDone} />

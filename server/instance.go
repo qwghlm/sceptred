@@ -16,6 +16,14 @@ import (
 
 var srcPath = build.Default.GOPATH + "/src/sceptred"
 
+// Caching
+func cacheHeader(next echo.HandlerFunc) echo.HandlerFunc {
+    return func(c echo.Context) error {
+        c.Response().Header().Set("Cache-Control", "max-age=60")
+        return next(c)
+    }
+}
+
 // Renderer
 
 type renderer struct {
@@ -32,9 +40,15 @@ func instance() *echo.Echo {
     // Setup Echo instance
     e := echo.New()
 
+    // Add middleware
     e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
         Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
     }))
+
+    if os.Getenv("SCEPTRED_ENV") == "production" {
+        e.Use(cacheHeader)
+        e.Use(middleware.Gzip())
+    }
 
     // Setup template renderer
     e.Renderer = &renderer{

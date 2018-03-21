@@ -24,6 +24,7 @@ COPY ./client ./client
 # Production binary
 # TODO Better paths for this
 FROM scratch
+ENV SCEPTRED_ENV production
 COPY --from=0 /go/bin/server /serve
 COPY --from=0 /go/src/sceptred/client /go/src/sceptred/client
 COPY --from=0 /go/src/sceptred/server/templates /go/src/sceptred/server/templates

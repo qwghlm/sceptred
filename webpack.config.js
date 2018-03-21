@@ -51,13 +51,13 @@ module.exports = function(env, caller) {
         }));
     }
     else {
-        plugins.push(new WebpackCleanupPlugin({
-            exclude: ['**/.gitkeep',],
-        }));
+        // plugins.push(new WebpackCleanupPlugin({
+        //     exclude: ['**/.gitkeep',],
+        // }));
     }
 
     if (isProduction) {
-        plugins.push(new BundleAnalyzerPlugin());
+        // plugins.push(new BundleAnalyzerPlugin());
     }
 
     var config = {
