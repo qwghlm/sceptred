@@ -16,7 +16,7 @@ const seaColor = 0x082044;
 // Geometries lookup
 
 interface Geometries {
-    [propName: string]: THREE.BufferGeometry;
+    [propName: string]: THREE.Geometry | THREE.BufferGeometry;
 }
 
 // Models the world in which our tiles live
@@ -88,12 +88,6 @@ export class World extends THREE.EventDispatcher {
         // Work out our origin as a two-letter square
         var gridSquare = coordsToGridref(realOrigin, 2);
 
-        // Queue the surrounding squares
-        getSurroundingSquares(gridSquare, 4).forEach(surroundingSquare => {
-            let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
-            this.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
-        });
-
         // Then load the square in the middle
         return this.load(gridSquare, 0);
 
@@ -138,7 +132,6 @@ export class World extends THREE.EventDispatcher {
         if (grid.data.length) {
 
             let geometry = makeLandGeometry(grid, this.transform);
-            this.geometries[gridSquare] = geometry;
 
             // Try stitching this to existing geometries
             let neighbors : { [key: string]: string } = {
@@ -148,7 +141,10 @@ export class World extends THREE.EventDispatcher {
             }
             Object.keys(neighbors).forEach(direction => {
                 if (neighbors[direction] in this.geometries) {
-                    stitchGeometries(geometry, this.geometries[neighbors[direction]], direction);
+                    var neighborGeometry = this.geometries[neighbors[direction]];
+                    if (neighborGeometry.isBufferGeometry !== undefined) {
+                        stitchGeometries(geometry, neighborGeometry as THREE.BufferGeometry, direction);
+                    }
                 }
             });
 
@@ -163,7 +159,10 @@ export class World extends THREE.EventDispatcher {
             }
             Object.keys(neighbors).forEach(direction => {
                 if (neighbors[direction] in this.geometries) {
-                    stitchGeometries(this.geometries[neighbors[direction]], geometry, direction);
+                    var neighborGeometry = this.geometries[neighbors[direction]];
+                    if (neighborGeometry.isBufferGeometry !== undefined) {
+                        stitchGeometries(neighborGeometry as THREE.BufferGeometry, geometry, direction);
+                    }
                 }
             });
 
@@ -178,10 +177,23 @@ export class World extends THREE.EventDispatcher {
             let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
             this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
         }
+
+        // Queue the surrounding squares
+        getSurroundingSquares(gridSquare, 1).forEach(surroundingSquare => {
+            if (!(surroundingSquare in this.geometries)) {
+                var emptyMeshName = "empty-" + surroundingSquare;
+                if (this.scene.children.filter(d => d.name == emptyMeshName).length === 0) {
+                    let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
+                    this.addToWorld(makeWireframe(emptyGeometry, emptyMeshName));
+                }
+            }
+        });
+
     }
 
     // Generic adds a mesh to the world
     addToWorld(mesh: THREE.Mesh) {
+        this.geometries[mesh.name.split('-')[1]] = mesh.geometry;
         this.scene.add(mesh);
         this.dispatchEvent({type: 'update'});
     }
@@ -190,13 +202,17 @@ export class World extends THREE.EventDispatcher {
     removeFromWorld(name: string) {
         var toReplace = this.scene.children.filter(d => d.type == "Mesh" && d.name == name);
         if (toReplace.length) {
-            toReplace.forEach(d => this.scene.remove(d));
+            toReplace.forEach(d => {
+                this.scene.remove(d);
+                delete this.geometries[name.split('-')[1]];
+            });
         }
     }
 
     // Clears the entire world
     removeAllFromWorld() {
         this.scene.children.filter(d => d.type == "Mesh").forEach(d => this.scene.remove(d));
+        this.geometries = {}
     }
 
     // Checking to see if any unloaded meshes can be loaded in

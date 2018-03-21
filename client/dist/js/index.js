@@ -65906,8 +65906,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
     _createClass(World, [{
         key: 'navigateTo',
         value: function navigateTo(gridref) {
-            var _this2 = this;
-
             this.removeAllFromWorld();
             // Calculate the real origin (i.e. where the world is centred),
             // the world origin (i.e (0, 0, 0))
@@ -65917,11 +65915,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
             this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
             // Work out our origin as a two-letter square
             var gridSquare = (0, _grid.coordsToGridref)(realOrigin, 2);
-            // Queue the surrounding squares
-            (0, _grid.getSurroundingSquares)(gridSquare, 4).forEach(function (surroundingSquare) {
-                var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this2.transform, _this2.scale);
-                _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
-            });
             // Then load the square in the middle
             return this.load(gridSquare, 0);
         }
@@ -65938,7 +65931,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'load',
         value: function load(gridSquare, delay) {
-            var _this3 = this;
+            var _this2 = this;
 
             var url = '/data/' + gridSquare;
             // Skip if already loading
@@ -65949,9 +65942,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
             return new Promise(function (resolve) {
                 return setTimeout(resolve, delay);
             }).then(function () {
-                return _this3.loader.load(url);
+                return _this2.loader.load(url);
             }).then(function (json) {
-                return _this3.onLoad(json);
+                return _this2.onLoad(json);
             }).catch(function (errorResponse) {
                 console.error(errorResponse);
             });
@@ -65962,7 +65955,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'onLoad',
         value: function onLoad(grid) {
-            var _this4 = this;
+            var _this3 = this;
 
             var gridSquare = grid.meta.gridReference;
             this.removeFromWorld("empty-" + gridSquare);
@@ -65970,7 +65963,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
             // If data exists, then make a land geometry
             if (grid.data.length) {
                 var geometry = (0, _data.makeLandGeometry)(grid, this.transform);
-                this.geometries[gridSquare] = geometry;
                 // Try stitching this to existing geometries
                 var neighbors = {
                     right: (0, _grid.getNeighboringSquare)(gridSquare, 1, 0),
@@ -65978,8 +65970,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     topRight: (0, _grid.getNeighboringSquare)(gridSquare, 1, 1)
                 };
                 Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this4.geometries) {
-                        (0, _data.stitchGeometries)(geometry, _this4.geometries[neighbors[direction]], direction);
+                    if (neighbors[direction] in _this3.geometries) {
+                        var neighborGeometry = _this3.geometries[neighbors[direction]];
+                        if (neighborGeometry.isBufferGeometry !== undefined) {
+                            (0, _data.stitchGeometries)(geometry, neighborGeometry, direction);
+                        }
                     }
                 });
                 // Add the geometry to the world
@@ -65991,8 +65986,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     topRight: (0, _grid.getNeighboringSquare)(gridSquare, -1, -1)
                 };
                 Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this4.geometries) {
-                        (0, _data.stitchGeometries)(_this4.geometries[neighbors[direction]], geometry, direction);
+                    if (neighbors[direction] in _this3.geometries) {
+                        var neighborGeometry = _this3.geometries[neighbors[direction]];
+                        if (neighborGeometry.isBufferGeometry !== undefined) {
+                            (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
+                        }
                     }
                 });
                 // Don't add sea tile if lowest point in box is above 0
@@ -66005,12 +66003,25 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
                 this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
             }
+            // Queue the surrounding squares
+            (0, _grid.getSurroundingSquares)(gridSquare, 1).forEach(function (surroundingSquare) {
+                if (!(surroundingSquare in _this3.geometries)) {
+                    var emptyMeshName = "empty-" + surroundingSquare;
+                    if (_this3.scene.children.filter(function (d) {
+                        return d.name == emptyMeshName;
+                    }).length === 0) {
+                        var _emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
+                        _this3.addToWorld(makeWireframe(_emptyGeometry, emptyMeshName));
+                    }
+                }
+            });
         }
         // Generic adds a mesh to the world
 
     }, {
         key: 'addToWorld',
         value: function addToWorld(mesh) {
+            this.geometries[mesh.name.split('-')[1]] = mesh.geometry;
             this.scene.add(mesh);
             this.dispatchEvent({ type: 'update' });
         }
@@ -66019,14 +66030,15 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'removeFromWorld',
         value: function removeFromWorld(name) {
-            var _this5 = this;
+            var _this4 = this;
 
             var toReplace = this.scene.children.filter(function (d) {
                 return d.type == "Mesh" && d.name == name;
             });
             if (toReplace.length) {
                 toReplace.forEach(function (d) {
-                    return _this5.scene.remove(d);
+                    _this4.scene.remove(d);
+                    delete _this4.geometries[name.split('-')[1]];
                 });
             }
         }
@@ -66035,20 +66047,21 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'removeAllFromWorld',
         value: function removeAllFromWorld() {
-            var _this6 = this;
+            var _this5 = this;
 
             this.scene.children.filter(function (d) {
                 return d.type == "Mesh";
             }).forEach(function (d) {
-                return _this6.scene.remove(d);
+                return _this5.scene.remove(d);
             });
+            this.geometries = {};
         }
         // Checking to see if any unloaded meshes can be loaded in
 
     }, {
         key: '_update',
         value: function _update() {
-            var _this7 = this;
+            var _this6 = this;
 
             // Calculate the frustum of this camera
             var frustum = new THREE.Frustum();
@@ -66082,7 +66095,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 return a.distance - b.distance;
             });
             distances.forEach(function (d, i) {
-                _this7.load(d.id, Math.floor(i / 5) * 200);
+                _this6.load(d.id, Math.floor(i / 5) * 200);
             });
         }
     }]);
