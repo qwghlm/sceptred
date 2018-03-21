@@ -65897,6 +65897,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
         // Set up loader
         _this.geometries = {};
         _this.loader = new _loader.Loader();
+        _this.navigateTo("NN37");
         return _this;
     }
     // Setup transform from real-world to 3D world coordinates
@@ -65911,7 +65912,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
             // Calculate the real origin (i.e. where the world is centred),
             // the world origin (i.e (0, 0, 0))
             // and the transform to get from one to the other
-            gridref = gridref.toUpperCase();
             var realOrigin = (0, _grid.gridrefToCoords)(gridref);
             var worldOrigin = new THREE.Vector3(0, 0, 0);
             this.transform = (0, _scale.makeTransform)(realOrigin, worldOrigin, this.scale);
@@ -65923,7 +65923,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 _this2.addToWorld(makeWireframe(emptyGeometry, "empty-" + surroundingSquare));
             });
             // Then load the square in the middle
-            return this.load(gridSquare);
+            return this.load(gridSquare, 0);
         }
         // Resizes the world e.g. if the window has resized
 
@@ -65937,7 +65937,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
     }, {
         key: 'load',
-        value: function load(gridSquare) {
+        value: function load(gridSquare, delay) {
             var _this3 = this;
 
             var url = '/data/' + gridSquare;
@@ -65946,7 +65946,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 return Promise.resolve();
             }
             // Set load and error listeners
-            return this.loader.load(url).then(function (json) {
+            return new Promise(function (resolve) {
+                return setTimeout(resolve, delay);
+            }).then(function () {
+                return _this3.loader.load(url);
+            }).then(function (json) {
                 return _this3.onLoad(json);
             }).catch(function (errorResponse) {
                 console.error(errorResponse);
@@ -65962,10 +65966,10 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
             var gridSquare = grid.meta.gridReference;
             this.removeFromWorld("empty-" + gridSquare);
-            var geometry = void 0;
+            var addSeaTile = true;
             // If data exists, then make a land geometry
             if (grid.data.length) {
-                geometry = (0, _data.makeLandGeometry)(grid, this.transform);
+                var geometry = (0, _data.makeLandGeometry)(grid, this.transform);
                 this.geometries[gridSquare] = geometry;
                 // Try stitching this to existing geometries
                 var neighbors = {
@@ -65991,9 +65995,13 @@ var World = exports.World = function (_THREE$EventDispatche) {
                         (0, _data.stitchGeometries)(_this4.geometries[neighbors[direction]], geometry, direction);
                     }
                 });
+                // Don't add sea tile if lowest point in box is above 0
+                if (geometry.boundingBox.min.z > 0) {
+                    addSeaTile = false;
+                }
             }
             // If no geometry, or the bounding box has an underwater section, add sea tile
-            if (!geometry || geometry.boundingBox.min.z <= 0) {
+            if (addSeaTile) {
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
                 this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
             }
@@ -66055,18 +66063,26 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 }
                 return false;
             });
-            // TODO Get where centre of view intersects z=0 plane and
-            // measure distance from there
-            // Sort them by distance
-            var getDistance = function getDistance(d) {
-                return d.geometry.boundingSphere.center.length();
-            };
-            emptyMeshes.sort(function (a, b) {
-                return getDistance(a) - getDistance(b);
+            // Work out where the center of the screen coincides with the tilemap
+            var raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+            var intersects = raycaster.intersectObjects(this.scene.children);
+            var center = intersects[0].point;
+            center.setZ(0);
+            // Sort them by distance from center
+            var distances = emptyMeshes.map(function (d) {
+                var meshCenter = d.geometry.boundingSphere.center.clone();
+                meshCenter.setZ(0);
+                return {
+                    id: d.name.split('-')[1],
+                    distance: meshCenter.sub(center).length()
+                };
             });
-            emptyMeshes.forEach(function (d) {
-                var id = d.name.split('-')[1];
-                _this7.load(id);
+            distances.sort(function (a, b) {
+                return a.distance - b.distance;
+            });
+            distances.forEach(function (d, i) {
+                _this7.load(d.id, Math.floor(i / 5) * 200);
             });
         }
     }]);
@@ -69206,7 +69222,7 @@ function debounce(func) {
     var h = void 0;
     return function () {
         clearTimeout(h);
-        h = setTimeout(function () {
+        h = window.setTimeout(function () {
             return func();
         }, wait);
     };
@@ -69216,7 +69232,7 @@ function debounce(func) {
 /* 42 */
 /***/ (function(module, exports) {
 
-module.exports = {"name":"sceptred","version":"0.0.8","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"@types/react":"^16.0.40","chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
+module.exports = {"name":"sceptred","version":"0.0.8","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
 
 /***/ }),
 /* 43 */

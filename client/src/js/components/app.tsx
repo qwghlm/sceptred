@@ -48,8 +48,8 @@ export class App extends React.Component<AppProps, {}> {
     }
 
     // Handle keypress
-    handleKey = (e) => {
-        this.updateFormValue(e.target.value);
+    handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        this.updateFormValue((e.target as HTMLInputElement).value);
         if (this.state.buttonEnabled && e.keyCode === 13) {
             this.doSearch();
         }

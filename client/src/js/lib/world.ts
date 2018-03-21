@@ -69,6 +69,8 @@ export class World extends THREE.EventDispatcher {
         this.geometries = {};
         this.loader = new Loader();
 
+        this.navigateTo("NN37")
+
     }
 
     // Setup transform from real-world to 3D world coordinates
@@ -79,7 +81,6 @@ export class World extends THREE.EventDispatcher {
         // Calculate the real origin (i.e. where the world is centred),
         // the world origin (i.e (0, 0, 0))
         // and the transform to get from one to the other
-        gridref = gridref.toUpperCase();
         var realOrigin = gridrefToCoords(gridref);
         var worldOrigin = new THREE.Vector3(0, 0, 0);
         this.transform = makeTransform(realOrigin, worldOrigin, this.scale);
@@ -94,7 +95,7 @@ export class World extends THREE.EventDispatcher {
         });
 
         // Then load the square in the middle
-        return this.load(gridSquare);
+        return this.load(gridSquare, 0);
 
     }
 
@@ -105,7 +106,7 @@ export class World extends THREE.EventDispatcher {
     }
 
     // Load the gridsquare
-    load(gridSquare: string) {
+    load(gridSquare: string, delay: number) {
 
         var url = `/data/${gridSquare}`;
 
@@ -115,7 +116,8 @@ export class World extends THREE.EventDispatcher {
         }
 
         // Set load and error listeners
-        return this.loader.load(url)
+        return new Promise(resolve => setTimeout(resolve, delay))
+            .then(() => this.loader.load(url))
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
@@ -130,16 +132,16 @@ export class World extends THREE.EventDispatcher {
         let gridSquare = grid.meta.gridReference;
         this.removeFromWorld("empty-" + gridSquare);
 
-        let geometry;
+        var addSeaTile = true;
 
         // If data exists, then make a land geometry
         if (grid.data.length) {
 
-            geometry = makeLandGeometry(grid, this.transform);
+            let geometry = makeLandGeometry(grid, this.transform);
             this.geometries[gridSquare] = geometry;
 
             // Try stitching this to existing geometries
-            var neighbors = {
+            let neighbors : { [key: string]: string } = {
                 right : getNeighboringSquare(gridSquare, 1, 0),
                 top : getNeighboringSquare(gridSquare, 0, 1),
                 topRight : getNeighboringSquare(gridSquare, 1, 1),
@@ -164,10 +166,15 @@ export class World extends THREE.EventDispatcher {
                     stitchGeometries(this.geometries[neighbors[direction]], geometry, direction);
                 }
             });
+
+            // Don't add sea tile if lowest point in box is above 0
+            if (geometry.boundingBox.min.z > 0) {
+                addSeaTile = false;
+            }
         }
 
         // If no geometry, or the bounding box has an underwater section, add sea tile
-        if (!geometry || geometry.boundingBox.min.z <= 0) {
+        if (addSeaTile) {
             let emptyGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
             this.addToWorld(makeSea(emptyGeometry, "sea-" + gridSquare));
         }
@@ -211,15 +218,26 @@ export class World extends THREE.EventDispatcher {
                 return false;
             });
 
-        // TODO Get where centre of view intersects z=0 plane and
-        // measure distance from there
+        // Work out where the center of the screen coincides with the tilemap
+        var raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
+        var intersects = raycaster.intersectObjects(this.scene.children);
+        var center = intersects[0].point;
+        center.setZ(0);
 
-        // Sort them by distance
-        const getDistance = (d: THREE.Object3D) => (<THREE.Mesh>d).geometry.boundingSphere.center.length();
-        emptyMeshes.sort((a, b) => getDistance(a) - getDistance(b));
-        emptyMeshes.forEach(d => {
-            var id = d.name.split('-')[1];
-            this.load(id);
+        // Sort them by distance from center
+        var distances = emptyMeshes.map(d => {
+            var meshCenter = (<THREE.Mesh>d).geometry.boundingSphere.center.clone();
+            meshCenter.setZ(0);
+            return {
+                id: d.name.split('-')[1],
+                distance: meshCenter.sub(center).length();
+            }
+        })
+
+        distances.sort((a, b) => a.distance - b.distance);
+        distances.forEach((d, i) => {
+            this.load(d.id, Math.floor(i/5)*200);
         });
     }
 }

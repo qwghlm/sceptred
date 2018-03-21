@@ -126,10 +126,10 @@ export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, s
 export function stitchGeometries(target: THREE.BufferGeometry, neighbor: THREE.BufferGeometry, relation: string) {
 
     // Get the BufferAttribute positions of both
-    var targetPositions = target.getAttribute('position');
+    var targetPositions = target.getAttribute('position') as THREE.BufferAttribute;
     var neighbourPositions = neighbor.getAttribute('position');
 
-    var targetColors = target.getAttribute('color');
+    var targetColors = target.getAttribute('color') as THREE.BufferAttribute;
     var neighbourColors = neighbor.getAttribute('color');
 
     // Work out the height and width of the geometries (201 x 201)
