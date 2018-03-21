@@ -65897,7 +65897,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
         // Set up loader
         _this.geometries = {};
         _this.loader = new _loader.Loader();
-        _this.navigateTo("NN37");
         return _this;
     }
     // Setup transform from real-world to 3D world coordinates
@@ -65940,7 +65939,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             }
             // Set load and error listeners
             return new Promise(function (resolve) {
-                return setTimeout(resolve, delay);
+                return delay === 0 ? resolve() : setTimeout(resolve, delay);
             }).then(function () {
                 return _this2.loader.load(url);
             }).then(function (json) {
@@ -65972,7 +65971,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 Object.keys(neighbors).forEach(function (direction) {
                     if (neighbors[direction] in _this3.geometries) {
                         var neighborGeometry = _this3.geometries[neighbors[direction]];
-                        if (neighborGeometry.isBufferGeometry !== undefined) {
+                        if (neighborGeometry.type == "BufferGeometry") {
                             (0, _data.stitchGeometries)(geometry, neighborGeometry, direction);
                         }
                     }
@@ -65988,7 +65987,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 Object.keys(neighbors).forEach(function (direction) {
                     if (neighbors[direction] in _this3.geometries) {
                         var neighborGeometry = _this3.geometries[neighbors[direction]];
-                        if (neighborGeometry.isBufferGeometry !== undefined) {
+                        if (neighborGeometry.type == "BufferGeometry") {
                             (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
                         }
                     }
@@ -66007,12 +66006,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
             (0, _grid.getSurroundingSquares)(gridSquare, 1).forEach(function (surroundingSquare) {
                 if (!(surroundingSquare in _this3.geometries)) {
                     var emptyMeshName = "empty-" + surroundingSquare;
-                    if (_this3.scene.children.filter(function (d) {
-                        return d.name == emptyMeshName;
-                    }).length === 0) {
-                        var _emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
-                        _this3.addToWorld(makeWireframe(_emptyGeometry, emptyMeshName));
-                    }
+                    var _emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
+                    return _this3.addToWorld(makeWireframe(_emptyGeometry, emptyMeshName));
                 }
             });
         }

@@ -69,8 +69,6 @@ export class World extends THREE.EventDispatcher {
         this.geometries = {};
         this.loader = new Loader();
 
-        this.navigateTo("NN37")
-
     }
 
     // Setup transform from real-world to 3D world coordinates
@@ -110,7 +108,7 @@ export class World extends THREE.EventDispatcher {
         }
 
         // Set load and error listeners
-        return new Promise(resolve => setTimeout(resolve, delay))
+        return new Promise(resolve => (delay === 0) ? resolve() : setTimeout(resolve, delay))
             .then(() => this.loader.load(url))
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
@@ -142,7 +140,7 @@ export class World extends THREE.EventDispatcher {
             Object.keys(neighbors).forEach(direction => {
                 if (neighbors[direction] in this.geometries) {
                     var neighborGeometry = this.geometries[neighbors[direction]];
-                    if (neighborGeometry.isBufferGeometry !== undefined) {
+                    if (neighborGeometry.type == "BufferGeometry") {
                         stitchGeometries(geometry, neighborGeometry as THREE.BufferGeometry, direction);
                     }
                 }
@@ -160,7 +158,7 @@ export class World extends THREE.EventDispatcher {
             Object.keys(neighbors).forEach(direction => {
                 if (neighbors[direction] in this.geometries) {
                     var neighborGeometry = this.geometries[neighbors[direction]];
-                    if (neighborGeometry.isBufferGeometry !== undefined) {
+                    if (neighborGeometry.type == "BufferGeometry") {
                         stitchGeometries(neighborGeometry as THREE.BufferGeometry, geometry, direction);
                     }
                 }
@@ -182,13 +180,10 @@ export class World extends THREE.EventDispatcher {
         getSurroundingSquares(gridSquare, 1).forEach(surroundingSquare => {
             if (!(surroundingSquare in this.geometries)) {
                 var emptyMeshName = "empty-" + surroundingSquare;
-                if (this.scene.children.filter(d => d.name == emptyMeshName).length === 0) {
-                    let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
-                    this.addToWorld(makeWireframe(emptyGeometry, emptyMeshName));
-                }
+                let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
+                return this.addToWorld(makeWireframe(emptyGeometry, emptyMeshName));
             }
         });
-
     }
 
     // Generic adds a mesh to the world
@@ -247,7 +242,7 @@ export class World extends THREE.EventDispatcher {
             meshCenter.setZ(0);
             return {
                 id: d.name.split('-')[1],
-                distance: meshCenter.sub(center).length();
+                distance: meshCenter.sub(center).length()
             }
         })
 
