@@ -11,6 +11,12 @@ module.exports = {
       "^.+\\.js$": "babel-jest",
     },
 
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.test.json"
+      }
+    },
+
     "collectCoverage": true,
     "collectCoverageFrom": [
       "client/src/js/components/*.tsx",
