@@ -66075,6 +66075,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
             var raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
             var intersects = raycaster.intersectObjects(this.scene.children);
+            if (intersects.length === 0) {
+                return;
+            }
             var center = intersects[0].point;
             center.setZ(0);
             // Sort them by distance from center
