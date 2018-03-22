@@ -58,7 +58,7 @@ func instance() *echo.Echo {
         Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
     }))
 
-    if true || os.Getenv("SCEPTRED_ENV") == "production" {
+    if os.Getenv("SCEPTRED_ENV") == "production" {
         e.Use(cacheHeader)
         e.Use(middleware.Gzip())
     }
