@@ -6,6 +6,7 @@ import (
     "io"
     "log"
     "os"
+    "regexp"
 
     "github.com/dgraph-io/badger"
     "github.com/getsentry/raven-go"
@@ -16,10 +17,22 @@ import (
 
 var srcPath = build.Default.GOPATH + "/src/sceptred"
 
+var staticRegexp, _ = regexp.Compile("^(/static|favicon.ico)")
+var dataRegexp, _ = regexp.Compile("^/data")
+
 // Caching
 func cacheHeader(next echo.HandlerFunc) echo.HandlerFunc {
     return func(c echo.Context) error {
-        c.Response().Header().Set("Cache-Control", "max-age=60")
+
+        // Different cache times for different types of request
+        cacheTime := "60"
+        url := c.Request().URL.String()
+        if staticRegexp.MatchString(url) {
+            cacheTime = "86400"
+        } else if dataRegexp.MatchString(url) {
+            cacheTime = "900"
+        }
+        c.Response().Header().Set("Cache-Control", "max-age=" + cacheTime)
         return next(c)
     }
 }
@@ -45,7 +58,7 @@ func instance() *echo.Echo {
         Format: "${method} ${uri} | Status: ${status} | Bytes: ${bytes_out} | Time: ${latency_human}\n",
     }))
 
-    if os.Getenv("SCEPTRED_ENV") == "production" {
+    if true || os.Getenv("SCEPTRED_ENV") == "production" {
         e.Use(cacheHeader)
         e.Use(middleware.Gzip())
     }
