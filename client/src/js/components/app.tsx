@@ -86,10 +86,13 @@ export class App extends React.Component<AppProps, {}> {
 
             <div className="column col-10">
 
-                <input className="form-input" type="text" value={this.state.formValue}
+                <input className="form-input" type="text" id="search-text"
+                    value={this.state.formValue}
                     onChange={(e) => this.updateFormValue(e.target.value)}
                     onKeyUp={this.handleKey}
                     placeholder="Enter an OS grid reference e.g. NT27" />
+
+                <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
 
             </div>
 
