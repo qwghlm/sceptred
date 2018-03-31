@@ -163,7 +163,9 @@ module.exports = function(env, caller) {
             ]
         },
 
-        devtool: !isProduction && 'cheap-module-source-map',
+        // TODO Reveal source maps to Sauce but not the general public
+        // devtool: !isProduction && 'cheap-module-source-map',
+        devtool: 'cheap-module-source-map',
 
         watchOptions: {
             ignored: /node_modules/,
