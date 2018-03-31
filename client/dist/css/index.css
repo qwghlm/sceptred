@@ -2706,6 +2706,11 @@ header {
     .container {
       max-width: 640px; } }
 
+@media only screen and (max-width: 640px) {
+  .form-wrapper input, .form-wrapper button {
+    font-size: 140%;
+    height: 2.7rem; } }
+
 .canvas-wrapper {
   overflow: hidden;
   max-height: 1000px;

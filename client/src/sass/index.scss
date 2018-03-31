@@ -32,6 +32,17 @@ header {
     margin: 0 auto;
 }
 
+.form-wrapper {
+
+    input, button {
+        @media only screen and (max-width: 640px) {
+            font-size: 140%;
+            height: 1.5*1.8rem;
+        }
+    }
+
+}
+
 .canvas-wrapper {
 
     overflow: hidden;

@@ -82,9 +82,9 @@ export class App extends React.Component<AppProps, {}> {
     // Renderer
     render() {
 
-        const form = this.state.enabled ? <div className="columns">
+        const form = this.state.enabled ? <div className="columns form-wrapper">
 
-            <div className="column col-10">
+            <div className="column col-10 col-sm-9">
 
                 <input className="form-input" type="text" id="search-text"
                     value={this.state.formValue}
@@ -96,9 +96,9 @@ export class App extends React.Component<AppProps, {}> {
 
             </div>
 
-            <div className="column col-2">
+            <div className="column col-2 col-sm-3">
 
-                <button className={"col-12 btn btn-primary " + (this.state.loading ? "loading" : "")}
+                <button className={"btn btn-primary btn-block " + (this.state.loading ? "loading" : "")}
                     disabled={!this.state.buttonEnabled} onClick={this.doSearch}>Go</button>
 
             </div>
