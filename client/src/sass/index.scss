@@ -32,6 +32,18 @@ header {
     margin: 0 auto;
 }
 
+.canvas-wrapper {
+
+    overflow: hidden;
+    max-height: 1000px;
+
+    transition: max-height 400ms;
+
+    &.inactive {
+        max-height: 0px;
+    }
+}
+
 .debug-stats {
     margin-top: 120px;
 }
