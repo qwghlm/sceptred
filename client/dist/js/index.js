@@ -64463,9 +64463,9 @@ var App = exports.App = function (_React$Component) {
         // Handler for if there is a webgl error in the map
         var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
 
-        _this.handleWebglError = function () {
+        _this.onInitError = function () {
             _this.setState({
-                webglEnabled: false
+                enabled: false
             });
         };
         // Handle keypress
@@ -64484,19 +64484,19 @@ var App = exports.App = function (_React$Component) {
             });
         };
         // When load is done
-        _this.loadDone = function () {
+        _this.onLoadSuccess = function () {
             _this.setState({
                 loading: false
             });
         };
         // When load fails
-        _this.loadFailed = function (message) {
+        _this.onLoadError = function (message) {
             _this.setState({
                 errorMessage: message,
                 loading: false
             });
         };
-        _this.state = { webglEnabled: true, buttonEnabled: false, loading: false, errorMessage: "",
+        _this.state = { enabled: true, buttonEnabled: false, loading: false, errorMessage: "",
             formValue: "", mapValue: "" };
         return _this;
     }
@@ -64518,11 +64518,11 @@ var App = exports.App = function (_React$Component) {
         value: function render() {
             var _this2 = this;
 
-            var form = this.state.webglEnabled ? React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-10" }, React.createElement("input", { className: "form-input", type: "text", id: "search-text", value: this.state.formValue, onChange: function onChange(e) {
+            var form = this.state.enabled ? React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-10" }, React.createElement("input", { className: "form-input", type: "text", id: "search-text", value: this.state.formValue, onChange: function onChange(e) {
                     return _this2.updateFormValue(e.target.value);
                 }, onKeyUp: this.handleKey, placeholder: "Enter an OS grid reference e.g. NT27" }), React.createElement("label", { className: "text-assistive", htmlFor: "search-text" }, "Enter an OS grid reference e.g. NT27")), React.createElement("div", { className: "column col-2" }, React.createElement("button", { className: "col-12 btn btn-primary " + (this.state.loading ? "loading" : ""), disabled: !this.state.buttonEnabled, onClick: this.doSearch }, "Go"))) : "";
             // Render form, then error state, then map
-            return React.createElement("div", null, form, React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: false, gridReference: this.state.mapValue, onInitError: this.handleWebglError, onLoadError: this.loadFailed, onLoadFinished: this.loadDone }))));
+            return React.createElement("div", null, form, React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: false, gridReference: this.state.mapValue, onInitError: this.onInitError, onLoadError: this.onLoadError, onLoadSuccess: this.onLoadSuccess }))));
         }
     }]);
 
@@ -64655,16 +64655,25 @@ var Map = exports.Map = function (_React$Component) {
     }, {
         key: "componentWillUpdate",
         value: function componentWillUpdate(nextProps, nextState) {
+            var _this2 = this;
+
             // Try loading it and navigating to it
             if (nextProps.gridReference.length) {
-                try {
-                    this.world.navigateTo(nextProps.gridReference).then(this.props.onLoadFinished);
-                    this.controls.reset();
-                }
-                // If it fails, trigger an error
-                catch (e) {
-                    this.props.onLoadError(e.message);
-                }
+                setTimeout(function () {
+                    return _this2.navigateTo(nextProps.gridReference);
+                }, 400);
+            }
+        }
+    }, {
+        key: "navigateTo",
+        value: function navigateTo(gridReference) {
+            try {
+                this.world.navigateTo(gridReference).then(this.props.onLoadSuccess);
+                this.controls.reset();
+            }
+            // If it fails, trigger an error
+            catch (e) {
+                this.props.onLoadError(e.message);
             }
         }
         // Simple resizer
@@ -64704,7 +64713,7 @@ var Map = exports.Map = function (_React$Component) {
             if (!Modernizr.webgl) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
-            return React.createElement("div", { className: "canvas-wrapper inactive" }, React.createElement("canvas", null), React.createElement("div", { className: "app-instructions" }, React.createElement("p", null, "Use your mouse to pan around the map. Hold down ", React.createElement("code", null, "Ctrl"), " to rotate the world. Hold down ", React.createElement("code", null, "Shift"), " to zoom, or use your mousewheel or scroll action on your touchpad.")));
+            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("canvas", null), React.createElement("div", { className: "instructions" }, React.createElement("p", null, "Use your mouse to pan around the map. Hold down ", React.createElement("code", null, "Ctrl"), " to rotate the world. Hold down ", React.createElement("code", null, "Shift"), " to zoom, or use your mousewheel or scroll action on your touchpad.")));
         }
     }]);
 
@@ -65897,7 +65906,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
         // Set up loader
         _this.geometries = {};
         _this.loader = new _loader.Loader();
-        _this.navigateTo('NN33');
+        // this.navigateTo('NN33');
         return _this;
     }
     // Setup transform from real-world to 3D world coordinates

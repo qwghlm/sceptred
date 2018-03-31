@@ -102,16 +102,21 @@ export class Map extends React.Component<MapProps, {}> {
 
         // Try loading it and navigating to it
         if (nextProps.gridReference.length) {
-            try {
-                this.world.navigateTo(nextProps.gridReference)
-                    .then(this.props.onLoadSuccess);
-                this.controls.reset();
-            }
+            setTimeout(() => this.navigateTo(nextProps.gridReference), 400);
+        }
+    }
 
-            // If it fails, trigger an error
-            catch (e) {
-                this.props.onLoadError(e.message);
-            }
+    navigateTo(gridReference) {
+
+        try {
+            this.world.navigateTo(gridReference)
+                .then(this.props.onLoadSuccess);
+            this.controls.reset();
+        }
+
+        // If it fails, trigger an error
+        catch (e) {
+            this.props.onLoadError(e.message);
         }
     }
 
@@ -144,7 +149,7 @@ export class Map extends React.Component<MapProps, {}> {
         if (!Modernizr.webgl) {
             return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
         }
-        return <div className="canvas-wrapper">
+        return <div className={"canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive")}>
 
             <canvas></canvas>
 
