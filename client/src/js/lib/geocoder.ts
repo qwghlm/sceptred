@@ -1,4 +1,3 @@
-/* global google */
 import { coordsToGridref } from './grid.ts';
 import * as THREE from 'three';
 
