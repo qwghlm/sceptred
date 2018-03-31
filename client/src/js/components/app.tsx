@@ -8,7 +8,7 @@ import { isValidGridref } from '../lib/grid';
 interface AppProps {}
 interface AppState {
 
-    webglEnabled: boolean;
+    enabled: boolean;
 
     formValue: string;
     buttonEnabled: boolean;
@@ -28,14 +28,14 @@ export class App extends React.Component<AppProps, {}> {
     // Initialise default state
     constructor(props: AppProps) {
         super(props);
-        this.state = { webglEnabled: true, buttonEnabled: false,  loading: false, errorMessage: "",
+        this.state = { enabled: true, buttonEnabled: false,  loading: false, errorMessage: "",
             formValue: "", mapValue: "" }
     }
 
     // Handler for if there is a webgl error in the map
-    handleWebglError = () => {
+    onInitError = () => {
         this.setState({
-            webglEnabled: false
+            enabled: false
         });
     }
 
@@ -65,14 +65,14 @@ export class App extends React.Component<AppProps, {}> {
     }
 
     // When load is done
-    loadDone = () => {
+    onLoadSuccess = () => {
         this.setState({
             loading: false
         });
     }
 
     // When load fails
-    loadFailed = (message: string) => {
+    onLoadError = (message: string) => {
         this.setState({
             errorMessage: message,
             loading: false
@@ -82,7 +82,7 @@ export class App extends React.Component<AppProps, {}> {
     // Renderer
     render() {
 
-        const form = this.state.webglEnabled ? <div className="columns">
+        const form = this.state.enabled ? <div className="columns">
 
             <div className="column col-10">
 
@@ -116,9 +116,9 @@ export class App extends React.Component<AppProps, {}> {
             <div className="columns">
                 <div className="column col-12 mt-2">
                     <Map debug={false} gridReference={this.state.mapValue}
-                         onInitError={this.handleWebglError}
-                         onLoadError={this.loadFailed}
-                         onLoadFinished={this.loadDone} />
+                         onInitError={this.onInitError}
+                         onLoadError={this.onLoadError}
+                         onLoadSuccess={this.onLoadSuccess} />
                 </div>
             </div>
 

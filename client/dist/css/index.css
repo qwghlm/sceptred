@@ -2713,6 +2713,10 @@ header {
   .canvas-wrapper.inactive {
     max-height: 0px; }
 
+@media only screen and (min-width: 641px) {
+  .instructions {
+    font-size: 80%; } }
+
 .debug-stats {
   margin-top: 120px; }
 

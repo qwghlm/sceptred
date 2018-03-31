@@ -16,7 +16,7 @@ type MapProps = {
     gridReference: string,
     onInitError: () => void,
     onLoadError: (message: string) => void,
-    onLoadFinished: () => void,
+    onLoadSuccess: () => void,
 };
 type MapState = {};
 
@@ -104,7 +104,7 @@ export class Map extends React.Component<MapProps, {}> {
         if (nextProps.gridReference.length) {
             try {
                 this.world.navigateTo(nextProps.gridReference)
-                    .then(this.props.onLoadFinished);
+                    .then(this.props.onLoadSuccess);
                 this.controls.reset();
             }
 
@@ -144,11 +144,11 @@ export class Map extends React.Component<MapProps, {}> {
         if (!Modernizr.webgl) {
             return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
         }
-        return <div className="canvas-wrapper inactive">
+        return <div className="canvas-wrapper">
 
             <canvas></canvas>
 
-            <div className="app-instructions">
+            <div className="instructions">
                 <p>
                     Use your mouse to pan around the map. Hold down <code>Ctrl</code> to rotate the world. Hold down <code>Shift</code> to zoom, or use your mousewheel or scroll action on your touchpad.
                 </p>
