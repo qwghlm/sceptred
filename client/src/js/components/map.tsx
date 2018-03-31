@@ -2,7 +2,7 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import * as THREE from 'three';
-import TrackballControls from 'three-trackballcontrols';
+import { TrackballControls } from '../vendor/trackballcontrols.js';
 
 import Stats from "stats";
 import * as Modernizr from 'Modernizr';
@@ -66,8 +66,8 @@ export class Map extends React.Component<MapProps, {}> {
         controls.staticMoving = true;
         controls.dynamicDampingFactor = 0.3;
 
-        // Rotate (none), zoom (shift), pan (ctrl)
-        controls.keys = [-1, 16, 17];
+        // Rotate (ctrl), zoom (shift), pan (none, default)
+        controls.keys = [17, 16, -1];
 
         // Set up stats to record
         var stats = this.stats = Stats();
