@@ -1,7 +1,8 @@
 import * as React from "react";
 
 import { Map } from './map'
-import { isValidGridref } from '../lib/grid';
+import { geocode } from '../lib/geocoder';
+import { debounce } from '../lib/utils';
 
 // Types for props and state
 
@@ -10,13 +11,37 @@ interface AppState {
 
     enabled: boolean;
 
-    formValue: string;
-    buttonEnabled: boolean;
+    searchTerm: string;
+    searchResults: SearchResult[] | null;
 
     loading: boolean;
     mapValue: string;
     errorMessage: string;
 
+}
+interface SearchResult {
+    name: string;
+    gridReference: string;
+}
+interface SearchResultProps {
+    name: string;
+    gridReference: string;
+    onSelect: (SearchResult) => void;
+}
+
+// An individual search result in the autocomplete
+
+class SearchResult extends React.Component<SearchResultProps, {}> {
+
+    render() {
+        return <li className="menu-item">
+            <a href="#" onClick={(e) => this.props.onSelect({
+                name: this.props.name, gridReference: this.props.gridReference
+            })}>
+                {this.props.name}
+            </a>
+        </li>
+    }
 }
 
 // Our app
@@ -24,15 +49,27 @@ interface AppState {
 export class App extends React.Component<AppProps, {}> {
 
     state: AppState;
+    doGeolookup: (string) => void;
 
     // Initialise default state
     constructor(props: AppProps) {
         super(props);
-        this.state = { enabled: true, buttonEnabled: false,  loading: false, errorMessage: "",
-            formValue: "", mapValue: "" }
+
+        this.doGeolookup = debounce(this._doGeolookup.bind(this), 400);
+
+        this.state = {
+            enabled: true,
+
+            searchTerm: "",
+            searchResults: null,
+
+            loading: false,
+            mapValue: "",
+            errorMessage: "",
+        }
     }
 
-    // Handler for if there is a webgl error in the map
+    // Handler for if there is an error with the map
     onInitError = () => {
         this.setState({
             enabled: false
@@ -40,27 +77,38 @@ export class App extends React.Component<AppProps, {}> {
     }
 
     // Updates when form value is changed
-    updateFormValue(value: string) {
+    updateSearchTerm(value: string) {
         this.setState({
-            formValue: value,
-            buttonEnabled: isValidGridref(value),
+            searchTerm: value
         });
+        if (value.length >= 3) {
+            this.doGeolookup(value);
+        }
+    }
+
+    _doGeolookup(value: string) {
+        geocode(value)
+            .then((results) => {
+                this.setState({searchResults: results})
+            })
+            .catch((status) => {
+                this.setState({searchResults: []})
+            });
     }
 
     // Handle keypress
     handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        this.updateFormValue((e.target as HTMLInputElement).value);
-        if (this.state.buttonEnabled && e.keyCode === 13) {
-            this.doSearch();
-        }
+        this.updateSearchTerm((e.target as HTMLInputElement).value);
     }
 
     // Perform search
-    doSearch = () => {
+    doSearch = (result) => {
         this.setState({
             loading: true,
+            searchTerm: result.name,
+            searchResults: null,
             errorMessage: "",
-            mapValue: this.state.formValue
+            mapValue: result.gridReference
         });
     }
 
@@ -82,28 +130,45 @@ export class App extends React.Component<AppProps, {}> {
     // Renderer
     render() {
 
-        const form = this.state.enabled ? <div className="columns form-wrapper">
+        var autocomplete;
 
-            <div className="column col-10 col-sm-9">
+        if (this.state.searchResults === null) {
+            autocomplete = "";
+        }
+        else if (this.state.searchResults.length === 0) {
+            autocomplete = <ul className="menu"><em>No results found</em></ul>
+        }
+        else {
+            autocomplete = <ul className="menu">
+                {this.state.searchResults.map((r, i) => <SearchResult key={i} onSelect={this.doSearch} {...r}/>)}
+            </ul>;
+        }
 
-                <input className="form-input" type="text" id="search-text"
-                    value={this.state.formValue}
-                    onChange={(e) => this.updateFormValue(e.target.value)}
-                    onKeyUp={this.handleKey}
-                    placeholder="OS grid reference e.g. NT27" />
+        const form = <div className={"columns form-wrapper " + (this.state.enabled ? "" : "d-none")}>
 
-                <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
+            <div className="column col-12">
+
+                <div className="form-autocomplete">
+
+                    <div className="form-autocomplete-input">
+
+                        <input className="form-input" type="text" id="search-text"
+                            value={this.state.searchTerm}
+                            onChange={(e) => this.updateSearchTerm(e.target.value)}
+                            onKeyUp={this.handleKey}
+                            placeholder="Placename" />
+
+                        <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
+
+                    </div>
+
+                    {autocomplete}
+
+                </div>
 
             </div>
 
-            <div className="column col-2 col-sm-3">
-
-                <button className={"btn btn-primary btn-block " + (this.state.loading ? "loading" : "")}
-                    disabled={!this.state.buttonEnabled} onClick={this.doSearch}>Go</button>
-
-            </div>
-
-        </div> : "";
+        </div>;
 
         // Render form, then error state, then map
         return <div>

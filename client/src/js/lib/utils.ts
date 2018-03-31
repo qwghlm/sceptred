@@ -32,10 +32,10 @@ export function extend(...args: any[]) {
 }
 
 // Debounces a function so it is only called every `wait` seconds
-export function debounce(func: () => void, wait = 50) {
+export function debounce(func: (...args: any[]) => void, wait = 50) {
   let h: number;
-  return () => {
+  return (...args: any[]) => {
     clearTimeout(h);
-    h = window.setTimeout(() => func(), wait);
+    h = window.setTimeout(() => func.apply(null, args), wait);
   };
 }
