@@ -64624,7 +64624,7 @@ var Map = exports.Map = function (_React$Component) {
             controls.noPan = false;
             controls.staticMoving = true;
             controls.dynamicDampingFactor = 0.3;
-            // Shift+ drag to zoom, Ctrl+ drag to pan
+            // Rotate (none), zoom (shift), pan (ctrl)
             controls.keys = [-1, 16, 17];
             // Set up stats to record
             var stats = this.stats = (0, _stats2.default)();
@@ -64704,7 +64704,7 @@ var Map = exports.Map = function (_React$Component) {
             if (!Modernizr.webgl) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
-            return React.createElement("div", { className: "canvas-wrapper" }, React.createElement("canvas", null));
+            return React.createElement("div", { className: "canvas-wrapper inactive" }, React.createElement("canvas", null), React.createElement("div", { className: "app-instructions" }, React.createElement("p", null, "Use your mouse to pan around the map. Hold down ", React.createElement("code", null, "Ctrl"), " to rotate the world. Hold down ", React.createElement("code", null, "Shift"), " to zoom, or use your mousewheel or scroll action on your touchpad.")));
         }
     }]);
 
@@ -65897,6 +65897,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
         // Set up loader
         _this.geometries = {};
         _this.loader = new _loader.Loader();
+        _this.navigateTo('NN33');
         return _this;
     }
     // Setup transform from real-world to 3D world coordinates
@@ -69243,7 +69244,7 @@ function debounce(func) {
 /* 42 */
 /***/ (function(module, exports) {
 
-module.exports = {"name":"sceptred","version":"0.0.10","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
+module.exports = {"name":"sceptred","version":"0.0.11","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","three-trackballcontrols":"0.0.7","unfetch":"^3.0.0"}}
 
 /***/ }),
 /* 43 */

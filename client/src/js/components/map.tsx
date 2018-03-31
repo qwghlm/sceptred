@@ -66,7 +66,7 @@ export class Map extends React.Component<MapProps, {}> {
         controls.staticMoving = true;
         controls.dynamicDampingFactor = 0.3;
 
-        // Shift+ drag to zoom, Ctrl+ drag to pan
+        // Rotate (none), zoom (shift), pan (ctrl)
         controls.keys = [-1, 16, 17];
 
         // Set up stats to record
@@ -144,7 +144,17 @@ export class Map extends React.Component<MapProps, {}> {
         if (!Modernizr.webgl) {
             return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
         }
-        return <div className="canvas-wrapper"><canvas></canvas></div>;
+        return <div className="canvas-wrapper inactive">
+
+            <canvas></canvas>
+
+            <div className="app-instructions">
+                <p>
+                    Use your mouse to pan around the map. Hold down <code>Ctrl</code> to rotate the world. Hold down <code>Shift</code> to zoom, or use your mousewheel or scroll action on your touchpad.
+                </p>
+            </div>
+
+        </div>;
 
     }
 
