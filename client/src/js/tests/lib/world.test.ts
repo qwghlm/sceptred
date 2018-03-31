@@ -59,7 +59,7 @@ const seaFilter = d => d.name.split('-')[0] == 'sea'
 test('World works', async () => {
 
     // Create a new world
-    var world = new World(640, 512);
+    var world = new World(625, 500);
 
     // Check map is loaded
     expect(world.camera.aspect).toBe(1.25);

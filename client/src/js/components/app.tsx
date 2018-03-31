@@ -156,7 +156,7 @@ export class App extends React.Component<AppProps, {}> {
                             value={this.state.searchTerm}
                             onChange={(e) => this.updateSearchTerm(e.target.value)}
                             onKeyUp={this.handleKey}
-                            placeholder="Placename" />
+                            placeholder="Enter a place name..." />
 
                         <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
 
