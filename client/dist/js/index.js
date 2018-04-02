@@ -47214,6 +47214,8 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(31);
 
+var _package = __webpack_require__(42);
+
 __webpack_require__(43);
 
 __webpack_require__(48);
@@ -47223,13 +47225,13 @@ __webpack_require__(49);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Configure raven
-// Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
-//     release: version
-// }).install()
-// // Load app
-// Raven.context(function () {
-_reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
-// });
+Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
+    release: _package.version
+}).install();
+// Load app
+Raven.context(function () {
+    _reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
+});
 
 /***/ }),
 /* 20 */
@@ -64503,7 +64505,7 @@ module.exports = camelize;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.App = undefined;
+exports.App = exports.AutoCompleteItem = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -64526,16 +64528,16 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
 // An individual search result in the autocomplete
-var SearchResult = function (_React$Component) {
-    _inherits(SearchResult, _React$Component);
+var AutoCompleteItem = exports.AutoCompleteItem = function (_React$Component) {
+    _inherits(AutoCompleteItem, _React$Component);
 
-    function SearchResult() {
-        _classCallCheck(this, SearchResult);
+    function AutoCompleteItem() {
+        _classCallCheck(this, AutoCompleteItem);
 
-        return _possibleConstructorReturn(this, (SearchResult.__proto__ || Object.getPrototypeOf(SearchResult)).apply(this, arguments));
+        return _possibleConstructorReturn(this, (AutoCompleteItem.__proto__ || Object.getPrototypeOf(AutoCompleteItem)).apply(this, arguments));
     }
 
-    _createClass(SearchResult, [{
+    _createClass(AutoCompleteItem, [{
         key: 'render',
         value: function render() {
             var _this2 = this;
@@ -64548,7 +64550,7 @@ var SearchResult = function (_React$Component) {
         }
     }]);
 
-    return SearchResult;
+    return AutoCompleteItem;
 }(React.Component);
 // The entire autocomplete
 
@@ -64573,7 +64575,7 @@ var AutoComplete = function (_React$Component2) {
                 return React.createElement("ul", { className: "menu" }, React.createElement("em", null, "No results found"));
             } else {
                 return React.createElement("ul", { className: "menu" }, this.props.results.map(function (r, i) {
-                    return React.createElement(SearchResult, Object.assign({ key: i, onSelect: _this4.props.onSelect }, r));
+                    return React.createElement(AutoCompleteItem, Object.assign({ key: i, onSelect: _this4.props.onSelect }, r));
                 }));
             }
         }
@@ -69172,7 +69174,12 @@ function latLonToOsGrid(latitude, longitude) {
 ;
 
 /***/ }),
-/* 42 */,
+/* 42 */
+/***/ (function(module, exports) {
+
+module.exports = {"name":"sceptred","version":"0.0.11","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
+
+/***/ }),
 /* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
