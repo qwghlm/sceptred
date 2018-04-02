@@ -6,7 +6,7 @@ _This other Eden, demi-paradise,_<br>
 _This fortress built by Nature for her self_<br>
 &nbsp;&nbsp;— William Shakespeare, _Richard II_
 
-_Sceptred_ is a project to model the island of Great Britain in 3D, using open-source data.
+[_Sceptred_](http://sceptred.qwghlm.co.uk/) is a project to model the island of Great Britain in 3D, using open-source data.
 
 ![GitHub package version](https://img.shields.io/github/package-json/v/qwghlm/sceptred.svg)
 [![Build Status](https://travis-ci.org/qwghlm/sceptred.svg?branch=master)](https://travis-ci.org/qwghlm/sceptred)
