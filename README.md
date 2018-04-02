@@ -69,7 +69,17 @@ All tests can be run with:
 
 ## Deploying
 
-TBD
+Building a Docker container is straightforward:
+
+    $ docker build -t sceptred .
+
+And to run locally:
+
+    $ docker run -it -p 8000:8000 sceptred
+
+A GCloud deploy (if you have Google App Engine set up) is done with:
+
+    $ gcloud app deploy
 
 ## Architecture
 
