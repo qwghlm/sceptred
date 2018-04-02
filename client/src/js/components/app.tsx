@@ -16,7 +16,7 @@ interface SearchResultProps {
 
 // An individual search result in the autocomplete
 
-class SearchResult extends React.Component<SearchResultProps, {}> {
+export class AutoCompleteItem extends React.Component<SearchResultProps, {}> {
 
     render() {
         return <li className="menu-item">
@@ -31,19 +31,19 @@ class SearchResult extends React.Component<SearchResultProps, {}> {
 
 // The entire autocomplete
 
-class AutoComplete extends React.Component<{results: SearchResult[] | null, onSelect: (SearchResult) => void}, {}> {
+export class AutoComplete extends React.Component<{results: SearchResult[] | null, onSelect: (SearchResult) => void}, {}> {
 
     render() {
 
         if (this.props.results === null) {
-            return "";
+            return null;
         }
         else if (this.props.results.length === 0) {
             return <ul className="menu"><em>No results found</em></ul>
         }
         else {
             return <ul className="menu">
-                {this.props.results.map((r, i) => <SearchResult key={i} onSelect={this.props.onSelect} {...r}/>)}
+                {this.props.results.map((r, i) => <AutoCompleteItem key={i} onSelect={this.props.onSelect} {...r}/>)}
             </ul>;
         }
     }
@@ -55,7 +55,7 @@ interface SearchFormState {
     searchTerm: string;
     searchResults: SearchResult[] | null;
 }
-class SearchForm extends React.Component<{onSelect: (SearchResult) => void}, SearchFormState> {
+export class SearchForm extends React.Component<{onSelect: (SearchResult) => void}, SearchFormState> {
 
     doGeolookup: (string) => void;
     state: SearchFormState;
@@ -173,7 +173,7 @@ export class App extends React.Component<{}, AppState> {
         return <div>
             <div className={"columns form-wrapper " + (this.state.enabled ? "" : "d-none")}>
                 <div className="column col-12">
-                    <SearchForm onSelect={this.updateMap}/>
+                    <SearchForm onSelect={this.updateMap} />
                 </div>
             </div>
             <div className={"columns " + (this.state.errorMessage ? "" : "d-none")}>

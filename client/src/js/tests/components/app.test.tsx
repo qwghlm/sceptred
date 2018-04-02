@@ -2,31 +2,33 @@ import * as React from "react";
 import * as Enzyme from "enzyme";
 import * as Adapter from "enzyme-adapter-react-16";
 
-import { App } from '../../components/app';
+import { App, AutoCompleteItem, AutoComplete, SearchForm } from '../../components/app';
 
 Enzyme.configure({ adapter: new Adapter() })
 
 jest.mock("../../components/map", () => {
 	return { Map : jest.fn(() => "") }
 });
-// jest.mock("../../lib/geocoder", () => {
-// 	return {
-// 		geocode : jest.fn((searchTerm) => {
-// 			return new Promise((resolve, reject) => {
-// 				if (searchTerm == 'Edinburgh') {
-// 					resolve([{name: "Edinburgh, UK", gridReference: "NT27"}]);
-// 				}
-// 				else {
-// 					reject("No places found");
-// 				}
-// 			});
-// 		})
-// 	}
-// });
+
+// Mock our connection to the geocoding library
+jest.mock("../../lib/geocoder", () => {
+	return {
+		geocode : jest.fn((searchTerm) => {
+			return new Promise((resolve, reject) => {
+				if (searchTerm == 'Edinburgh') {
+					resolve([{name: "Edinburgh, UK", gridReference: "NT27"}]);
+				}
+				else {
+					reject("No places found");
+				}
+			});
+		})
+	}
+});
 
 jest.useFakeTimers();
 
-test('App component loads unenabled as expected', () => {
+test('App component renders unenabled as expected', () => {
 
 	let app = Enzyme.shallow(<App/>);
 	expect(app.state().enabled).toEqual(true);
@@ -35,7 +37,7 @@ test('App component loads unenabled as expected', () => {
 	expect(app.state().enabled).toEqual(false);
 });
 
-test('App component loads error as expected', () => {
+test('App component renders error as expected', () => {
 
 	let app = Enzyme.shallow(<App/>);
 	app.instance().onLoadError("No WebGL enabled");
@@ -43,7 +45,7 @@ test('App component loads error as expected', () => {
 
 });
 
-test('App component loads correctly as expected', () => {
+test('App component renders correctly as expected', () => {
 
 	let app = Enzyme.shallow(<App/>);
 	app.instance().updateMap({gridReference: "NT27"});
@@ -51,72 +53,83 @@ test('App component loads correctly as expected', () => {
 
 });
 
-	// Enter some text, expect autocomplete to display
-	// input.simulate('change', { target: { value: "Edinburgh"} });
-	// expect(app.state().searchTerm).toEqual("Edinburgh");
-    // await jest.runOnlyPendingTimers();
-	// expect(app.state().searchResults.length).toEqual(1);
+test('AutoCompleteItem component renders correctly', () => {
 
-	// // Click the button, expect state to be loading
-	// button.simulate('click')
-	// expect(app.state().loading).toEqual(true);
+	let listener = jest.fn();
+	let item = Enzyme.shallow(<AutoCompleteItem name="Edinburgh" gridReference="NT27" onSelect={listener} />);
+	expect(listener.mock.calls.length).toEqual(0);
 
-	// app.instance().loadDone();
-	// expect(app.state().loading).toEqual(false);
+	item.find('a').simulate('click');
+	expect(listener.mock.calls.length).toEqual(1);
+	expect(listener.mock.calls[0][0]).toEqual({
+		name: "Edinburgh",
+		gridReference: "NT27",
+	});
 
-// });
+});
 
-// test('App component returns an empty search correctly', async() => {
+test('AutoComplete component renders correctly', () => {
 
-// 	let app = Enzyme.shallow(<App/>);
-// 	let input = app.find('input');
-// 	expect(app.state().searchTerm).toEqual("");
+	let listener = jest.fn();
 
-// 	// Enter some text, expect autocomplete to display
-// 	input.simulate('change', { target: { value: "xxx"} });
-// 	expect(app.state().searchTerm).toEqual("xxx");
-//     await jest.runOnlyPendingTimers();
-// 	expect(app.state().searchResults.length).toEqual(0);
+	// Empty autocomplete is null
+	let emptyAutocomplete = Enzyme.shallow(<AutoComplete results={null} onSelect={listener} />);
+	expect(emptyAutocomplete.html()).toEqual(null);
 
-// });
+	// Autocomplete with no results is empty
+	let noResultsAutocomplete = Enzyme.shallow(<AutoComplete results={[]} onSelect={listener} />);
+	expect(noResultsAutocomplete.html()).toContain("No results found");
 
-// 	let app = Enzyme.shallow(<App/>);
+	// Autocomplete with results has results, and the Select event travels upward
+	let results = [{name: "Edinburgh", gridReference: "NT27"}];
+	let resultsAutocomplete = Enzyme.shallow(<AutoComplete results={results} onSelect={listener} />);
+	expect(resultsAutocomplete.html()).toContain("Edinburgh");
 
-// 	let input = app.find('input');
+	expect(listener.mock.calls.length).toEqual(0);
+	resultsAutocomplete.find('AutoCompleteItem').simulate('select');
+	expect(listener.mock.calls.length).toEqual(1);
 
-// 	// input.simulate('keyup', { target: { value: "NT2" }, keyCode: 50 });
-// 	// expect(app.state().loading).toEqual(false);
+});
 
-// 	// input.simulate('keyup', { target: { value: "NT2" }, keyCode: 13 });
-// 	// expect(app.state().loading).toEqual(false);
+test('SearchForm component renders correctly', async () => {
 
-// 	// input.simulate('keyup', { target: { value: "NT27" }, keyCode: 55 });
-// 	// expect(app.state().loading).toEqual(false);
+	let listener = jest.fn();
 
-// 	// input.simulate('keyup', { target: { value: "NT27" }, keyCode: 13 });
-// 	// expect(app.state().loading).toEqual(true);
+	let searchForm = Enzyme.shallow(<SearchForm onSelect={listener} />);
+	let input = searchForm.find('input');
 
-// });
+	// Check initial state
+	expect(searchForm.state().searchTerm).toEqual("");
+	expect(searchForm.state().searchResults).toEqual(null);
+	expect(listener.mock.calls.length).toEqual(0)
 
-// test('App component handles load failure correctly', () => {
+	// A short search should do no change to results
+	input.simulate('keyup', { target: { value: "Ed"} });
+	await jest.runAllTimers();
+	expect(searchForm.state().searchTerm).toEqual("Ed");
+	expect(searchForm.state().searchResults).toEqual(null);
+	expect(listener.mock.calls.length).toEqual(0)
 
-// 	let app = Enzyme.shallow(<App/>);
+	// A fuller search now should produce results, but no select event yet
+	input.simulate('keyup', { target: { value: "Edinburgh"} });
+	await jest.runAllTimers();
+	expect(searchForm.state().searchTerm).toEqual("Edinburgh");
+	expect(searchForm.state().searchResults.length).toEqual(1);
+	expect(listener.mock.calls.length).toEqual(0)
 
-// 	// app.find('button').simulate('click')
-// 	// expect(app.state().loading).toEqual(true);
+	// Trigger a select event on the AutoComplete
+	let eventData = {name: "Edinburgh, UK", gridReference: "NT27"};
+	searchForm.find('AutoComplete').simulate('select', eventData);
+	expect(searchForm.state().searchTerm).toEqual("Edinburgh, UK");
+	expect(searchForm.state().searchResults).toEqual(null);
+	expect(listener.mock.calls.length).toEqual(1);
+	expect(listener.mock.calls[0][0]).toEqual(eventData);
 
-// 	// app.instance().loadFailed("Sorry, failed");
-// 	// expect(app.state().loading).toEqual(false);
-// 	// expect(app.state().errorMessage).toEqual("Sorry, failed");
+	// Now do a bad search
+	input.simulate('change', { target: { value: "Xxxx"} });
+	await jest.runAllTimers();
+	await jest.runAllTimers();
+	expect(searchForm.state().searchTerm).toEqual("Xxxx");
+	expect(searchForm.state().searchResults).toEqual([]);
 
-// });
-
-// test('App component handles WebGL failure correctly', () => {
-
-// 	let app = Enzyme.shallow(<App/>);
-// 	expect(app.state().enabled).toEqual(true);
-
-// 	app.instance().onInitError();
-// 	expect(app.state().enabled).toEqual(false);
-
-// });
+});
