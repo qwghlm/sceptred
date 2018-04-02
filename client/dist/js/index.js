@@ -47073,6 +47073,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.isMobile = isMobile;
 exports.isTouch = isTouch;
 exports.isRetina = isRetina;
+exports.webglEnabled = webglEnabled;
 exports.extend = extend;
 exports.debounce = debounce;
 // Feature detection
@@ -47087,6 +47088,15 @@ function isTouch() {
 /* istanbul ignore next */
 function isRetina() {
     return window.devicePixelRatio && window.devicePixelRatio > 1.3;
+}
+/* istanbul ignore next */
+function webglEnabled() {
+    try {
+        var canvas = document.createElement('canvas');
+        return !!('WebGLRenderingContext' in window && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch (e) {
+        return false;
+    }
 }
 // http://youmightnotneedjquery.com/
 function extend() {
@@ -47204,13 +47214,13 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(31);
 
-var _package = __webpack_require__(43);
+var _package = __webpack_require__(42);
 
-__webpack_require__(44);
+__webpack_require__(43);
+
+__webpack_require__(48);
 
 __webpack_require__(49);
-
-__webpack_require__(50);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64505,7 +64515,7 @@ var React = _interopRequireWildcard(_react);
 
 var _map = __webpack_require__(32);
 
-var _geocoder = __webpack_require__(42);
+var _geocoder = __webpack_require__(41);
 
 var _utils = __webpack_require__(17);
 
@@ -64682,11 +64692,9 @@ var _stats = __webpack_require__(34);
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _Modernizr = __webpack_require__(35);
+var _world = __webpack_require__(35);
 
-var Modernizr = _interopRequireWildcard(_Modernizr);
-
-var _world = __webpack_require__(36);
+var _utils = __webpack_require__(17);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64829,7 +64837,7 @@ var Map = exports.Map = function (_React$Component) {
     }, {
         key: "render",
         value: function render() {
-            if (!Modernizr.webgl) {
+            if (!(0, _utils.webglEnabled)()) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
             return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("canvas", null), React.createElement("div", { className: "instructions" }, React.createElement("p", null, "Use your mouse to pan around the map. Hold down ", React.createElement("code", null, "Ctrl"), " to rotate the world. Hold down ", React.createElement("code", null, "Shift"), " to zoom, or use your mousewheel or scroll action on your touchpad.")));
@@ -65666,275 +65674,6 @@ Stats.Panel = function ( name, fg, bg ) {
 
 /***/ }),
 /* 35 */
-/***/ (function(module, exports) {
-
-;(function(window){
-var hadGlobal = 'Modernizr' in window;
-var oldGlobal = window.Modernizr;
-/*!
- * modernizr v3.6.0
- * Build https://modernizr.com/download?-webgl-dontmin
- *
- * Copyright (c)
- *  Faruk Ates
- *  Paul Irish
- *  Alex Sexton
- *  Ryan Seddon
- *  Patrick Kettner
- *  Stu Cox
- *  Richard Herrera
-
- * MIT License
- */
-
-/*
- * Modernizr tests which native CSS3 and HTML5 features are available in the
- * current UA and makes the results available to you in two ways: as properties on
- * a global `Modernizr` object, and as classes on the `<html>` element. This
- * information allows you to progressively enhance your pages with a granular level
- * of control over the experience.
-*/
-
-;(function(window, document, undefined){
-  var tests = [];
-  
-
-  /**
-   *
-   * ModernizrProto is the constructor for Modernizr
-   *
-   * @class
-   * @access public
-   */
-
-  var ModernizrProto = {
-    // The current version, dummy
-    _version: '3.6.0',
-
-    // Any settings that don't work as separate modules
-    // can go in here as configuration.
-    _config: {
-      'classPrefix': '',
-      'enableClasses': true,
-      'enableJSClass': true,
-      'usePrefixes': true
-    },
-
-    // Queue of tests
-    _q: [],
-
-    // Stub these for people who are listening
-    on: function(test, cb) {
-      // I don't really think people should do this, but we can
-      // safe guard it a bit.
-      // -- NOTE:: this gets WAY overridden in src/addTest for actual async tests.
-      // This is in case people listen to synchronous tests. I would leave it out,
-      // but the code to *disallow* sync tests in the real version of this
-      // function is actually larger than this.
-      var self = this;
-      setTimeout(function() {
-        cb(self[test]);
-      }, 0);
-    },
-
-    addTest: function(name, fn, options) {
-      tests.push({name: name, fn: fn, options: options});
-    },
-
-    addAsyncTest: function(fn) {
-      tests.push({name: null, fn: fn});
-    }
-  };
-
-  
-
-  // Fake some of Object.create so we can force non test results to be non "own" properties.
-  var Modernizr = function() {};
-  Modernizr.prototype = ModernizrProto;
-
-  // Leak modernizr globally when you `require` it rather than force it here.
-  // Overwrite name so constructor name is nicer :D
-  Modernizr = new Modernizr();
-
-  
-
-  var classes = [];
-  
-
-  /**
-   * is returns a boolean if the typeof an obj is exactly type.
-   *
-   * @access private
-   * @function is
-   * @param {*} obj - A thing we want to check the type of
-   * @param {string} type - A string to compare the typeof against
-   * @returns {boolean}
-   */
-
-  function is(obj, type) {
-    return typeof obj === type;
-  }
-  ;
-
-  /**
-   * Run through all tests and detect their support in the current UA.
-   *
-   * @access private
-   */
-
-  function testRunner() {
-    var featureNames;
-    var feature;
-    var aliasIdx;
-    var result;
-    var nameIdx;
-    var featureName;
-    var featureNameSplit;
-
-    for (var featureIdx in tests) {
-      if (tests.hasOwnProperty(featureIdx)) {
-        featureNames = [];
-        feature = tests[featureIdx];
-        // run the test, throw the return value into the Modernizr,
-        // then based on that boolean, define an appropriate className
-        // and push it into an array of classes we'll join later.
-        //
-        // If there is no name, it's an 'async' test that is run,
-        // but not directly added to the object. That should
-        // be done with a post-run addTest call.
-        if (feature.name) {
-          featureNames.push(feature.name.toLowerCase());
-
-          if (feature.options && feature.options.aliases && feature.options.aliases.length) {
-            // Add all the aliases into the names list
-            for (aliasIdx = 0; aliasIdx < feature.options.aliases.length; aliasIdx++) {
-              featureNames.push(feature.options.aliases[aliasIdx].toLowerCase());
-            }
-          }
-        }
-
-        // Run the test, or use the raw value if it's not a function
-        result = is(feature.fn, 'function') ? feature.fn() : feature.fn;
-
-
-        // Set each of the names on the Modernizr object
-        for (nameIdx = 0; nameIdx < featureNames.length; nameIdx++) {
-          featureName = featureNames[nameIdx];
-          // Support dot properties as sub tests. We don't do checking to make sure
-          // that the implied parent tests have been added. You must call them in
-          // order (either in the test, or make the parent test a dependency).
-          //
-          // Cap it to TWO to make the logic simple and because who needs that kind of subtesting
-          // hashtag famous last words
-          featureNameSplit = featureName.split('.');
-
-          if (featureNameSplit.length === 1) {
-            Modernizr[featureNameSplit[0]] = result;
-          } else {
-            // cast to a Boolean, if not one already
-            if (Modernizr[featureNameSplit[0]] && !(Modernizr[featureNameSplit[0]] instanceof Boolean)) {
-              Modernizr[featureNameSplit[0]] = new Boolean(Modernizr[featureNameSplit[0]]);
-            }
-
-            Modernizr[featureNameSplit[0]][featureNameSplit[1]] = result;
-          }
-
-          classes.push((result ? '' : 'no-') + featureNameSplit.join('-'));
-        }
-      }
-    }
-  }
-  ;
-
-  /**
-   * docElement is a convenience wrapper to grab the root element of the document
-   *
-   * @access private
-   * @returns {HTMLElement|SVGElement} The root element of the document
-   */
-
-  var docElement = document.documentElement;
-  
-
-  /**
-   * A convenience helper to check if the document we are running in is an SVG document
-   *
-   * @access private
-   * @returns {boolean}
-   */
-
-  var isSVG = docElement.nodeName.toLowerCase() === 'svg';
-  
-
-  /**
-   * createElement is a convenience wrapper around document.createElement. Since we
-   * use createElement all over the place, this allows for (slightly) smaller code
-   * as well as abstracting away issues with creating elements in contexts other than
-   * HTML documents (e.g. SVG documents).
-   *
-   * @access private
-   * @function createElement
-   * @returns {HTMLElement|SVGElement} An HTML or SVG element
-   */
-
-  function createElement() {
-    if (typeof document.createElement !== 'function') {
-      // This is the case in IE7, where the type of createElement is "object".
-      // For this reason, we cannot call apply() as Object is not a Function.
-      return document.createElement(arguments[0]);
-    } else if (isSVG) {
-      return document.createElementNS.call(document, 'http://www.w3.org/2000/svg', arguments[0]);
-    } else {
-      return document.createElement.apply(document, arguments);
-    }
-  }
-
-  ;
-/*!
-{
-  "name": "WebGL",
-  "property": "webgl",
-  "caniuse": "webgl",
-  "tags": ["webgl", "graphics"],
-  "polyfills": ["jebgl", "cwebgl", "iewebgl"]
-}
-!*/
-
-  Modernizr.addTest('webgl', function() {
-    var canvas = createElement('canvas');
-    var supports = 'probablySupportsContext' in canvas ? 'probablySupportsContext' :  'supportsContext';
-    if (supports in canvas) {
-      return canvas[supports]('webgl') || canvas[supports]('experimental-webgl');
-    }
-    return 'WebGLRenderingContext' in window;
-  });
-
-
-  // Run each test
-  testRunner();
-
-  delete ModernizrProto.addTest;
-  delete ModernizrProto.addAsyncTest;
-
-  // Run the things that are supposed to run after the tests
-  for (var i = 0; i < Modernizr._q.length; i++) {
-    Modernizr._q[i]();
-  }
-
-  // Leak Modernizr namespace
-  window.Modernizr = Modernizr;
-
-
-;
-
-})(window, document);
-module.exports = window.Modernizr;
-if (hadGlobal) { window.Modernizr = oldGlobal; }
-else { delete window.Modernizr; }
-})(window);
-
-/***/ }),
-/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65951,13 +65690,13 @@ var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _data = __webpack_require__(37);
+var _data = __webpack_require__(36);
 
 var _grid = __webpack_require__(8);
 
-var _loader = __webpack_require__(40);
+var _loader = __webpack_require__(39);
 
-var _scale = __webpack_require__(41);
+var _scale = __webpack_require__(40);
 
 var _utils = __webpack_require__(17);
 
@@ -66244,7 +65983,7 @@ function makeWireframe(geometry, name) {
 }
 
 /***/ }),
-/* 37 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -66261,7 +66000,7 @@ var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _chromaJs = __webpack_require__(38);
+var _chromaJs = __webpack_require__(37);
 
 var chroma = _interopRequireWildcard(_chromaJs);
 
@@ -66418,7 +66157,7 @@ function stitchGeometries(target, neighbor, relation) {
 }
 
 /***/ }),
-/* 38 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
@@ -69178,10 +68917,10 @@ function stitchGeometries(target, neighbor, relation) {
 
 }).call(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(39)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
 
 /***/ }),
-/* 39 */
+/* 38 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -69209,7 +68948,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 40 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69260,7 +68999,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 41 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69292,7 +69031,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 42 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69400,21 +69139,21 @@ function latLonToOsGrid(latitude, longitude) {
 ;
 
 /***/ }),
-/* 43 */
+/* 42 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"sceptred","version":"0.0.11","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/modernizr":"^3.5.1","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","modernizr-loader":"^1.0.1","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","modernizr":"^3.3.1","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(45);
+__webpack_require__(44);
 
-__webpack_require__(48);
+__webpack_require__(47);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69488,18 +69227,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(46).polyfill();
+module.exports = __webpack_require__(45).polyfill();
 
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70682,10 +70421,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(47)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(46)))
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70712,20 +70451,20 @@ module.exports = g;
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 if (!window.fetch) window.fetch = __webpack_require__(18).default || __webpack_require__(18);
 
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 50 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";

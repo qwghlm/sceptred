@@ -80,7 +80,6 @@ module.exports = function(env, caller) {
 
         resolve: {
             alias: {
-                'Modernizr$': path.resolve(__dirname, ".modernizrrc"),
                 'stats': path.resolve(__dirname, "node_modules/stats.js/src/Stats.js"),
             },
             extensions: ['.tsx', '.ts', '.js'],
@@ -141,12 +140,6 @@ module.exports = function(env, caller) {
                     test: /\.json$/,
                     loader: "json-loader"
                 },
-
-                {
-                    test: /\.modernizrrc$/,
-                    loader: "modernizr-loader!json-loader"
-                },
-
 
                 {
                     test: /\.(png|jpe?g|gif|webm|svg|ico)$/,

@@ -12,6 +12,17 @@ export function isRetina() {
     return window.devicePixelRatio && window.devicePixelRatio > 1.3;
 }
 
+/* istanbul ignore next */
+export function webglEnabled() {
+    try {
+        var canvas = document.createElement('canvas');
+        return !!(('WebGLRenderingContext' in window) && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    }
+    catch (e) {
+        return false;
+    }
+}
+
 // http://youmightnotneedjquery.com/
 export function extend(...args: any[]) {
 

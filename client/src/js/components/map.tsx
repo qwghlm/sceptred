@@ -5,9 +5,9 @@ import * as THREE from 'three';
 import { TrackballControls } from '../vendor/trackballcontrols.js';
 
 import Stats from "stats";
-import * as Modernizr from 'Modernizr';
 
 import { World } from '../lib/world';
+import { webglEnabled } from '../lib/utils';
 
 // Properties that can be passed to map
 
@@ -146,7 +146,7 @@ export class Map extends React.Component<MapProps, {}> {
     // Render function that outputs the canvas renderer
     render() {
 
-        if (!Modernizr.webgl) {
+        if (!webglEnabled()) {
             return <div><p>Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox.</p></div>;
         }
         return <div className={"canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive")}>
