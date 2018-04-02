@@ -2711,6 +2711,17 @@ header {
     font-size: 140%;
     height: 2.7rem; } }
 
+.form-autocomplete {
+  position: relative; }
+  .form-autocomplete .menu {
+    position: absolute;
+    left: 2px;
+    width: calc(100% - 4px);
+    top: 38px; }
+    @media only screen and (max-width: 640px) {
+      .form-autocomplete .menu {
+        top: 54px; } }
+
 .canvas-wrapper {
   overflow: hidden;
   max-height: 1000px;

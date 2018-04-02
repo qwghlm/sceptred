@@ -16,7 +16,6 @@ type MapProps = {
     gridReference: string,
     onInitError: () => void,
     onLoadError: (message: string) => void,
-    onLoadSuccess: () => void,
 };
 type MapState = {};
 
@@ -109,8 +108,7 @@ export class Map extends React.Component<MapProps, {}> {
     navigateTo(gridReference) {
 
         try {
-            this.world.navigateTo(gridReference)
-                .then(this.props.onLoadSuccess);
+            this.world.navigateTo(gridReference);
             this.controls.reset();
         }
 

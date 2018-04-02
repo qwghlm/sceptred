@@ -43,6 +43,21 @@ header {
 
 }
 
+.form-autocomplete {
+    position: relative;
+
+    .menu {
+        position: absolute;
+        left: 2px;
+        width: calc(100% - 4px);
+
+        top: 38px;
+        @media only screen and (max-width: 640px) {
+            top: 54px;
+        }
+    }
+}
+
 .canvas-wrapper {
 
     overflow: hidden;

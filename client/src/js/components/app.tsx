@@ -4,21 +4,6 @@ import { Map } from './map'
 import { geocode } from '../lib/geocoder';
 import { debounce } from '../lib/utils';
 
-// Types for props and state
-
-interface AppProps {}
-interface AppState {
-
-    enabled: boolean;
-
-    searchTerm: string;
-    searchResults: SearchResult[] | null;
-
-    loading: boolean;
-    mapValue: string;
-    errorMessage: string;
-
-}
 interface SearchResult {
     name: string;
     gridReference: string;
@@ -44,36 +29,44 @@ class SearchResult extends React.Component<SearchResultProps, {}> {
     }
 }
 
-// Our app
+// The entire autocomplete
 
-export class App extends React.Component<AppProps, {}> {
+class AutoComplete extends React.Component<{results: SearchResult[] | null, onSelect: (SearchResult) => void}, {}> {
 
-    state: AppState;
-    doGeolookup: (string) => void;
+    render() {
 
-    // Initialise default state
-    constructor(props: AppProps) {
-        super(props);
-
-        this.doGeolookup = debounce(this._doGeolookup.bind(this), 400);
-
-        this.state = {
-            enabled: true,
-
-            searchTerm: "",
-            searchResults: null,
-
-            loading: false,
-            mapValue: "",
-            errorMessage: "",
+        if (this.props.results === null) {
+            return "";
+        }
+        else if (this.props.results.length === 0) {
+            return <ul className="menu"><em>No results found</em></ul>
+        }
+        else {
+            return <ul className="menu">
+                {this.props.results.map((r, i) => <SearchResult key={i} onSelect={this.props.onSelect} {...r}/>)}
+            </ul>;
         }
     }
+}
 
-    // Handler for if there is an error with the map
-    onInitError = () => {
-        this.setState({
-            enabled: false
-        });
+// The search form
+
+interface SearchFormState {
+    searchTerm: string;
+    searchResults: SearchResult[] | null;
+}
+class SearchForm extends React.Component<{onSelect: (SearchResult) => void}, SearchFormState> {
+
+    doGeolookup: (string) => void;
+    state: SearchFormState;
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            searchTerm: "",
+            searchResults: null
+        }
+        this.doGeolookup = debounce(this._doGeolookup.bind(this), 400);
     }
 
     // Updates when form value is changed
@@ -89,11 +82,11 @@ export class App extends React.Component<AppProps, {}> {
     _doGeolookup(value: string) {
         geocode(value)
             .then((results) => {
-                this.setState({searchResults: results})
+                this.setState({searchResults: results as SearchResult[]})
             })
             .catch((status) => {
                 this.setState({searchResults: []})
-            });
+            })
     }
 
     // Handle keypress
@@ -101,21 +94,62 @@ export class App extends React.Component<AppProps, {}> {
         this.updateSearchTerm((e.target as HTMLInputElement).value);
     }
 
-    // Perform search
-    doSearch = (result) => {
+    onSelect = (result) => {
         this.setState({
-            loading: true,
             searchTerm: result.name,
             searchResults: null,
-            errorMessage: "",
-            mapValue: result.gridReference
         });
+        this.props.onSelect(result);
     }
 
-    // When load is done
-    onLoadSuccess = () => {
+    render() {
+
+        return <div className="form-autocomplete">
+
+            <div className="form-autocomplete-input">
+
+                <input className="form-input" type="text" id="search-text"
+                    value={this.state.searchTerm}
+                    onChange={(e) => this.updateSearchTerm(e.target.value)}
+                    onKeyUp={this.handleKey}
+                    placeholder="Enter a place name..." />
+
+                <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
+
+            </div>
+
+            <AutoComplete results={this.state.searchResults} onSelect={this.onSelect} />
+
+        </div>
+
+    }
+}
+
+// Our app
+
+interface AppState {
+    enabled: boolean;
+    gridReference: string;
+    errorMessage: string;
+}
+export class App extends React.Component<{}, AppState> {
+
+    state: AppState;
+
+    // Initialise default state
+    constructor(props: {}) {
+        super(props);
+        this.state = {
+            enabled: true,
+            errorMessage: "",
+            gridReference: "",
+        }
+    }
+
+    // Handler for if there is an error with the map
+    onInitError = () => {
         this.setState({
-            loading: false
+            enabled: false
         });
     }
 
@@ -123,56 +157,25 @@ export class App extends React.Component<AppProps, {}> {
     onLoadError = (message: string) => {
         this.setState({
             errorMessage: message,
-            loading: false
         });
+    }
+
+    updateMap = (searchResult) => {
+        this.setState({
+            gridReference: searchResult.gridReference,
+        })
     }
 
     // Renderer
     render() {
 
-        var autocomplete;
-
-        if (this.state.searchResults === null) {
-            autocomplete = "";
-        }
-        else if (this.state.searchResults.length === 0) {
-            autocomplete = <ul className="menu"><em>No results found</em></ul>
-        }
-        else {
-            autocomplete = <ul className="menu">
-                {this.state.searchResults.map((r, i) => <SearchResult key={i} onSelect={this.doSearch} {...r}/>)}
-            </ul>;
-        }
-
-        const form = <div className={"columns form-wrapper " + (this.state.enabled ? "" : "d-none")}>
-
-            <div className="column col-12">
-
-                <div className="form-autocomplete">
-
-                    <div className="form-autocomplete-input">
-
-                        <input className="form-input" type="text" id="search-text"
-                            value={this.state.searchTerm}
-                            onChange={(e) => this.updateSearchTerm(e.target.value)}
-                            onKeyUp={this.handleKey}
-                            placeholder="Enter a place name..." />
-
-                        <label className="text-assistive" htmlFor="search-text">Enter an OS grid reference e.g. NT27</label>
-
-                    </div>
-
-                    {autocomplete}
-
-                </div>
-
-            </div>
-
-        </div>;
-
         // Render form, then error state, then map
         return <div>
-            { form }
+            <div className={"columns form-wrapper " + (this.state.enabled ? "" : "d-none")}>
+                <div className="column col-12">
+                    <SearchForm onSelect={this.updateMap}/>
+                </div>
+            </div>
             <div className={"columns " + (this.state.errorMessage ? "" : "d-none")}>
                 <div className="column col-12 mt-2 text-error">
                     Error: {this.state.errorMessage}
@@ -180,10 +183,9 @@ export class App extends React.Component<AppProps, {}> {
             </div>
             <div className="columns">
                 <div className="column col-12 mt-2">
-                    <Map debug={false} gridReference={this.state.mapValue}
+                    <Map debug={false} gridReference={this.state.gridReference}
                          onInitError={this.onInitError}
-                         onLoadError={this.onLoadError}
-                         onLoadSuccess={this.onLoadSuccess} />
+                         onLoadError={this.onLoadError} />
                 </div>
             </div>
 
