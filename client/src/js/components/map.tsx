@@ -152,10 +152,10 @@ export class Map extends React.Component<MapProps, {}> {
             <canvas></canvas>
 
             <div className="instructions">
-                <p className={isTouch() ? "d-none" : null}>
+                <p className={isTouch() ? "d-none" : ""}>
                     Use your mouse to pan around the map. Hold down <code>Ctrl</code> to rotate the world. Hold down <code>Shift</code> to zoom, or use your mousewheel or scroll action on your touchpad.
                 </p>
-                <p className={isTouch() ? null : "d-none"}>
+                <p className={isTouch() ? "" : "d-none"}>
                     Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.
                 </p>
             </div>
