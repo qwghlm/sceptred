@@ -2,12 +2,12 @@ import * as React from "react";
 import * as ReactDOM from "react-dom";
 
 import * as THREE from 'three';
-import { TrackballControls } from '../vendor/trackballcontrols.js';
+require('../vendor/trackballcontrols.js');
 
 import Stats from "stats";
 
 import { World } from '../lib/world';
-import { webglEnabled } from '../lib/utils';
+import { webglEnabled, isTouch } from '../lib/utils';
 
 // Properties that can be passed to map
 
@@ -24,7 +24,7 @@ export class Map extends React.Component<MapProps, {}> {
 
     world: World;
     renderer: THREE.WebGLRenderer;
-    controls: TrackballControls;
+    controls: THREE.TrackballControls;
     stats: Stats;
 
     // When map loads, render the webgl 3D context inside the canvas
@@ -56,7 +56,7 @@ export class Map extends React.Component<MapProps, {}> {
         renderer.shadowMap.enabled = true;
 
         // Setup trackball controls
-        var controls = this.controls = new TrackballControls(world.camera, canvas);
+        var controls = this.controls = new THREE.TrackballControls(world.camera, canvas);
         controls.rotateSpeed = 1.0;
         controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
@@ -152,8 +152,11 @@ export class Map extends React.Component<MapProps, {}> {
             <canvas></canvas>
 
             <div className="instructions">
-                <p>
+                <p className={isTouch() ? "d-none" : null}>
                     Use your mouse to pan around the map. Hold down <code>Ctrl</code> to rotate the world. Hold down <code>Shift</code> to zoom, or use your mousewheel or scroll action on your touchpad.
+                </p>
+                <p className={isTouch() ? null : "d-none"}>
+                    Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.
                 </p>
             </div>
 
