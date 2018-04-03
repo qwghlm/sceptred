@@ -47214,8 +47214,6 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(31);
 
-var _package = __webpack_require__(42);
-
 __webpack_require__(43);
 
 __webpack_require__(48);
@@ -47225,13 +47223,13 @@ __webpack_require__(49);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // Configure raven
-Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
-    release: _package.version
-}).install();
-// Load app
-Raven.context(function () {
-    _reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
-});
+// Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
+//     release: version
+// }).install()
+// // Load app
+// Raven.context(function () {
+_reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
+// });
 
 /***/ }),
 /* 20 */
@@ -64505,7 +64503,7 @@ module.exports = camelize;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.App = exports.AutoCompleteItem = undefined;
+exports.App = exports.SearchForm = exports.AutoComplete = exports.AutoCompleteItem = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -64555,7 +64553,7 @@ var AutoCompleteItem = exports.AutoCompleteItem = function (_React$Component) {
 // The entire autocomplete
 
 
-var AutoComplete = function (_React$Component2) {
+var AutoComplete = exports.AutoComplete = function (_React$Component2) {
     _inherits(AutoComplete, _React$Component2);
 
     function AutoComplete() {
@@ -64570,7 +64568,7 @@ var AutoComplete = function (_React$Component2) {
             var _this4 = this;
 
             if (this.props.results === null) {
-                return "";
+                return null;
             } else if (this.props.results.length === 0) {
                 return React.createElement("ul", { className: "menu" }, React.createElement("em", null, "No results found"));
             } else {
@@ -64584,7 +64582,7 @@ var AutoComplete = function (_React$Component2) {
     return AutoComplete;
 }(React.Component);
 
-var SearchForm = function (_React$Component3) {
+var SearchForm = exports.SearchForm = function (_React$Component3) {
     _inherits(SearchForm, _React$Component3);
 
     function SearchForm(props) {
@@ -65779,8 +65777,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
         scene.add(ambientLight);
         // Set up scale
         _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
+        // Setup lookup of buffer geometries
+        _this.bufferGeometries = {};
         // Set up loader
-        _this.geometries = {};
         _this.loader = new _loader.Loader();
         return _this;
     }
@@ -65854,11 +65853,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     topRight: (0, _grid.getNeighboringSquare)(gridSquare, 1, 1)
                 };
                 Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this3.geometries) {
-                        var neighborGeometry = _this3.geometries[neighbors[direction]];
-                        if (neighborGeometry.type == "BufferGeometry") {
-                            (0, _data.stitchGeometries)(geometry, neighborGeometry, direction);
-                        }
+                    if (neighbors[direction] in _this3.bufferGeometries) {
+                        var neighborGeometry = _this3.bufferGeometries[neighbors[direction]];
+                        (0, _data.stitchGeometries)(geometry, neighborGeometry, direction);
                     }
                 });
                 // Add the geometry to the world
@@ -65870,11 +65867,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     topRight: (0, _grid.getNeighboringSquare)(gridSquare, -1, -1)
                 };
                 Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this3.geometries) {
-                        var neighborGeometry = _this3.geometries[neighbors[direction]];
-                        if (neighborGeometry.type == "BufferGeometry") {
-                            (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
-                        }
+                    if (neighbors[direction] in _this3.bufferGeometries) {
+                        var neighborGeometry = _this3.bufferGeometries[neighbors[direction]];
+                        (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
                     }
                 });
                 // Don't add sea tile if lowest point in box is above 0
@@ -65889,7 +65884,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             }
             // Queue the surrounding squares
             (0, _grid.getSurroundingSquares)(gridSquare, 1).forEach(function (surroundingSquare) {
-                if (!(surroundingSquare in _this3.geometries)) {
+                if (!(surroundingSquare in _this3.bufferGeometries)) {
                     var emptyMeshName = "empty-" + surroundingSquare;
                     var _emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
                     return _this3.addToWorld(makeWireframe(_emptyGeometry, emptyMeshName));
@@ -65901,8 +65896,10 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: 'addToWorld',
         value: function addToWorld(mesh) {
-            this.geometries[mesh.name.split('-')[1]] = mesh.geometry;
             this.scene.add(mesh);
+            if (mesh.geometry.type == "BufferGeometry") {
+                this.bufferGeometries[mesh.name.split('-')[1]] = mesh.geometry;
+            }
             this.dispatchEvent({ type: 'update' });
         }
         // Removes a mesh from the world
@@ -65918,7 +65915,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
             if (toReplace.length) {
                 toReplace.forEach(function (d) {
                     _this4.scene.remove(d);
-                    delete _this4.geometries[name.split('-')[1]];
+                    if (d.geometry.type == "BufferGeometry") {
+                        delete _this4.bufferGeometries[name.split('-')[1]];
+                    }
                 });
             }
         }
@@ -65934,7 +65933,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             }).forEach(function (d) {
                 return _this5.scene.remove(d);
             });
-            this.geometries = {};
+            this.bufferGeometries = {};
         }
         // Checking to see if any unloaded meshes can be loaded in
 
@@ -69174,12 +69173,7 @@ function latLonToOsGrid(latitude, longitude) {
 ;
 
 /***/ }),
-/* 42 */
-/***/ (function(module, exports) {
-
-module.exports = {"name":"sceptred","version":"0.0.11","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
-
-/***/ }),
+/* 42 */,
 /* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
