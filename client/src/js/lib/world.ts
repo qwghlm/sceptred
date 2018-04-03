@@ -21,10 +21,10 @@ export class World extends THREE.EventDispatcher {
     private scale: THREE.Vector3;
     private transform: THREE.Matrix4;
     private bufferGeometries: { [propName: string]: THREE.BufferGeometry; };
-    private tiles: THREE.Group;
 
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
+    tiles: THREE.Group;
     update: () => void;
 
     // Start us up
@@ -222,7 +222,9 @@ export class World extends THREE.EventDispatcher {
 
     // Clears the entire world
     removeAllFromWorld() {
-        this.tiles.children.forEach(d => this.tiles.remove(d));
+        while (this.tiles.children.length) {
+            this.tiles.remove(this.tiles.children[0]);
+        }
         this.bufferGeometries = {}
     }
 
@@ -255,38 +257,41 @@ export class World extends THREE.EventDispatcher {
             .filter(d => d.type == "Mesh")
             .filter(d => {
                 var geometry = (<THREE.Mesh>d).geometry;
+                /* istanbul ignore else */
                 if (geometry) {
                     return frustum.intersectsBox(geometry.boundingBox);
                 }
-                return false;
-            });
-
-        if (emptyMeshes.length) {
-
-            // Sort them by distance from center
-            var distances = emptyMeshes.map(d => {
-                var meshCenter = (<THREE.Mesh>d).geometry.boundingSphere.center.clone();
-                meshCenter.setZ(0);
-                return {
-                    id: d.name,
-                    distance: meshCenter.sub(center).length()
+                else {
+                    return false;
                 }
-            })
-            distances.sort((a, b) => a.distance - b.distance);
-            distances.forEach((d, i) => {
-                this.load(d.id, i*20);
             });
-        }
+
+        // Sort them by distance from center
+        var distances = emptyMeshes.map(d => {
+            var meshCenter = (<THREE.Mesh>d).geometry.boundingSphere.center.clone();
+            meshCenter.setZ(0);
+            return {
+                id: d.name,
+                distance: meshCenter.sub(center).length()
+            }
+        })
+        distances.sort((a, b) => a.distance - b.distance);
+        distances.forEach((d, i) => {
+            this.load(d.id, i*20);
+        });
 
         // Find land or sea meshes that are out of view and replace with an empty one
         var unwantedMeshes = this.tiles.children
             .filter(d => d.type == "Group")
             .filter(d => {
                 var geometry = (<THREE.Mesh>d.children[0]).geometry;
+                /* istanbul ignore else */
                 if (geometry) {
                     return !frustum.intersectsBox(geometry.boundingBox);
                 }
-                return false;
+                else {
+                    return false;
+                }
             });
         unwantedMeshes.forEach(d => {
             this.removeFromWorld(d.name);

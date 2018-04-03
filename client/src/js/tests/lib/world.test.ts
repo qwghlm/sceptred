@@ -52,9 +52,9 @@ Object.defineProperties(window.HTMLElement.prototype, {
 });
 
 // Filters uses to filter out land, sea and empty meshes
-const landFilter = d => d.name.split('-')[0] == 'land';
-const emptyFilter = d => d.name.split('-')[0] == 'empty'
-const seaFilter = d => d.name.split('-')[0] == 'sea'
+const emptyFilter = d => d.type == 'Mesh'
+const landFilter = d => d.type == 'Group' && d.children[0].geometry.type == 'BufferGeometry';
+const seaFilter = d => d.type == 'Group' && d.children[0].geometry.type == 'PlaneGeometry';
 
 test('World works', async () => {
 
@@ -69,36 +69,49 @@ test('World works', async () => {
 
     // Trigger these manually as we do not have a renderer
     world.camera.updateMatrixWorld();
-    world.scene.children.forEach(d => {
-        if (d.geometry) {
-            d.geometry.computeBoundingSphere();
-            d.geometry.computeBoundingBox();
+    const updateGeometry = (d) => {
+        d.geometry.computeBoundingSphere();
+        d.geometry.computeBoundingBox();
+    }
+    world.tiles.children.forEach(d => {
+        if (d.type == "Group") {
+            d.children.forEach(updateGeometry)
+        }
+        else {
+            updateGeometry(d);
         }
     });
 
     // There should be one filled land mesh and 8 empty meshes (3x3 grid)
-    var meshes = world.scene.children.filter(d => d.type == "Mesh");
-    expect(meshes.filter(landFilter).length).toBe(1);
-    expect(meshes.filter(seaFilter).length).toBe(0);
-    expect(meshes.filter(emptyFilter).length).toBe(8);
+    var tiles = world.tiles.children;
+    expect(tiles.filter(landFilter).length).toBe(1);
+    expect(tiles.filter(seaFilter).length).toBe(0);
+    expect(tiles.filter(emptyFilter).length).toBe(8);
 
-    // Trigger the update function manually. Run timers twice
+    // Trigger the update function manually
     await world._update();
-    await jest.runAllTimers();
-    await jest.runAllTimers();
 
     // There should now be 9 proper meshes in the camera view
     // and 16 empty meshes surrounding them to make a 5x5 grid
-    var meshes = world.scene.children.filter(d => d.type == "Mesh");
-    expect(meshes.filter(landFilter).length).toBe(8);
-    expect(meshes.filter(seaFilter).length).toBe(1);
-    expect(meshes.filter(emptyFilter).length).toBe(16);
+    tiles = world.tiles.children;
+    expect(tiles.filter(landFilter).length).toBe(8);
+    expect(tiles.filter(seaFilter).length).toBe(1);
+    expect(tiles.filter(emptyFilter).length).toBe(16);
 
-    // world.removeAllFromWorld();
-    // var meshes = world.scene.children.filter(d => d.type == "Mesh");
-    // expect(meshes.length).toBe(0);
+    // Zoom in and trigger another update
+    world.camera.position.z -= 100;
+    world.camera.updateMatrixWorld();
+    await world._update();
 
-    // // Finally trigger a window resize to half the size, and test the resize handler
-    // world.setSize(640, 480);
-    // expect(world.camera.aspect).toEqual(4/3);
+    tiles = world.tiles.children;
+    expect(tiles.filter(landFilter).length).toBe(4);
+    expect(tiles.filter(seaFilter).length).toBe(1);
+    expect(tiles.filter(emptyFilter).length).toBe(24);
+
+    world.removeAllFromWorld();
+    expect(world.tiles.children.length).toBe(0);
+
+    // Finally trigger a window resize to half the size, and test the resize handler
+    world.setSize(640, 480);
+    expect(world.camera.aspect).toEqual(4/3);
 });
