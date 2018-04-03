@@ -183,9 +183,10 @@ export class App extends React.Component<{}, AppState> {
             </div>
             <div className="columns">
                 <div className="column col-12 mt-2">
-                    <Map debug={false} gridReference={this.state.gridReference}
-                         onInitError={this.onInitError}
-                         onLoadError={this.onLoadError} />
+                    <Map debug={false}
+                        gridReference={this.state.gridReference}
+                        onInitError={this.onInitError}
+                        onLoadError={this.onLoadError} />
                 </div>
             </div>
 

@@ -89,6 +89,10 @@ export class Map extends React.Component<MapProps, {}> {
         // Resize the canvas if window resizes
         window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
+        if (this.props.gridReference.length) {
+            this.navigateTo(this.props.gridReference);
+        }
+
     }
 
     // Only update the world if grid reference changes
@@ -101,7 +105,10 @@ export class Map extends React.Component<MapProps, {}> {
 
         // Try loading it and navigating to it
         if (nextProps.gridReference.length) {
-            setTimeout(() => this.navigateTo(nextProps.gridReference), 400);
+
+            // If previously no gridref, then wait for animation to complete
+            let animationTime = this.props.gridReference.length ? 0: 400;
+            setTimeout(() => this.navigateTo(nextProps.gridReference), animationTime);
         }
     }
 
