@@ -23,13 +23,14 @@ export class Loader {
         return url in this.status && this.status[url] === STATUS_LOADING;
     }
 
-    load(url: string) {
+    load(url: string, delay: number) {
 
         // Update status for this URL
         this.status[url] = STATUS_LOADING;
 
         // Fetch
-        return fetch(url)
+        return new Promise(resolve => (delay === 0) ? resolve() : setTimeout(resolve, delay))
+            .then(() => fetch(url))
             .then((response: Response): Promise<GridData> => {
                 this.status[url] = STATUS_LOADED;
                 return response.json()

@@ -104,8 +104,7 @@ export class World extends THREE.EventDispatcher {
         }
 
         // Set load and error listeners
-        return new Promise(resolve => (delay === 0) ? resolve() : setTimeout(resolve, delay))
-            .then(() => this.loader.load(url))
+        return this.loader.load(url, delay)
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
@@ -209,22 +208,6 @@ export class World extends THREE.EventDispatcher {
     // Checking to see if any unloaded meshes can be loaded in
     _update() {
 
-        // Calculate the frustum of this camera
-        var frustum = new THREE.Frustum();
-        frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
-            this.camera.projectionMatrix, this.camera.matrixWorldInverse));
-
-        // Find every empty mesh on screen that is displayed in the camera
-        var emptyMeshes = this.scene.children
-            .filter(d => d.type == "Mesh" && (<THREE.Mesh>d).geometry.type == "PlaneGeometry" && d.name.split('-')[0] == 'empty')
-            .filter(d => {
-                var geometry = (<THREE.Mesh>d).geometry;
-                if (geometry) {
-                    return frustum.intersectsBox(geometry.boundingBox);
-                }
-                return false;
-            });
-
         // Work out where the center of the screen coincides with the tilemap
         var raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
@@ -234,6 +217,22 @@ export class World extends THREE.EventDispatcher {
         }
         var center = intersects[0].point;
         center.setZ(0);
+
+        // Calculate the frustum of this camera
+        var frustum = new THREE.Frustum();
+        frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(
+            this.camera.projectionMatrix, this.camera.matrixWorldInverse));
+
+        // Find every empty mesh on screen that is displayed in the camera
+        var emptyMeshes = this.scene.children
+            .filter(d => d.type == "Mesh" && d.name.split('-')[0] == 'empty')
+            .filter(d => {
+                var geometry = (<THREE.Mesh>d).geometry;
+                if (geometry) {
+                    return frustum.intersectsBox(geometry.boundingBox);
+                }
+                return false;
+            });
 
         // Sort them by distance from center
         var distances = emptyMeshes.map(d => {
@@ -247,8 +246,20 @@ export class World extends THREE.EventDispatcher {
 
         distances.sort((a, b) => a.distance - b.distance);
         distances.forEach((d, i) => {
-            this.load(d.id, Math.floor(i/5)*200);
+            this.load(d.id, i*20);
         });
+
+        // Find land or sea meshes
+        var unwantedMeshes = this.scene.children
+            .filter(d => d.type == "Mesh" && d.name.split('-')[0] == 'land')
+            .filter(d => {
+                var geometry = (<THREE.Mesh>d).geometry;
+                if (geometry) {
+                    return !frustum.intersectsBox(geometry.boundingBox);
+                }
+                return false;
+            });
+        // TODO : Cull unwanted meshes
     }
 }
 
