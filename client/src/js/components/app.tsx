@@ -20,9 +20,13 @@ export class AutoCompleteItem extends React.Component<SearchResultProps, {}> {
 
     render() {
         return <li className="menu-item">
-            <a href="#" onClick={(e) => this.props.onSelect({
-                name: this.props.name, gridReference: this.props.gridReference
-            })}>
+            <a href="#" onClick={(e) => {
+                e.preventDefault();
+                this.props.onSelect({
+                    name: this.props.name,
+                    gridReference: this.props.gridReference
+                })
+            }}>
                 {this.props.name}
             </a>
         </li>
