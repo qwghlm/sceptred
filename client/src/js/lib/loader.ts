@@ -1,40 +1,71 @@
-// Loader
-import { GridData } from './types';
+// Loader class, with queue manager
 
-// Constant we use further down
-const STATUS_LOADING = 0;
-const STATUS_LOADED = 1;
-const STATUS_MISSING = -1;
-const STATUS_EMPTY = -2;
-
-interface StatusCache {
-    [propName: string]: number;
-}
+const MAX_JOBS = 3;
 
 export class Loader {
 
-    status: StatusCache;
+    private queue: {(): void; }[];
+    private pending: { [propName: string]: boolean; }
+    private cache: { [propName: string]: any; }
 
     constructor() {
-        this.status = {};
+
+        // Queue of URLs
+        this.queue = [];
+
+        // Pending requests
+        this.pending = {};
+
+        // Cached requests
+        this.cache = {};
+
+        setTimeout(this.tick.bind(this), 17);
     }
 
-    isLoading(url: string) {
-        return url in this.status && this.status[url] === STATUS_LOADING;
+    load(url: string) {
+
+        // If cached, return the value!
+        if (url in this.cache) {
+            return Promise.resolve(this.cache[url])
+        }
+
+        // Else create a new fetch...
+        // Push onto queue and wait for resolve
+        return new Promise((resolve) => {
+            this.queue.push(resolve);
+        }).then(() => {
+            if (url in this.pending) {
+                return Promise.reject(new Error("Already loading, abort"))
+            }
+            this.pending[url] = true;
+            return fetch(url);
+        }).then((response) => {
+            if (response.ok) {
+                return response.json();
+            }
+            throw new Error('Response was not OK');
+        }).then((json) => {
+            delete this.pending[url];
+            this.cache[url] = json;
+            return json;
+        }).catch((error) => {
+            delete this.pending[url];
+            throw error;
+        });
+
     }
 
-    load(url: string, delay: number) {
+    // Check the queue and resolve as many jobs in the queue as possible
+    tick() {
 
-        // Update status for this URL
-        this.status[url] = STATUS_LOADING;
-
-        // Fetch
-        return new Promise(resolve => (delay === 0) ? resolve() : setTimeout(resolve, delay))
-            .then(() => fetch(url))
-            .then((response: Response): Promise<GridData> => {
-                this.status[url] = STATUS_LOADED;
-                return response.json()
-            });
+        let numToLoad = MAX_JOBS - Object.keys(this.pending).length;
+        while (this.queue.length > 0 && numToLoad-- > 0) {
+            let fn = this.queue.shift();
+            /* istanbul ignore else */ // This will never else
+            if (fn) {
+                fn.call(null);
+            }
+        }
+        setTimeout(this.tick.bind(this), 17);
     }
-
 }

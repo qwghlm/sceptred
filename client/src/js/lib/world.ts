@@ -88,7 +88,7 @@ export class World extends THREE.EventDispatcher {
         var gridSquare = coordsToGridref(realOrigin, 2);
 
         // Then load the square in the middle
-        return this.load(gridSquare, 0);
+        this.load(gridSquare);
 
     }
 
@@ -99,19 +99,12 @@ export class World extends THREE.EventDispatcher {
     }
 
     // Load the gridsquare
-    load(gridSquare: string, delay: number) {
+    load(gridSquare: string) {
 
         var url = `/data/${gridSquare}`;
 
-        // TODO - make loader much more sophisticated
-
-        // Skip if already loading
-        if (this.loader.isLoading(url)) {
-            return Promise.resolve();
-        }
-
         // Set load and error listeners
-        return this.loader.load(url, delay)
+        return this.loader.load(url)
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
@@ -277,7 +270,7 @@ export class World extends THREE.EventDispatcher {
         })
         distances.sort((a, b) => a.distance - b.distance);
         distances.forEach((d, i) => {
-            this.load(d.id, i*20);
+            this.load(d.id);
         });
 
         // Find land or sea meshes that are out of view and replace with an empty one
