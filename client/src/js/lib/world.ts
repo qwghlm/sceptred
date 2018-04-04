@@ -204,11 +204,8 @@ export class World extends THREE.EventDispatcher {
         var obj = this.tiles.getObjectByName(name);
         if (obj) {
             this.tiles.remove(obj);
-            if (obj.type == 'Group') {
-                var mesh = obj.children[0] as THREE.Mesh;
-                if (mesh.geometry.type == "BufferGeometry") {
-                    delete this.bufferGeometries[obj.name];
-                }
+            if (obj.name in this.bufferGeometries) {
+                delete this.bufferGeometries[obj.name];
             }
         }
     }

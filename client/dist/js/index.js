@@ -64679,7 +64679,7 @@ var App = exports.App = function (_React$Component4) {
         _this8.state = {
             enabled: true,
             errorMessage: "",
-            gridReference: ""
+            gridReference: "NT27"
         };
         return _this8;
     }
@@ -65279,11 +65279,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
             var obj = this.tiles.getObjectByName(name);
             if (obj) {
                 this.tiles.remove(obj);
-                if (obj.type == 'Group') {
-                    var mesh = obj.children[0];
-                    if (mesh.geometry.type == "BufferGeometry") {
-                        delete this.bufferGeometries[obj.name];
-                    }
+                if (obj.name in this.bufferGeometries) {
+                    delete this.bufferGeometries[obj.name];
                 }
             }
         }
@@ -65433,6 +65430,15 @@ var colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCC
 
 var colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+//
+// This is relatively costly:
+//
+// Preparing grid data: ~1ms
+// Building vertices: 25-50ms
+// Building faces: 5-10ms
+// Converting to buffers: 2-6ms
+// Building geometries: 5-25ms
+// Total time: 40-90ms
 function makeLandGeometry(data, transform) {
     var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
     var squareSize = data.meta.squareSize;
@@ -65529,6 +65535,8 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
 }
 // Updates a target land geometry's Z and color values along an edge to that of its neighbor,
 // with the relation being defined by the relation attribute
+//
+// Stitches take about 6-10ms
 function stitchGeometries(target, neighbor, relation) {
     // Get the BufferAttribute positions of both
     var targetPositions = target.getAttribute('position');
@@ -68382,6 +68390,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+// Loader class, with queue manager
 var MAX_JOBS = 3;
 
 var Loader = exports.Loader = function () {
@@ -68404,7 +68413,7 @@ var Loader = exports.Loader = function () {
 
             // If cached, return the value!
             if (url in this.cache) {
-                return Promise.resolve(this.cache[url]);
+                return Promise.resolve(JSON.parse(this.cache[url]));
             }
             // Else create a new fetch...
             // Push onto queue and wait for resolve
@@ -68418,13 +68427,13 @@ var Loader = exports.Loader = function () {
                 return fetch(url);
             }).then(function (response) {
                 if (response.ok) {
-                    return response.json();
+                    return response.text();
                 }
                 throw new Error('Response was not OK');
-            }).then(function (json) {
+            }).then(function (text) {
                 delete _this.pending[url];
-                _this.cache[url] = json;
-                return json;
+                _this.cache[url] = text;
+                return JSON.parse(text);
             }).catch(function (error) {
                 delete _this.pending[url];
                 throw error;
@@ -68438,11 +68447,12 @@ var Loader = exports.Loader = function () {
             var numToLoad = MAX_JOBS - Object.keys(this.pending).length;
             while (this.queue.length > 0 && numToLoad-- > 0) {
                 var fn = this.queue.shift();
+                /* istanbul ignore else */ // This will never else
                 if (fn) {
                     fn.call(null);
                 }
             }
-            setTimeout(this.tick.bind(this), 17);
+            setTimeout(this.tick.bind(this), 25);
         }
     }]);
 

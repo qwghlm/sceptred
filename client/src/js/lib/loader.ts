@@ -26,7 +26,7 @@ export class Loader {
 
         // If cached, return the value!
         if (url in this.cache) {
-            return Promise.resolve(this.cache[url])
+            return Promise.resolve(JSON.parse(this.cache[url]))
         }
 
         // Else create a new fetch...
@@ -41,13 +41,13 @@ export class Loader {
             return fetch(url);
         }).then((response) => {
             if (response.ok) {
-                return response.json();
+                return response.text();
             }
             throw new Error('Response was not OK');
-        }).then((json) => {
+        }).then((text) => {
             delete this.pending[url];
-            this.cache[url] = json;
-            return json;
+            this.cache[url] = text;
+            return JSON.parse(text);
         }).catch((error) => {
             delete this.pending[url];
             throw error;
@@ -66,6 +66,6 @@ export class Loader {
                 fn.call(null);
             }
         }
-        setTimeout(this.tick.bind(this), 17);
+        setTimeout(this.tick.bind(this), 25);
     }
 }
