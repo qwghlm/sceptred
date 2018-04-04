@@ -59,7 +59,7 @@ test('AutoCompleteItem component renders correctly', () => {
 	let item = Enzyme.shallow(<AutoCompleteItem name="Edinburgh" gridReference="NT27" onSelect={listener} />);
 	expect(listener.mock.calls.length).toEqual(0);
 
-	item.find('a').simulate('click');
+	item.find('a').simulate('click', { preventDefault: jest.fn() });
 	expect(listener.mock.calls.length).toEqual(1);
 	expect(listener.mock.calls[0][0]).toEqual({
 		name: "Edinburgh",
