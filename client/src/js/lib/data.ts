@@ -9,6 +9,15 @@ const colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCC
 const colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+//
+// This is relatively costly:
+//
+// Preparing grid data: ~1ms
+// Building vertices: 25-50ms
+// Building faces: 5-10ms
+// Converting to buffers: 2-6ms
+// Building geometries: 5-25ms
+// Total time: 40-90ms
 export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
@@ -123,6 +132,8 @@ export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, s
 
 // Updates a target land geometry's Z and color values along an edge to that of its neighbor,
 // with the relation being defined by the relation attribute
+//
+// Stitches take about 6-10ms
 export function stitchGeometries(target: THREE.BufferGeometry, neighbor: THREE.BufferGeometry, relation: string) {
 
     // Get the BufferAttribute positions of both
