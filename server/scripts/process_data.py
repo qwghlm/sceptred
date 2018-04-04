@@ -4,6 +4,7 @@
 # Written in Python as support for projection conversion & shape contains is much better
 
 from datetime import datetime
+from functools import partial
 import os
 import os.path
 import sys
@@ -11,15 +12,15 @@ import zipfile
 
 import fiona
 import numpy as np
+import pyproj
 from shapely.geometry import shape, Point
+from shapely.ops import transform
 from shapely.prepared import prep
 
 def main():
     """
     Main runner
     """
-    start = datetime.now()
-
     source_directory = "../terrain/data/"
 
     # Check to see if data exists first
@@ -28,10 +29,7 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "")
-
-    elapsed = datetime.now() - start
-    print("Walk took {}".format(elapsed))
+    load_data(source_directory, "nt27")
 
 def load_data(pathname, filter):
 
@@ -39,10 +37,19 @@ def load_data(pathname, filter):
     n = 0
     # TODO Output stuff
 
-    # Create prepared geometry
+    # Create geometry of UK
     uk_outline_file = fiona.open("../terrain/shapes/GBR_adm0.shp")[0]
-    uk_outline = prep(shape(uk_outline_file['geometry']))
+    uk_outline_wgs84 = shape(uk_outline_file['geometry'])
 
+    # Transform into Ordnance Survey co-ordinates
+    project = partial(
+        pyproj.transform,
+        pyproj.Proj(init='epsg:4326'),
+        pyproj.Proj(init='epsg:27700'))
+
+    uk_outline = prep(transform(project, uk_outline_wgs84))
+
+    start = datetime.now()
     for directory in os.listdir(pathname):
         if not os.path.isdir(pathname + directory):
             continue
@@ -53,10 +60,8 @@ def load_data(pathname, filter):
                 continue
 
             grid_reference = file.split('_')[0]
-            print("Checking grid reference {}".format(grid_reference), end="\r")
 
             if filter and grid_reference != filter:
-                # print("Skipping {}".format(grid_reference))
                 continue
 
             # Get raw squares
@@ -69,8 +74,12 @@ def load_data(pathname, filter):
 
             # TODO Output square data in some way (JSON for now?)
             n += 1
+            elapsed = datetime.now() - start
+            print("So far we have taken {}, that's {:.1f} squares per second".format(elapsed, float(n)/max(1, elapsed.seconds)),
+                end="\r")
 
-    print("{} squares processed".format(n))
+    print("\nDone!")
+
 
 def parse_zipped_asc(filepath):
     """
@@ -84,17 +93,15 @@ def clip_square(squares, grid_reference, outline):
 
     # If entirely above sea level, skip
     if np.amax(squares) < 0:
-        # print ("{} has no land".format(grid_reference))
         return None
 
     # If entirely under sea level, completely delete
     if np.amin(squares) > 0:
         return squares
 
-    # TODO Work out co-ordinate of this square
-    # TODO Work out where every square, using intersects()
+    # TODO Work out co-ordinates of this square
+    # TODO Work out where every square crosses coastline, using intersects()
     return squares
-
 
 if __name__ == "__main__":
     main()
