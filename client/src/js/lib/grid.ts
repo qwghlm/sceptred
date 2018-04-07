@@ -15,7 +15,7 @@ export function gridrefToCoords(gridref: string) {
 
     // Validate format
     if (!isValidGridref(gridref)) {
-        throw new Error('Invalid grid reference');
+        throw new Error('Invalid grid reference: ' + gridref);
     }
 
     var letter1 = letterToNumber(gridref.substr(0, 1));
