@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-#
-# One-off script to build database files
-# Written in Python as support for projection conversion & shape contains is much better
-#
-# TODO Parallelize? https://medium.com/@ageitgey/quick-tip-speed-up-your-python-data-processing-scripts-with-process-pools-cf275350163a
-#
+"""
+One-off script to build database files
+Written in Python as support for projection conversion & shape contains is much better
+
+TODO Parallelize? https://medium.com/@ageitgey/quick-tip-speed-up-your-python-data-processing-scripts-with-process-pools-cf275350163a
+"""
 from datetime import datetime
 from functools import partial
+import json
 import math
 import os
 import os.path
@@ -26,7 +27,8 @@ def main():
     """
     Main runner
     """
-    source_directory = "../terrain/data/"
+    source_directory = "../terrain/raw/asc/"
+    shapefile = "../terrain/raw/shp/GBR_adm0.shp"
 
     # Check to see if data exists first
     if not os.path.exists(source_directory):
@@ -34,16 +36,18 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "nt2")
+    load_data(source_directory, shapefile, "nt")
 
-def load_data(pathname, filter):
 
+def load_data(pathname, shapefile, name_filter=""):
+    """
+    Loads data from terrain directory
+    """
     output_directory = "../terrain/db/"
     count = 0
-    # TODO Output stuff
 
     # Create geometry of UK
-    uk_outline_file = fiona.open("../terrain/shapes/GBR_adm0.shp")[0]
+    uk_outline_file = fiona.open(shapefile)[0]
     uk_outline_wgs84 = shape(uk_outline_file['geometry'])
 
     # Transform into Ordnance Survey co-ordinates
@@ -64,22 +68,33 @@ def load_data(pathname, filter):
             if file[-4:] != '.zip':
                 continue
 
+            # Get grid reference, check on filter
             grid_reference = file.split('_')[0]
-
-            if filter and grid_reference[:len(filter)] != filter:
+            if name_filter and grid_reference[:len(name_filter)] != name_filter:
                 continue
 
             # Get raw squares
             squares = parse_zipped_asc(os.path.join(directory_path, file))
 
-            # Clip out anything under sea level
-
+            # Determing what is land and what is sea
             land = determine_land(squares, parse_grid_reference(grid_reference), uk_outline)
             if land is None:
                 continue
 
+            json_data = { # TODO OrderedDict?
+                "meta": {
+                    "squareSize":50,
+                    "gridReference":grid_reference.upper()
+                },
+                "data": squares.tolist(), # TODO
+                "land": land.tolist(),
+            }
+
             # TODO re-parse data as ints
-            # TODO Output data in some way (JSON? Maybe MessagePack for compactness?)
+
+            # Write out to JSON file
+            with open("{}{}.json".format(output_directory, grid_reference), 'w') as output_file:
+                json.dump(json_data, output_file, separators=(',', ':'))
 
             count += 1
             elapsed = datetime.now() - start
@@ -95,7 +110,7 @@ def parse_zipped_asc(filepath):
     """
     zipped = zipfile.ZipFile(filepath)
     asc_filename = [f for f in zipped.namelist() if f[-4:] == '.asc'][0]
-    return np.genfromtxt(z.open(asc_filename), skip_header=5)
+    return np.genfromtxt(zipped.open(asc_filename), skip_header=5)
 
 
 def determine_land(squares, sw_corner, outline):
@@ -117,7 +132,7 @@ def determine_land(squares, sw_corner, outline):
 
     # Work out outline of this square
     (left, bottom) = sw_corner
-    square = make_box(left, bottom, size*cols, size*rows)
+    square = box(left, bottom, left + size*cols, bottom + size*rows)
 
     # If square is fully contained by the country, then it is all land
     if outline.contains(square):
@@ -127,13 +142,9 @@ def determine_land(squares, sw_corner, outline):
     land = np.empty((rows, cols), dtype=int)
     for y in range(0, rows):
         for x in range(0, cols):
-            square = make_box(left + size*x, bottom + size*(rows - y), size, size)
-            land[y, x] = int(outline.intersects(square))
+            point = Point(left + size*(x + .5), bottom + size*(rows - y + .5))
+            land[y, x] = int(outline.contains(point))
     return land
-
-
-def make_box(left, bottom, width, height):
-    return box(left, bottom, left + width, bottom + height)
 
 
 def parse_grid_reference(grid_reference):

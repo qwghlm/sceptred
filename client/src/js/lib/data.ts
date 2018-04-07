@@ -25,14 +25,20 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
 
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
-    var grid = data.data.reverse();
+    var grid = data.data.reverse(); // FIXME
+    var land = data.land.reverse();
 
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
     // Naively at first, we just clone the values in the 200th row & column for 201st.
     // This will cause discontinuities on mountainous terrain, so we later modify the grid if & when
     // we find neighbouring tiles to the north and east
-    grid.forEach((row) => row.push(row[row.length - 1]));
-    grid[grid.length] = grid[grid.length - 1];
+    function extendByOne(d) {
+        d.forEach((row) => row.push(row[row.length - 1]));
+        d[d.length] = d[d.length - 1];
+    }
+    extendByOne(grid);
+    extendByOne(land);
+
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
 
@@ -40,27 +46,30 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
     var vertices = new Float32Array(3*gridHeight*gridWidth);
     var colors = new Uint8Array(3*gridHeight*gridWidth);
 
-    // Our colour scale maker
+    // Our colour scale maker for land
     var colorFunction = chroma.scale(colorRange)
         .domain(colorDomain)
         .mode('lab');
+
+    const seaColor = chroma.num(0x082044).rgb();
 
     // Go through each row and then each column of the grid
     grid.forEach((row, y) => row.forEach((z, x) => {
 
         // Work out index of this point in the vertices array
         var i = x + gridWidth*y;
+        var isLand = z > 0 || land[y][x];
 
         // Assign vertices
         // BufferGeometry stores each x, y, z value separately so we multiply by 3
         // to get the position inside the
         vertices[i*3] = tileOrigin.x + x*squareSize;
         vertices[i*3+1] = tileOrigin.y + y*squareSize;
-        vertices[i*3+2] = z;
+        vertices[i*3+2] = isLand ? z : 0;
 
         // Assign colors
         // Same for r, g, b
-        var color = colorFunction(z).rgb();
+        const color = isLand ? colorFunction(z).rgb() : seaColor;
         colors[i*3] = color[0];
         colors[i*3+1] = color[1];
         colors[i*3+2] = color[2];
@@ -80,21 +89,12 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
         var i = x + gridWidth*y;
         var a = i, b = i+1, c = i+gridWidth, d = i+gridWidth+1;
 
+        // Assign faces (clockwise)
         // a--b
         // |//|
         // c--d
-        //
-        // NB Only assign faces if all three vertices are above sea-level
-        //
-        // First triangle
-        if (vertices[a*3+2] >= 0 || vertices[b*3+2] >= 0 || vertices[c*3+2] >= 0) {
-            faces.push(a, b, c);
-        }
-
-        // Second triangle:
-        if (vertices[b*3+2] >= 0 || vertices[d*3+2] >= 0 || vertices[c*3+2] >= 0) {
-            faces.push(b, d, c);
-        }
+        faces.push(a, b, c);
+        faces.push(b, d, c);
 
     }));
 
