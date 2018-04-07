@@ -11,9 +11,13 @@ test('makeLandGeometry() works properly', () => {
             gridReference: 'TL27',
             squareSize: 50,
         },
-        data: [
+        heights: [
             [-2.1, -2.1],
             [3, 3]
+        ],
+        land : [
+            [0, 0],
+            [1, 1]
         ]
     }, transform);
 
@@ -21,9 +25,10 @@ test('makeLandGeometry() works properly', () => {
     var faces = geometry.getIndex();
 
     // makeLandGeometry expands our geometry by 1, so a 2x2 becomes a 3x3
-    // Assert the geometry has nine vertices and four faces
+    // Assert the geometry has nine vertices and eight faces
+    // (four squares = eight triangles)
     expect(vertices.count).toEqual(9);
-    expect(faces.count/3).toEqual(4);
+    expect(faces.count/3).toEqual(8);
 
     // Check co-ordinates of each vertex (remember we have to reverse it as
     // GridSquare is provided from NW corner down)
@@ -35,10 +40,10 @@ test('makeLandGeometry() works properly', () => {
     expect(vertices.getZ(1)).toEqual(3);
     expect(vertices.getX(3)).toEqual(520000);
     expect(vertices.getY(3)).toEqual(270050);
-    expect(vertices.getZ(3)).toBeCloseTo(-2.1);
+    expect(vertices.getZ(3)).toBeCloseTo(0);
     expect(vertices.getX(4)).toEqual(520050);
     expect(vertices.getY(4)).toEqual(270050);
-    expect(vertices.getZ(4)).toBeCloseTo(-2.1);
+    expect(vertices.getZ(4)).toBeCloseTo(0);
 
     expect(faces.array[0]).toEqual(0);
     expect(faces.array[1]).toEqual(1);
@@ -88,9 +93,13 @@ test('stitchGeometries() works properly', () => {
             gridReference: 'TL27',
             squareSize: 50,
         },
-        data: [
+        heights: [
             [1, 2],
             [3, 4],
+        ],
+        land: [
+            [1, 1],
+            [1, 1],
         ]
     }, transform);
 
