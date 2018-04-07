@@ -25,7 +25,7 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
 
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
-    var grid = data.data.reverse(); // FIXME
+    var grid = data.heights.reverse();
     var land = data.land.reverse();
 
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them

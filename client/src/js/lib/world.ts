@@ -101,11 +101,9 @@ export class World extends THREE.EventDispatcher {
     // Load the gridsquare
     load(gridReference: string) {
 
-        // FIXME
-        // var url = `/data/${gridReference}`;
-        const url = `/data/${gridReference.toLowerCase()}.json`;
+        const url = `/data/${gridReference}`;
 
-        const fallback = JSON.stringify({meta: {gridReference}, data: [], land: []});
+        const fallback = JSON.stringify({meta: {gridReference}, heights: [], land: []});
 
         // Set load and error listeners
         return this.loader.load(url, fallback)
@@ -124,8 +122,8 @@ export class World extends THREE.EventDispatcher {
         let gridSquare = grid.meta.gridReference;
         this.removeFromWorld(gridSquare);
 
-        // If data exists, then make a land geometry
-        if (grid.data.length) {
+        // If height data exists, then make a land geometry
+        if (grid.heights.length) {
 
             let geometry = makeLandGeometry(grid, this.transform);
 
