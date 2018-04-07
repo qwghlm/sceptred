@@ -36,10 +36,10 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, shapefile, "nt")
+    load_data(source_directory, shapefile, "")
 
 
-def load_data(pathname, shapefile, name_filter=""):
+def load_data(pathname, shapefile, name_filter="", force=False):
     """
     Loads data from terrain directory
     """
@@ -73,6 +73,10 @@ def load_data(pathname, shapefile, name_filter=""):
             if name_filter and grid_reference[:len(name_filter)] != name_filter:
                 continue
 
+            output_filename = "{}{}.json".format(output_directory, grid_reference)
+            if not force and os.path.exists(output_filename):
+                continue
+
             # Get raw squares
             squares = parse_zipped_asc(os.path.join(directory_path, file))
 
@@ -91,13 +95,13 @@ def load_data(pathname, shapefile, name_filter=""):
             }
 
             # Write out to JSON file
-            with open("{}{}.json".format(output_directory, grid_reference), 'w') as output_file:
+            with open(output_filename, 'w') as output_file:
                 json.dump(json_data, output_file, separators=(',', ':'))
 
             count += 1
             elapsed = datetime.now() - start
-            print("So far we have taken {}, that's {:.1f} squares per second".format(
-                elapsed, float(count)/max(1, elapsed.seconds)), end="\r")
+            print("Latest: {}. So far we have done {} in {}, that's {:.1f} squares per second".format(
+                grid_reference, count, elapsed, float(count)/max(1, elapsed.seconds)), end="\r")
 
     print("\n{} squares done!".format(count))
 
