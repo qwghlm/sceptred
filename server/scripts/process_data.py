@@ -24,13 +24,14 @@ from shapely.prepared import prep
 
 import fiona
 import numpy as np
+from pymongo import MongoClient
 import pyproj
 
 def main():
     """
     Main runner
     """
-    source_directory = "../terrain/raw/asc/"
+    source_directory = "../../terrain/asc/"
 
     # Check to see if data exists first
     if not os.path.exists(source_directory):
@@ -38,14 +39,14 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "nt")
+    load_data(source_directory, "")
 
 
 class UKOutline:
     class __UKOutline:
 
         def __init__(self):
-            shapefile = "../terrain/raw/shp/GBR_adm0.shp"
+            shapefile = "../../terrain/shp/GBR_adm0.shp"
             uk_outline_file = fiona.open(shapefile)[0]
             uk_outline_wgs84 = shape(uk_outline_file['geometry'])
 
@@ -66,6 +67,23 @@ class UKOutline:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
+
+class DB:
+    class __DB:
+
+        def __init__(self, db_name='local', collection_name='sceptred'):
+            client = MongoClient('mongodb://localhost:27017/', serverSelectionTimeoutMS=500)
+            client.get_database('admin').command({'serverStatus': 1})
+            self.collection = client[db_name][collection_name]
+
+    instance = None
+
+    def __init__(self):
+        if not DB.instance:
+            DB.instance = DB.__DB()
+
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
 
 def load_data(pathname, name_filter="", force=False):
     """
@@ -91,7 +109,7 @@ def load_data(pathname, name_filter="", force=False):
 
     start = datetime.now()
     with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
-        for grid_square in executor.map(convert_to_json, files_to_process):
+        for grid_square in executor.map(convert_to_db, files_to_process):
             count += 1
             elapsed = datetime.now() - start
             print("Latest: {}. So far we have done {} in {}, that's {:.1f} squares per second".format(
@@ -100,41 +118,40 @@ def load_data(pathname, name_filter="", force=False):
         print("\n{} squares done!".format(count))
 
 
-def convert_to_json(input_path, force=True):
+def convert_to_db(input_path):
 
     # Get grid reference, check on filter
     grid_reference = os.path.basename(input_path).split('_')[0]
 
-    output_directory = "../terrain/db/"
-    output_filename = "{}{}.json".format(output_directory, grid_reference)
-    if not force and os.path.exists(output_filename):
-        return grid_reference
-
     # Get raw squares
-    squares = parse_zipped_asc(input_path)
+    heights = parse_zipped_asc(input_path)
 
     # Determing what is land and what is sea
     (left, bottom) = parse_grid_reference(grid_reference)
     coords = (left, bottom + 10000)
     outline = UKOutline().outline
-    land = determine_land(squares, coords, outline)
+    land = determine_land(heights, coords, outline)
 
     # Don't bother if there is no land
     if np.max(land) == 0:
         return grid_reference
 
-    json_data = {
+    document = {
+        "_id": grid_reference.upper(),
         "meta": {
             "squareSize": 50,
             "gridReference": grid_reference.upper()
         },
-        "data": squares.tolist(), # TODO : Change this
+        "heights": heights.tolist(),
         "land": land.tolist(),
     }
 
-    # Write out to JSON file
-    with open(output_filename, 'w') as output_file:
-        json.dump(json_data, output_file, separators=(',', ':'))
+    # Upsert into database
+    collection = DB().collection
+    collection.update(
+        {'_id':document['_id']},
+        document,
+        True)
 
     return grid_reference
 
