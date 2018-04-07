@@ -38,7 +38,7 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "")
+    load_data(source_directory, "nt")
 
 
 class UKOutline:
@@ -66,12 +66,12 @@ class UKOutline:
     def __getattr__(self, name):
         return getattr(self.instance, name)
 
+
 def load_data(pathname, name_filter="", force=False):
     """
     Loads data from terrain directory
     """
     count = 0
-    start = datetime.now()
 
     files_to_process = []
     for directory in os.listdir(pathname):
@@ -89,6 +89,7 @@ def load_data(pathname, name_filter="", force=False):
             input_path = os.path.join(directory_path, file)
             files_to_process.append(input_path)
 
+    start = datetime.now()
     with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
         for grid_square in executor.map(convert_to_json, files_to_process):
             count += 1
@@ -117,6 +118,10 @@ def convert_to_json(input_path, force=True):
     coords = (left, bottom + 10000)
     outline = UKOutline().outline
     land = determine_land(squares, coords, outline)
+
+    # Don't bother if there is no land
+    if np.max(land) == 0:
+        return grid_reference
 
     json_data = {
         "meta": {
@@ -151,11 +156,7 @@ def determine_land(squares, nw_corner, outline):
     """
     (rows, cols) = squares.shape
 
-    # If entirely under sea level, this square is empty
-    if np.amax(squares) < 0:
-        return np.zeros((rows, cols), dtype=int)
-
-    # If entirely above sea level, skip
+    # If entirely above sea level, then it must all be land
     if np.min(squares) > 0:
         return np.ones((rows, cols), dtype=int)
 
@@ -167,6 +168,10 @@ def determine_land(squares, nw_corner, outline):
     # If square is fully contained by the country, then it is all land
     if outline.contains(square):
         return np.ones((rows, cols), dtype=int)
+
+    # If entirely under sea level and no intersection with land, this square is all sea
+    if outline.disjoint(square) and np.max(squares) < 0:
+        return np.zeros((rows, cols), dtype=int)
 
     # Attempt a divide & conquer if bigger than 4x4
     if rows > 4 and cols > 4:
