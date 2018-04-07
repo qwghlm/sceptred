@@ -101,12 +101,15 @@ export class World extends THREE.EventDispatcher {
     // Load the gridsquare
     load(gridSquare: string) {
 
-        var url = `/data/${gridSquare}`;
+        // FIXME
+        // var url = `/data/${gridSquare}`;
+        var url = `/data/${gridSquare.toLowerCase()}.json`;
 
         // Set load and error listeners
         return this.loader.load(url)
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
+                // TODO What if 404?
                 console.error(errorResponse);
             });
     }
@@ -120,6 +123,7 @@ export class World extends THREE.EventDispatcher {
         this.removeFromWorld(gridSquare);
 
         // Create a new group for land and/or sea tiles that this square occupies
+        // TODO Kill this
         let tile = new THREE.Group();
         tile.name = gridSquare;
 
@@ -159,15 +163,8 @@ export class World extends THREE.EventDispatcher {
                     stitchGeometries(neighborGeometry, geometry, direction);
                 }
             });
-
-            // Don't add sea tile if lowest point in box is above 0
-            if (geometry.boundingBox.min.z > 0) {
-                addSeaTile = false;
-            }
         }
-
-        // If no geometry, or the bounding box has an underwater section, add sea tile
-        if (addSeaTile) {
+        else {
             let seaGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
             let seaMesh = makeSea(seaGeometry);
             tile.add(seaMesh)

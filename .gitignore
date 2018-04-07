@@ -19,9 +19,8 @@ vendor
 server/tmp
 
 # Terrain data
-server/terrain/data
-server/terrain/db/*
-server/terrain/shapes/*
+server/terrain/raw
+server/terrain/db
 !server/terrain/db/.gitkeep
 
 # Node

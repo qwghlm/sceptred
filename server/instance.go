@@ -4,12 +4,12 @@ import (
     "go/build"
     "html/template"
     "io"
-    "log"
+    // "log"
     "os"
     "regexp"
 
-    "github.com/dgraph-io/badger"
-    "github.com/getsentry/raven-go"
+    // "github.com/dgraph-io/badger"
+    // "github.com/getsentry/raven-go"
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
 )
@@ -69,27 +69,28 @@ func instance() *echo.Echo {
     }
 
     // Setup database
-    dbDirectory := srcPath + "/server/terrain/db/"
-    _, err := os.Stat(dbDirectory)
-    if err != nil {
-        raven.CaptureError(err, nil)
-        log.Fatal("No database directory found. Check to see if database has been installed, if not follow the instructions in the README")
-    }
+    // dbDirectory := srcPath + "/server/terrain/db/"
+    // _, err := os.Stat(dbDirectory)
+    // if err != nil {
+    //     raven.CaptureError(err, nil)
+    //     log.Fatal("No database directory found. Check to see if database has been installed, if not follow the instructions in the README")
+    // }
 
-    opts := badger.DefaultOptions
-    opts.Dir = dbDirectory
-    opts.ValueDir = dbDirectory
-    opts.ReadOnly = true
-    db, err := badger.Open(opts)
-    if err != nil {
-        raven.CaptureError(err, nil)
-        log.Fatal("Error connecting to database. Check to see if database has been installed, if not follow the instructions in the README");
-    }
-    dataHandler := &databaseHandler{db: db}
+    // opts := badger.DefaultOptions
+    // opts.Dir = dbDirectory
+    // opts.ValueDir = dbDirectory
+    // opts.ReadOnly = true
+    // db, err := badger.Open(opts)
+    // if err != nil {
+    //     raven.CaptureError(err, nil)
+    //     log.Fatal("Error connecting to database. Check to see if database has been installed, if not follow the instructions in the README");
+    // }
+    // dataHandler := &databaseHandler{db: db}
 
     // Handlers are in handlers.go
     e.GET("/", handleIndex)
-    e.GET("/data/:gridSquare", dataHandler.get)
+    // e.GET("/data/:gridSquare", dataHandler.get)
+    e.Static("/data", srcPath + "/server/terrain/db")
     e.Static("/static", srcPath + "/client/dist/")
     e.File("/favicon.ico", srcPath + "/client/dist/favicon.ico")
     return e
