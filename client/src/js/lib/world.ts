@@ -276,7 +276,7 @@ export class World extends THREE.EventDispatcher {
     }
 }
 
-// Generic mesh making functiins
+// Generic mesh making functions
 
 // Make a land mesh
 function makeLand(geometry: THREE.BufferGeometry, name: string) {

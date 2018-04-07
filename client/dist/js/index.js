@@ -46537,7 +46537,7 @@ function gridrefToCoords(gridref) {
     gridref = gridref.replace(/ +/g, "");
     // Validate format
     if (!isValidGridref(gridref)) {
-        throw new Error('Invalid grid reference');
+        throw new Error('Invalid grid reference: ' + gridref);
     }
     var letter1 = letterToNumber(gridref.substr(0, 1));
     var letter2 = letterToNumber(gridref.substr(1, 1));
@@ -47214,13 +47214,13 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(31);
 
-var _package = __webpack_require__(42);
+var _package = __webpack_require__(52);
 
-__webpack_require__(43);
+__webpack_require__(42);
+
+__webpack_require__(47);
 
 __webpack_require__(48);
-
-__webpack_require__(49);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64679,7 +64679,7 @@ var App = exports.App = function (_React$Component4) {
         _this8.state = {
             enabled: true,
             errorMessage: "",
-            gridReference: "NT27"
+            gridReference: ""
         };
         return _this8;
     }
@@ -65180,15 +65180,18 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
     }, {
         key: 'load',
-        value: function load(gridSquare) {
+        value: function load(gridReference) {
             var _this2 = this;
 
-            var url = '/data/' + gridSquare;
+            // FIXME
+            // var url = `/data/${gridReference}`;
+            var url = '/data/' + gridReference.toLowerCase() + '.json';
+            var fallback = JSON.stringify({ meta: { gridReference: gridReference }, data: [], land: [] });
             // Set load and error listeners
-            return this.loader.load(url).then(function (json) {
-                return _this2.onLoad(json);
-            }).catch(function (errorResponse) {
+            return this.loader.load(url, fallback).catch(function (errorResponse) {
                 console.error(errorResponse);
+            }).then(function (json) {
+                return _this2.onLoad(json);
             });
         }
         // Manipulating meshes
@@ -65199,12 +65202,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
         value: function onLoad(grid) {
             var _this3 = this;
 
+            // TODO gridSquare or gridReference?
             var gridSquare = grid.meta.gridReference;
             this.removeFromWorld(gridSquare);
-            // Create a new group for land and/or sea tiles that this square occupies
-            var tile = new THREE.Group();
-            tile.name = gridSquare;
-            var addSeaTile = true;
             // If data exists, then make a land geometry
             if (grid.data.length) {
                 var geometry = (0, _data.makeLandGeometry)(grid, this.transform);
@@ -65221,8 +65221,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
                     }
                 });
                 // Add the geometry to the world
-                var landMesh = makeLand(geometry);
-                tile.add(landMesh);
+                var landMesh = makeLand(geometry, gridSquare);
+                this.addToWorld(landMesh);
                 // Now go through existing geometries and stitch them to this
                 neighbors = {
                     right: (0, _grid.getNeighboringSquare)(gridSquare, -1, 0),
@@ -65235,24 +65235,16 @@ var World = exports.World = function (_THREE$EventDispatche) {
                         (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
                     }
                 });
-                // Don't add sea tile if lowest point in box is above 0
-                if (geometry.boundingBox.min.z > 0) {
-                    addSeaTile = false;
-                }
-            }
-            // If no geometry, or the bounding box has an underwater section, add sea tile
-            if (addSeaTile) {
+            } else {
                 var seaGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
-                var seaMesh = makeSea(seaGeometry);
-                tile.add(seaMesh);
+                var seaMesh = makeSea(seaGeometry, gridSquare);
+                this.addToWorld(seaMesh);
             }
-            this.addToWorld(tile);
             // Queue the surrounding squares
             (0, _grid.getSurroundingSquares)(gridSquare, 1).forEach(function (surroundingSquare) {
                 if (!_this3.tiles.getObjectByName(surroundingSquare)) {
                     var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
-                    var emptyMesh = makeWireframe(emptyGeometry);
-                    emptyMesh.name = surroundingSquare;
+                    var emptyMesh = makeWireframe(emptyGeometry, surroundingSquare);
                     _this3.addToWorld(emptyMesh);
                 }
             });
@@ -65263,10 +65255,10 @@ var World = exports.World = function (_THREE$EventDispatche) {
         key: 'addToWorld',
         value: function addToWorld(obj) {
             this.tiles.add(obj);
-            if (obj.type == 'Group') {
-                var mesh = obj.children[0];
-                if (mesh.geometry.type == "BufferGeometry") {
-                    this.bufferGeometries[obj.name] = mesh.geometry;
+            if (obj.type == 'Mesh') {
+                var geometry = obj.geometry;
+                if (geometry.type == 'BufferGeometry') {
+                    this.bufferGeometries[obj.name] = geometry;
                 }
             }
             this.dispatchEvent({ type: 'update' });
@@ -65304,12 +65296,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             // Work out where the center of the screen coincides with the tilemap
             var raycaster = new THREE.Raycaster();
             raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-            var meshes = this.tiles.children.map(function (d) {
-                if (d.type == 'Group') {
-                    return d.children[0];
-                }
-                return d;
-            });
+            var meshes = this.tiles.children;
             var intersects = raycaster.intersectObjects(meshes);
             if (intersects.length === 0) {
                 return;
@@ -65348,9 +65335,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             });
             // Find land or sea meshes that are out of view and replace with an empty one
             var unwantedMeshes = this.tiles.children.filter(function (d) {
-                return d.type == "Group";
-            }).filter(function (d) {
-                var geometry = d.children[0].geometry;
+                var geometry = d.geometry;
                 /* istanbul ignore else */
                 if (geometry) {
                     return !frustum.intersectsBox(geometry.boundingBox);
@@ -65361,8 +65346,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
             unwantedMeshes.forEach(function (d) {
                 _this4.removeFromWorld(d.name);
                 var emptyGeometry = (0, _data.makeEmptyGeometry)(d.name, _this4.transform, _this4.scale);
-                var emptyMesh = makeWireframe(emptyGeometry);
-                emptyMesh.name = d.name;
+                var emptyMesh = makeWireframe(emptyGeometry, d.name);
                 _this4.addToWorld(emptyMesh);
             });
         }
@@ -65370,32 +65354,34 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
     return World;
 }(THREE.EventDispatcher);
-// Generic mesh making functiins
+// Generic mesh making functions
 // Make a land mesh
 
 
-function makeLand(geometry) {
+function makeLand(geometry, name) {
     var land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         vertexColors: THREE.VertexColors,
         side: THREE.DoubleSide
     }));
+    land.name = name;
     return land;
 }
 // Make a sea mesh
-function makeSea(geometry) {
-    var sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-        color: seaColor,
-        transparent: true
+function makeSea(geometry, name) {
+    var sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+        color: seaColor
     }));
+    sea.name = name;
     return sea;
 }
 // Make a wireframe mesh for unloaded
-function makeWireframe(geometry) {
+function makeWireframe(geometry, name) {
     var wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
         wireframe: true
     }));
+    wireframe.name = name;
     return wireframe;
 }
 
@@ -65444,36 +65430,43 @@ function makeLandGeometry(data, transform) {
     var squareSize = data.meta.squareSize;
     // Grid data starts in north-west while Ordnance Survey origin is in south-west
     // so we reverse the rows first
-    var grid = data.data.reverse();
+    var grid = data.data.reverse(); // FIXME
+    var land = data.land.reverse();
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
     // Naively at first, we just clone the values in the 200th row & column for 201st.
     // This will cause discontinuities on mountainous terrain, so we later modify the grid if & when
     // we find neighbouring tiles to the north and east
-    grid.forEach(function (row) {
-        return row.push(row[row.length - 1]);
-    });
-    grid[grid.length] = grid[grid.length - 1];
+    function extendByOne(d) {
+        d.forEach(function (row) {
+            return row.push(row[row.length - 1]);
+        });
+        d[d.length] = d[d.length - 1];
+    }
+    extendByOne(grid);
+    extendByOne(land);
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
     // Calculate vertices and colors
     var vertices = new Float32Array(3 * gridHeight * gridWidth);
     var colors = new Uint8Array(3 * gridHeight * gridWidth);
-    // Our colour scale maker
+    // Our colour scale maker for land
     var colorFunction = chroma.scale(colorRange).domain(colorDomain).mode('lab');
+    var seaColor = chroma.num(0x082044).rgb();
     // Go through each row and then each column of the grid
     grid.forEach(function (row, y) {
         return row.forEach(function (z, x) {
             // Work out index of this point in the vertices array
             var i = x + gridWidth * y;
+            var isLand = z > 0 || land[y][x];
             // Assign vertices
             // BufferGeometry stores each x, y, z value separately so we multiply by 3
             // to get the position inside the
             vertices[i * 3] = tileOrigin.x + x * squareSize;
             vertices[i * 3 + 1] = tileOrigin.y + y * squareSize;
-            vertices[i * 3 + 2] = z;
+            vertices[i * 3 + 2] = isLand ? z : 0;
             // Assign colors
             // Same for r, g, b
-            var color = colorFunction(z).rgb();
+            var color = isLand ? colorFunction(z).rgb() : seaColor;
             colors[i * 3] = color[0];
             colors[i * 3 + 1] = color[1];
             colors[i * 3 + 2] = color[2];
@@ -65493,20 +65486,12 @@ function makeLandGeometry(data, transform) {
                 b = i + 1,
                 c = i + gridWidth,
                 d = i + gridWidth + 1;
+            // Assign faces (clockwise)
             // a--b
             // |//|
             // c--d
-            //
-            // NB Only assign faces if all three vertices are above sea-level
-            //
-            // First triangle
-            if (vertices[a * 3 + 2] >= 0 || vertices[b * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
-                faces.push(a, b, c);
-            }
-            // Second triangle:
-            if (vertices[b * 3 + 2] >= 0 || vertices[d * 3 + 2] >= 0 || vertices[c * 3 + 2] >= 0) {
-                faces.push(b, d, c);
-            }
+            faces.push(a, b, c);
+            faces.push(b, d, c);
         });
     });
     // Build our buffers
@@ -68408,7 +68393,7 @@ var Loader = exports.Loader = function () {
 
     _createClass(Loader, [{
         key: "load",
-        value: function load(url) {
+        value: function load(url, fallback) {
             var _this = this;
 
             // If cached, return the value!
@@ -68428,6 +68413,9 @@ var Loader = exports.Loader = function () {
             }).then(function (response) {
                 if (response.ok) {
                     return response.text();
+                }
+                if (response.status == 404) {
+                    return Promise.resolve(fallback);
                 }
                 throw new Error('Response was not OK');
             }).then(function (text) {
@@ -69244,20 +69232,14 @@ function latLonToOsGrid(latitude, longitude) {
 
 /***/ }),
 /* 42 */
-/***/ (function(module, exports) {
-
-module.exports = {"name":"sceptred","version":"0.0.12","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
-
-/***/ }),
-/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(44);
+__webpack_require__(43);
 
-__webpack_require__(47);
+__webpack_require__(46);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69331,18 +69313,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 44 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(45).polyfill();
+module.exports = __webpack_require__(44).polyfill();
 
 
 /***/ }),
-/* 45 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70525,10 +70507,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(46)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(45)))
 
 /***/ }),
-/* 46 */
+/* 45 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70555,23 +70537,32 @@ module.exports = g;
 
 
 /***/ }),
-/* 47 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 if (!window.fetch) window.fetch = __webpack_require__(18).default || __webpack_require__(18);
 
 
 /***/ }),
-/* 48 */
+/* 47 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 49 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
+/* 49 */,
+/* 50 */,
+/* 51 */,
+/* 52 */
+/***/ (function(module, exports) {
+
+module.exports = {"name":"sceptred","version":"0.0.12","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
 
 /***/ })
 /******/ ]);
