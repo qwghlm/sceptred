@@ -77,11 +77,11 @@ def load_data(pathname, shapefile, name_filter=""):
             squares = parse_zipped_asc(os.path.join(directory_path, file))
 
             # Determing what is land and what is sea
-            land = determine_land(squares, parse_grid_reference(grid_reference), uk_outline)
-            if land is None:
-                continue
+            (left, bottom) = parse_grid_reference(grid_reference)
+            coords = (left, bottom + 10000)
+            land = determine_land(squares, coords, uk_outline)
 
-            json_data = { # TODO OrderedDict?
+            json_data = {
                 "meta": {
                     "squareSize":50,
                     "gridReference":grid_reference.upper()
@@ -89,8 +89,6 @@ def load_data(pathname, shapefile, name_filter=""):
                 "data": squares.tolist(), # TODO
                 "land": land.tolist(),
             }
-
-            # TODO re-parse data as ints
 
             # Write out to JSON file
             with open("{}{}.json".format(output_directory, grid_reference), 'w') as output_file:
@@ -110,42 +108,62 @@ def parse_zipped_asc(filepath):
     """
     zipped = zipfile.ZipFile(filepath)
     asc_filename = [f for f in zipped.namelist() if f[-4:] == '.asc'][0]
-    return np.genfromtxt(zipped.open(asc_filename), skip_header=5)
+    floats = np.genfromtxt(zipped.open(asc_filename), skip_header=5)
+    return np.rint(floats).astype(int)
 
 
-def determine_land(squares, sw_corner, outline):
+def determine_land(squares, nw_corner, outline):
     """
     Work out if squares located with their bottom left at this grid reference
     are land or sea
     Return NxN array of 0/1 values (0=sea, 1=land)
     """
-    (cols, rows) = squares.shape
-    size = 50
+    (rows, cols) = squares.shape
 
     # If entirely under sea level, this square is empty
     if np.amax(squares) < 0:
-        return np.zeros((cols, rows), dtype=int)
+        return np.zeros((rows, cols), dtype=int)
 
     # If entirely above sea level, skip
     if np.min(squares) > 0:
-        return np.ones((cols, rows), dtype=int)
+        return np.ones((rows, cols), dtype=int)
 
     # Work out outline of this square
-    (left, bottom) = sw_corner
-    square = box(left, bottom, left + size*cols, bottom + size*rows)
+    (left, top) = nw_corner
+    size = 50
+    square = box(left, top - size*rows, left + size*cols, top)
 
     # If square is fully contained by the country, then it is all land
     if outline.contains(square):
-        return np.ones((cols, rows), dtype=int)
+        return np.ones((rows, cols), dtype=int)
+
+    # Attempt a divide & conquer if bigger than 4x4
+    if rows > 4 and cols > 4:
+
+        x_split = math.floor(cols/2)
+        y_split = math.floor(rows/2)
+
+        land_fragments = [
+            [
+                determine_land(squares[:y_split, :x_split], (left, top), outline),
+                determine_land(squares[:y_split, x_split:], (left + x_split*size, top), outline),
+            ],
+            [
+                determine_land(squares[y_split:, :x_split], (left, top - y_split*size), outline),
+                determine_land(squares[y_split:, x_split:], (left + x_split*size, top - y_split*size), outline),
+            ],
+        ]
+        return np.concatenate(
+            [np.concatenate(row, 1) for row in land_fragments]
+        )
 
     # Work out where where each 50m square intersects with the land
     land = np.empty((rows, cols), dtype=int)
     for y in range(0, rows):
         for x in range(0, cols):
-            point = Point(left + size*(x + .5), bottom + size*(rows - y + .5))
+            point = Point(left + size*(x + .5), top - size*(y + .5))
             land[y, x] = int(outline.contains(point))
     return land
-
 
 def parse_grid_reference(grid_reference):
     """
