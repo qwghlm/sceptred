@@ -5,4 +5,5 @@ export interface GridData {
         gridReference: string
     },
     data: number[][],
+    land: number[][],
 }

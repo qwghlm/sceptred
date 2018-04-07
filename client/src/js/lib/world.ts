@@ -99,17 +99,18 @@ export class World extends THREE.EventDispatcher {
     }
 
     // Load the gridsquare
-    load(gridSquare: string) {
+    load(gridReference: string) {
 
         // FIXME
-        // var url = `/data/${gridSquare}`;
-        var url = `/data/${gridSquare.toLowerCase()}.json`;
+        // var url = `/data/${gridReference}`;
+        const url = `/data/${gridReference.toLowerCase()}.json`;
+
+        const fallback = JSON.stringify({meta: {gridReference}, data: [], land: []})
 
         // Set load and error listeners
-        return this.loader.load(url)
+        return this.loader.load(url, fallback)
             .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
-                // TODO What if 404?
                 console.error(errorResponse);
             });
     }
@@ -305,9 +306,8 @@ function makeLand(geometry: THREE.BufferGeometry) {
 // Make a sea mesh
 function makeSea(geometry: THREE.Geometry) {
 
-    let sea = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+    let sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         color: seaColor,
-        transparent: true
     }))
     return sea;
 }

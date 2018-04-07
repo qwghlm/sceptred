@@ -22,7 +22,7 @@ export class Loader {
         setTimeout(this.tick.bind(this), 17);
     }
 
-    load(url: string) {
+    load(url: string, fallback: string) {
 
         // If cached, return the value!
         if (url in this.cache) {
@@ -42,6 +42,9 @@ export class Loader {
         }).then((response) => {
             if (response.ok) {
                 return response.text();
+            }
+            if (response.status == 404) {
+                return Promise.resolve(fallback);
             }
             throw new Error('Response was not OK');
         }).then((text) => {
