@@ -1,12 +1,10 @@
 // Functions for parsing data from the API
 import * as THREE from 'three';
 import * as chroma from 'chroma-js';
+
+import { seaColor, landColorRange, landColorDomain } from './colors';
 import { gridrefToCoords, getGridSquareSize } from './grid';
 import { GridData } from './types';
-
-// Colors for each altitude
-const colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
-const colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 //
@@ -39,19 +37,20 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
     extendByOne(grid);
     extendByOne(land);
 
-    var gridHeight = grid.length;
-    var gridWidth = grid[0].length;
+    const gridHeight = grid.length;
+    const gridWidth = grid[0].length;
 
     // Calculate vertices and colors
     var vertices = new Float32Array(3*gridHeight*gridWidth);
     var colors = new Uint8Array(3*gridHeight*gridWidth);
 
     // Our colour scale maker for land
-    var colorFunction = chroma.scale(colorRange)
-        .domain(colorDomain)
+    const landColor = chroma.scale(landColorRange)
+        .domain(landColorDomain)
         .mode('lab');
 
-    const seaColor = chroma.num(0x082044).rgb();
+    // Sea is a constant
+    const seaColorRGB = chroma.num(seaColor).rgb();
 
     // Go through each row and then each column of the grid
     grid.forEach((row, y) => row.forEach((z, x) => {
@@ -69,7 +68,7 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
 
         // Assign colors
         // Same for r, g, b
-        const color = isLand ? colorFunction(z).rgb() : seaColor;
+        const color = isLand ? landColor(z).rgb() : seaColorRGB;
         colors[i*3] = color[0];
         colors[i*3+1] = color[1];
         colors[i*3+2] = color[2];

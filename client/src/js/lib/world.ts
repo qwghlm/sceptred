@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 
+import { seaColor } from './colors';
 import { makeLandGeometry, makeEmptyGeometry, stitchGeometries } from './data';
 import { coordsToGridref, gridrefToCoords, getSurroundingSquares, getNeighboringSquare } from './grid';
 import { Loader } from './loader';
@@ -11,7 +12,6 @@ import { debounce } from './utils';
 
 const metresPerPixel = 50;
 const heightFactor = 2;
-const seaColor = 0x082044;
 
 // Models the world in which our tiles live
 
@@ -172,14 +172,12 @@ export class World extends THREE.EventDispatcher {
     }
 
     // Generic adds a mesh to the world
-    addToWorld(obj: THREE.Object3D) {
+    addToWorld(mesh: THREE.Mesh) {
 
-        this.tiles.add(obj);
-        if (obj.type == 'Mesh') {
-            const geometry = (obj as THREE.Mesh).geometry;
-            if (geometry.type == 'BufferGeometry') {
-                this.bufferGeometries[obj.name] = geometry as THREE.BufferGeometry;
-            }
+        this.tiles.add(mesh);
+        const geometry = mesh.geometry;
+        if (geometry.type == 'BufferGeometry') {
+            this.bufferGeometries[mesh.name] = geometry as THREE.BufferGeometry;
         }
         this.dispatchEvent({type: 'update'});
     }
