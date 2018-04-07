@@ -103,10 +103,8 @@ export class World extends THREE.EventDispatcher {
 
         const url = `/data/${gridReference}`;
 
-        const fallback = JSON.stringify({meta: {gridReference}, heights: [], land: []});
-
         // Set load and error listeners
-        return this.loader.load(url, fallback)
+        return this.loader.load(url)
             .catch((errorResponse) => {
                 console.error(errorResponse);
             })
