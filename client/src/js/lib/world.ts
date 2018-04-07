@@ -105,14 +105,14 @@ export class World extends THREE.EventDispatcher {
         // var url = `/data/${gridReference}`;
         const url = `/data/${gridReference.toLowerCase()}.json`;
 
-        const fallback = JSON.stringify({meta: {gridReference}, data: [], land: []})
+        const fallback = JSON.stringify({meta: {gridReference}, data: [], land: []});
 
         // Set load and error listeners
         return this.loader.load(url, fallback)
-            .then((json) => this.onLoad(json))
             .catch((errorResponse) => {
                 console.error(errorResponse);
-            });
+            })
+            .then((json) => this.onLoad(json))
     }
 
     // Manipulating meshes
@@ -120,15 +120,9 @@ export class World extends THREE.EventDispatcher {
     // Loads the grid data from the API
     onLoad(grid: GridData) {
 
+        // TODO gridSquare or gridReference?
         let gridSquare = grid.meta.gridReference;
         this.removeFromWorld(gridSquare);
-
-        // Create a new group for land and/or sea tiles that this square occupies
-        // TODO Kill this
-        let tile = new THREE.Group();
-        tile.name = gridSquare;
-
-        var addSeaTile = true;
 
         // If data exists, then make a land geometry
         if (grid.data.length) {
@@ -149,8 +143,8 @@ export class World extends THREE.EventDispatcher {
             });
 
             // Add the geometry to the world
-            let landMesh = makeLand(geometry);
-            tile.add(landMesh);
+            let landMesh = makeLand(geometry, gridSquare);
+            this.addToWorld(landMesh);
 
             // Now go through existing geometries and stitch them to this
             neighbors = {
@@ -167,17 +161,15 @@ export class World extends THREE.EventDispatcher {
         }
         else {
             let seaGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
-            let seaMesh = makeSea(seaGeometry);
-            tile.add(seaMesh)
+            let seaMesh = makeSea(seaGeometry, gridSquare);
+            this.addToWorld(seaMesh)
         }
-        this.addToWorld(tile);
 
         // Queue the surrounding squares
         getSurroundingSquares(gridSquare, 1).forEach(surroundingSquare => {
             if (!(this.tiles.getObjectByName(surroundingSquare))) {
                 let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
-                let emptyMesh = makeWireframe(emptyGeometry);
-                emptyMesh.name = surroundingSquare;
+                let emptyMesh = makeWireframe(emptyGeometry, surroundingSquare);
                 this.addToWorld(emptyMesh);
             }
         });
@@ -187,10 +179,10 @@ export class World extends THREE.EventDispatcher {
     addToWorld(obj: THREE.Object3D) {
 
         this.tiles.add(obj);
-        if (obj.type == 'Group') {
-            var mesh = obj.children[0] as THREE.Mesh;
-            if (mesh.geometry.type == "BufferGeometry") {
-                this.bufferGeometries[obj.name] = mesh.geometry as THREE.BufferGeometry;
+        if (obj.type == 'Mesh') {
+            const geometry = (obj as THREE.Mesh).geometry;
+            if (geometry.type == 'BufferGeometry') {
+                this.bufferGeometries[obj.name] = geometry as THREE.BufferGeometry;
             }
         }
         this.dispatchEvent({type: 'update'});
@@ -222,12 +214,7 @@ export class World extends THREE.EventDispatcher {
         // Work out where the center of the screen coincides with the tilemap
         var raycaster = new THREE.Raycaster();
         raycaster.setFromCamera(new THREE.Vector2(0, 0), this.camera);
-        var meshes = this.tiles.children.map(d => {
-            if (d.type == 'Group') {
-                return d.children[0];
-            }
-            return d;
-        });
+        var meshes = this.tiles.children;
         var intersects = raycaster.intersectObjects(meshes);
         if (intersects.length === 0) {
             return;
@@ -270,9 +257,8 @@ export class World extends THREE.EventDispatcher {
 
         // Find land or sea meshes that are out of view and replace with an empty one
         var unwantedMeshes = this.tiles.children
-            .filter(d => d.type == "Group")
             .filter(d => {
-                var geometry = (<THREE.Mesh>d.children[0]).geometry;
+                var geometry = (d as THREE.Mesh).geometry;
                 /* istanbul ignore else */
                 if (geometry) {
                     return !frustum.intersectsBox(geometry.boundingBox);
@@ -284,8 +270,7 @@ export class World extends THREE.EventDispatcher {
         unwantedMeshes.forEach(d => {
             this.removeFromWorld(d.name);
             let emptyGeometry = makeEmptyGeometry(d.name, this.transform, this.scale);
-            let emptyMesh = makeWireframe(emptyGeometry);
-            emptyMesh.name = d.name;
+            let emptyMesh = makeWireframe(emptyGeometry, d.name);
             this.addToWorld(emptyMesh);
         })
     }
@@ -294,31 +279,34 @@ export class World extends THREE.EventDispatcher {
 // Generic mesh making functiins
 
 // Make a land mesh
-function makeLand(geometry: THREE.BufferGeometry) {
+function makeLand(geometry: THREE.BufferGeometry, name: string) {
 
     let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         vertexColors: THREE.VertexColors,
         side: THREE.DoubleSide
     }));
+    land.name = name;
     return land;
 }
 
 // Make a sea mesh
-function makeSea(geometry: THREE.Geometry) {
+function makeSea(geometry: THREE.Geometry, name: string) {
 
     let sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         color: seaColor,
     }))
+    sea.name = name;
     return sea;
 }
 
 // Make a wireframe mesh for unloaded
-function makeWireframe(geometry: THREE.Geometry) {
+function makeWireframe(geometry: THREE.Geometry, name: string) {
 
     let wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
         wireframe: true,
     }));
+    wireframe.name = name;
     return wireframe;
 }
