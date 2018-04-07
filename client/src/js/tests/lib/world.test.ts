@@ -7,26 +7,34 @@ const mockMetadata = (gridReference) => ({
 });
 const mockData = (gridReference) => ({
     meta: mockMetadata(gridReference),
-    data: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
+    heights: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
+    land: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
 });
+const mockBlankData = (gridReference) => ({
+    meta: mockMetadata(gridReference),
+    heights: [],
+    land: [],
+}
+
+// Forces all promises in queue to flush, so we can get e.g. a load result
+function flushPromises() {
+  return new Promise(resolve => setImmediate(resolve));
+}
 
 // Mock for the loader
 jest.mock('../../lib/loader', () => {
     class Loader{
-        isLoading() { return false; }
-
         // Mock loader returns dummy data for every square except NT37, which is empty
         load(url) {
             var gridSquare = url.slice(-4);
             if (url.match(/NT37/)) {
                 return new Promise(
-                    (resolve, reject) => resolve({meta: mockMetadata(gridSquare), data: []})
+                    (resolve, reject) => resolve(mockBlankData(gridSquare))
                 )
             }
             return new Promise(
                 (resolve, reject) => resolve(mockData(gridSquare))
             )
-
         }
     };
     return {Loader}
@@ -52,9 +60,9 @@ Object.defineProperties(window.HTMLElement.prototype, {
 });
 
 // Filters uses to filter out land, sea and empty meshes
-const emptyFilter = d => d.type == 'Mesh'
-const landFilter = d => d.type == 'Group' && d.children[0].geometry.type == 'BufferGeometry';
-const seaFilter = d => d.type == 'Group' && d.children[0].geometry.type == 'PlaneGeometry';
+const landFilter = d => d.geometry.type == 'BufferGeometry';
+const seaFilter = d => d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshPhongMaterial';
+const emptyFilter = d => d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshBasicMaterial';
 
 test('World works', async () => {
 
@@ -65,7 +73,8 @@ test('World works', async () => {
     expect(world.camera.aspect).toBe(1.25);
 
     // Load a grid square
-    await world.navigateTo("NT27");
+    world.navigateTo("NT27");
+    await flushPromises();
 
     // Trigger these manually as we do not have a renderer
     world.camera.updateMatrixWorld();
@@ -74,12 +83,7 @@ test('World works', async () => {
         d.geometry.computeBoundingBox();
     }
     world.tiles.children.forEach(d => {
-        if (d.type == "Group") {
-            d.children.forEach(updateGeometry)
-        }
-        else {
-            updateGeometry(d);
-        }
+        updateGeometry(d);
     });
 
     // There should be one filled land mesh and 8 empty meshes (3x3 grid)
@@ -89,7 +93,8 @@ test('World works', async () => {
     expect(tiles.filter(emptyFilter).length).toBe(8);
 
     // Trigger the update function manually
-    await world._update();
+    world._update();
+    await flushPromises();
 
     // There should now be 9 proper meshes in the camera view
     // and 16 empty meshes surrounding them to make a 5x5 grid
@@ -101,7 +106,8 @@ test('World works', async () => {
     // Zoom in and trigger another update
     world.camera.position.z -= 100;
     world.camera.updateMatrixWorld();
-    await world._update();
+    world._update();
+    await flushPromises();
 
     tiles = world.tiles.children;
     expect(tiles.filter(landFilter).length).toBe(4);
@@ -114,4 +120,5 @@ test('World works', async () => {
     // Finally trigger a window resize to half the size, and test the resize handler
     world.setSize(640, 480);
     expect(world.camera.aspect).toEqual(4/3);
+
 });
