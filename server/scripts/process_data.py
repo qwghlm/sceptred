@@ -3,8 +3,11 @@
 One-off script to build database files
 Written in Python as support for projection conversion & shape contains is much better
 
-TODO Parallelize? https://medium.com/@ageitgey/quick-tip-speed-up-your-python-data-processing-scripts-with-process-pools-cf275350163a
+Thanks to parallel processing & some divide-and-conquer, this
+takes about 5 minutes to process the entire UK
+(2858 squares, at 10 squares/sec)
 """
+import concurrent.futures
 from datetime import datetime
 from functools import partial
 import json
@@ -28,7 +31,6 @@ def main():
     Main runner
     """
     source_directory = "../terrain/raw/asc/"
-    shapefile = "../terrain/raw/shp/GBR_adm0.shp"
 
     # Check to see if data exists first
     if not os.path.exists(source_directory):
@@ -36,75 +38,100 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, shapefile, "")
+    load_data(source_directory, "")
 
 
-def load_data(pathname, shapefile, name_filter="", force=False):
+class UKOutline:
+    class __UKOutline:
+
+        def __init__(self):
+            shapefile = "../terrain/raw/shp/GBR_adm0.shp"
+            uk_outline_file = fiona.open(shapefile)[0]
+            uk_outline_wgs84 = shape(uk_outline_file['geometry'])
+
+            # Transform into Ordnance Survey co-ordinates
+            project = partial(
+                pyproj.transform,
+                pyproj.Proj(init='epsg:4326'),
+                pyproj.Proj(init='epsg:27700'))
+
+            self.outline = prep(transform(project, uk_outline_wgs84))
+
+    instance = None
+
+    def __init__(self):
+        if not UKOutline.instance:
+            UKOutline.instance = UKOutline.__UKOutline()
+
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+
+def load_data(pathname, name_filter="", force=False):
     """
     Loads data from terrain directory
     """
-    output_directory = "../terrain/db/"
     count = 0
-
-    # Create geometry of UK
-    uk_outline_file = fiona.open(shapefile)[0]
-    uk_outline_wgs84 = shape(uk_outline_file['geometry'])
-
-    # Transform into Ordnance Survey co-ordinates
-    project = partial(
-        pyproj.transform,
-        pyproj.Proj(init='epsg:4326'),
-        pyproj.Proj(init='epsg:27700'))
-
-    uk_outline = prep(transform(project, uk_outline_wgs84))
-
     start = datetime.now()
+
+    files_to_process = []
     for directory in os.listdir(pathname):
-        if not os.path.isdir(pathname + directory):
+
+        directory_path = os.path.join(pathname, directory)
+        if not os.path.isdir(directory_path):
             continue
 
-        directory_path = pathname + directory
         for file in os.listdir(directory_path):
             if file[-4:] != '.zip':
                 continue
-
-            # Get grid reference, check on filter
-            grid_reference = file.split('_')[0]
-            if name_filter and grid_reference[:len(name_filter)] != name_filter:
+            if name_filter and file[:len(name_filter)] != name_filter:
                 continue
 
-            output_filename = "{}{}.json".format(output_directory, grid_reference)
-            if not force and os.path.exists(output_filename):
-                continue
+            input_path = os.path.join(directory_path, file)
+            files_to_process.append(input_path)
 
-            # Get raw squares
-            squares = parse_zipped_asc(os.path.join(directory_path, file))
-
-            # Determing what is land and what is sea
-            (left, bottom) = parse_grid_reference(grid_reference)
-            coords = (left, bottom + 10000)
-            land = determine_land(squares, coords, uk_outline)
-
-            json_data = {
-                "meta": {
-                    "squareSize":50,
-                    "gridReference":grid_reference.upper()
-                },
-                "data": squares.tolist(), # TODO
-                "land": land.tolist(),
-            }
-
-            # Write out to JSON file
-            with open(output_filename, 'w') as output_file:
-                json.dump(json_data, output_file, separators=(',', ':'))
-
+    with concurrent.futures.ProcessPoolExecutor(max_workers=2) as executor:
+        for grid_square in executor.map(convert_to_json, files_to_process):
             count += 1
             elapsed = datetime.now() - start
             print("Latest: {}. So far we have done {} in {}, that's {:.1f} squares per second".format(
-                grid_reference, count, elapsed, float(count)/max(1, elapsed.seconds)), end="\r")
+                grid_square, count, elapsed, float(count)/max(1, elapsed.seconds)), end="\r")
 
-    print("\n{} squares done!".format(count))
+        print("\n{} squares done!".format(count))
 
+
+def convert_to_json(input_path, force=True):
+
+    # Get grid reference, check on filter
+    grid_reference = os.path.basename(input_path).split('_')[0]
+
+    output_directory = "../terrain/db/"
+    output_filename = "{}{}.json".format(output_directory, grid_reference)
+    if not force and os.path.exists(output_filename):
+        return grid_reference
+
+    # Get raw squares
+    squares = parse_zipped_asc(input_path)
+
+    # Determing what is land and what is sea
+    (left, bottom) = parse_grid_reference(grid_reference)
+    coords = (left, bottom + 10000)
+    outline = UKOutline().outline
+    land = determine_land(squares, coords, outline)
+
+    json_data = {
+        "meta": {
+            "squareSize": 50,
+            "gridReference": grid_reference.upper()
+        },
+        "data": squares.tolist(), # TODO : Change this
+        "land": land.tolist(),
+    }
+
+    # Write out to JSON file
+    with open(output_filename, 'w') as output_file:
+        json.dump(json_data, output_file, separators=(',', ':'))
+
+    return grid_reference
 
 def parse_zipped_asc(filepath):
     """
