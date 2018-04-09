@@ -2,6 +2,7 @@ package main
 
 import (
     "net/http"
+    "os"
     "regexp"
     "strings"
 
@@ -15,12 +16,13 @@ import (
 func handleIndex(c echo.Context) error {
 
     // Load JSON metdata
-    metadata, err := parseJSON(srcPath + "/client/dist/manifest.json")
+    m, err := parseJSON(srcPath + "/client/dist/manifest.json")
     if err != nil {
         raven.CaptureError(err, nil)
         return err
     }
-
+    metadata := m.(map[string]interface{})
+    metadata["IsProduction"] = os.Getenv("SCEPTRED_ENV") == "production"
     // Complete template
     return c.Render(http.StatusOK, "index", metadata)
 }
