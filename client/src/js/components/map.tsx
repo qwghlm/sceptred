@@ -66,7 +66,7 @@ export class Map extends React.Component<MapProps, {}> {
         controls.dynamicDampingFactor = 0.3;
 
         // Rotate (ctrl), zoom (shift), pan (none, default)
-        controls.keys = [17, 16, -1];
+        controls.keys = [16, 17, -1];
 
         // Set up stats to record
         var stats = this.stats = Stats();
@@ -160,7 +160,7 @@ export class Map extends React.Component<MapProps, {}> {
 
             <div className="instructions">
                 <p className={isTouch() ? "d-none" : ""}>
-                    Use your mouse to pan around the map. Hold down <code>Ctrl</code> to rotate the world. Hold down <code>Shift</code> to zoom, or use your mousewheel or scroll action on your touchpad.
+                    Drag your mouse to pan around the map. Hold down <code>Shift</code>+drag to rotate the world. Hold down <code>Ctrl</code>+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad.
                 </p>
                 <p className={isTouch() ? "" : "d-none"}>
                     Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.

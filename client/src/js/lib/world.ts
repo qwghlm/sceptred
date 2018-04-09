@@ -20,7 +20,6 @@ export class World extends THREE.EventDispatcher {
     private loader: Loader;
     private scale: THREE.Vector3;
     private transform: THREE.Matrix4;
-    private bufferGeometries: { [propName: string]: THREE.BufferGeometry; };
 
     camera: THREE.PerspectiveCamera;
     scene: THREE.Scene;
@@ -63,9 +62,6 @@ export class World extends THREE.EventDispatcher {
 
         // Set up scale
         this.scale = new THREE.Vector3(1/metresPerPixel, 1/metresPerPixel, heightFactor/metresPerPixel);
-
-        // Setup lookup of buffer geometries
-        this.bufferGeometries = {};
 
         // Set up loader
         this.loader = new Loader();
@@ -146,10 +142,6 @@ export class World extends THREE.EventDispatcher {
     addToWorld(mesh: THREE.Mesh) {
 
         this.tiles.add(mesh);
-        const geometry = mesh.geometry;
-        if (geometry.type == 'BufferGeometry') {
-            this.bufferGeometries[mesh.name] = geometry as THREE.BufferGeometry;
-        }
         this.dispatchEvent({type: 'update'});
     }
 
@@ -159,9 +151,6 @@ export class World extends THREE.EventDispatcher {
         var obj = this.tiles.getObjectByName(name);
         if (obj) {
             this.tiles.remove(obj);
-            if (obj.name in this.bufferGeometries) {
-                delete this.bufferGeometries[obj.name];
-            }
         }
     }
 
@@ -170,7 +159,6 @@ export class World extends THREE.EventDispatcher {
         while (this.tiles.children.length) {
             this.tiles.remove(this.tiles.children[0]);
         }
-        this.bufferGeometries = {}
     }
 
     // Checking to see if any unloaded meshes can be loaded in
