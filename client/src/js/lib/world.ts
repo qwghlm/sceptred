@@ -122,38 +122,9 @@ export class World extends THREE.EventDispatcher {
 
         // If height data exists, then make a land geometry
         if (grid.heights.length) {
-
             let geometry = makeLandGeometry(grid, this.transform);
-
-            // Try stitching this to existing geometries
-            let neighbors : { [key: string]: string } = {
-                right : getNeighboringSquare(gridSquare, 1, 0),
-                top : getNeighboringSquare(gridSquare, 0, 1),
-                topRight : getNeighboringSquare(gridSquare, 1, 1),
-            }
-            Object.keys(neighbors).forEach(direction => {
-                if (neighbors[direction] in this.bufferGeometries) {
-                    let neighborGeometry = this.bufferGeometries[neighbors[direction]];
-                    stitchGeometries(geometry, neighborGeometry, direction);
-                }
-            });
-
-            // Add the geometry to the world
             let landMesh = makeLand(geometry, gridSquare);
             this.addToWorld(landMesh);
-
-            // Now go through existing geometries and stitch them to this
-            neighbors = {
-                right : getNeighboringSquare(gridSquare, -1, 0),
-                top : getNeighboringSquare(gridSquare, 0, -1),
-                topRight : getNeighboringSquare(gridSquare, -1, -1),
-            }
-            Object.keys(neighbors).forEach(direction => {
-                if (neighbors[direction] in this.bufferGeometries) {
-                    let neighborGeometry = this.bufferGeometries[neighbors[direction]];
-                    stitchGeometries(neighborGeometry, geometry, direction);
-                }
-            });
         }
         else {
             let seaGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
@@ -224,15 +195,10 @@ export class World extends THREE.EventDispatcher {
         // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.tiles.children
             .filter(d => d.type == "Mesh")
+            .filter(d => d.material.type == 'MeshBasicMaterial')
             .filter(d => {
                 var geometry = (<THREE.Mesh>d).geometry;
-                /* istanbul ignore else */
-                if (geometry) {
-                    return frustum.intersectsBox(geometry.boundingBox);
-                }
-                else {
-                    return false;
-                }
+                return frustum.intersectsBox(geometry.boundingBox);
             });
 
         // Sort them by distance from center
