@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 
 import { seaColor } from './colors';
-import { makeLandGeometry, makeEmptyGeometry, stitchGeometries } from './data';
+import { makeLandGeometry, makeEmptyGeometry } from './data';
 import { coordsToGridref, gridrefToCoords, getSurroundingSquares, getNeighboringSquare } from './grid';
 import { Loader } from './loader';
 import { makeTransform, makeScale } from './scale';
@@ -183,7 +183,7 @@ export class World extends THREE.EventDispatcher {
         // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.tiles.children
             .filter(d => d.type == "Mesh")
-            .filter(d => d.material.type == 'MeshBasicMaterial')
+            .filter(d => ((d as THREE.Mesh).material as THREE.Material).type == 'MeshBasicMaterial')
             .filter(d => {
                 var geometry = (<THREE.Mesh>d).geometry;
                 return frustum.intersectsBox(geometry.boundingBox);

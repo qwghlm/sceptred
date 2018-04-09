@@ -16,7 +16,7 @@ import { GridData } from './types';
 // Converting to buffers: 2-6ms
 // Building geometries: 5-25ms
 // Total time: 40-90ms
-export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampleRate=1) {
+export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampleRate=2) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
     const squareSize = data.meta.squareSize * sampleRate;
@@ -88,8 +88,8 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampl
 
     // And create a geometry from them
     var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', verticesBuffer));
-    geometry.addAttribute('color', colorsBuffer));
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.addAttribute('color', colorsBuffer);
     geometry.setIndex(facesBuffer);
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
@@ -117,11 +117,11 @@ export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, s
 
 function sample(input, sampleRate=1) {
 
-    if (input.length % sampleRate !== 0) {
+    if ((input.length - 1) % sampleRate !== 0) {
         throw new Error("Sample rate must be factor of array size");
     }
 
-    const n = input.length / sampleRate;
+    const n = 1 + (input.length - 1) / sampleRate;
     let output = new Array(n);
 
     for (var i = 0; i < n; i++) {

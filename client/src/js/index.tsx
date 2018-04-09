@@ -17,7 +17,7 @@ function load() {
 }
 
 // Configure raven
-if (window.SCEPTRED_PROD) {
+if (window['SCEPTRED_PROD']) {
     Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
         release: version
     }).install()
