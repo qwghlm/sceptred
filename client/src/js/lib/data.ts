@@ -16,15 +16,13 @@ import { GridData } from './types';
 // Converting to buffers: 2-6ms
 // Building geometries: 5-25ms
 // Total time: 40-90ms
-export function makeLandGeometry(data: GridData, transform: THREE.Matrix4) {
+export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampleRate=1) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
-    const squareSize = data.meta.squareSize;
+    const squareSize = data.meta.squareSize * sampleRate;
 
-    // Grid data starts in north-west while Ordnance Survey origin is in south-west
-    // so we reverse the rows first
-    var grid = data.heights.reverse();
-    var land = data.land.reverse();
+    var grid = sample(data.heights, sampleRate)
+    var land = sample(data.land, sampleRate)
 
     // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
     // Naively at first, we just clone the values in the 200th row & column for 201st.
@@ -195,4 +193,27 @@ export function stitchGeometries(target: THREE.BufferGeometry, neighbor: THREE.B
     target.computeVertexNormals();
     return target;
 
+}
+
+function sample(input, sampleRate=1) {
+
+    if (input.length % sampleRate !== 0) {
+        throw new Error("Sample rate must be factor of array size");
+    }
+
+    const n = input.length / sampleRate;
+    let output = new Array(n);
+
+    for (var i = 0; i < n; i++) {
+        if (sampleRate === 1) {
+            output[i] = input[i].slice();
+        }
+        else {
+            output[i] = new Array(n);
+            for (var j = 0; j < n; j++) {
+                output[i][j] = input[i * sampleRate][j * sampleRate];
+            }
+        }
+    }
+    return output
 }

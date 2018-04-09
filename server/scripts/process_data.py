@@ -39,7 +39,7 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "")
+    load_data(source_directory, "nt")
 
 
 class UKOutline:
@@ -136,14 +136,15 @@ def convert_to_db(input_path):
     if np.max(land) == 0:
         return grid_reference
 
+    # Flip heights and land upside down so they start from SW corner when returning
     document = {
         "_id": grid_reference.upper(),
         "meta": {
             "squareSize": 50,
             "gridReference": grid_reference.upper()
         },
-        "heights": heights.tolist(),
-        "land": land.tolist(),
+        "heights": np.flipud(heights).tolist(),
+        "land": np.flipud(land).tolist(),
     }
 
     # Upsert into database
