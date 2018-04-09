@@ -113,18 +113,20 @@ def load_data(pathname, name_filter="", force=False):
             count += 1
             elapsed = datetime.now() - start
             print("Latest: {}. So far we have done {} in {}, that's {:.1f} squares per second".format(
-                grid_square, count, elapsed, float(count)/max(1, elapsed.seconds)), end="\r")
+                grid_square, count, elapsed, float(count)/max(1, elapsed.seconds)))
 
         print("\n{} squares done!".format(count))
 
 
 def convert_to_db(input_path):
-
+    """
+    Converts tiles in the input path into the database
+    """
     # Get grid reference, check on filter
     grid_reference = os.path.basename(input_path).split('_')[0]
 
     # Get raw squares
-    heights = parse_zipped_asc(input_path)
+    heights = get_heights(input_path)
 
     # Determing what is land and what is sea
     (left, bottom) = parse_grid_reference(grid_reference)
@@ -160,11 +162,57 @@ def parse_zipped_asc(filepath):
     """
     Opens a ZIP file and extracts the ASC, and parses it
     """
+    if not os.path.exists(filepath):
+        return None
+
     zipped = zipfile.ZipFile(filepath)
     asc_filename = [f for f in zipped.namelist() if f[-4:] == '.asc'][0]
     floats = np.genfromtxt(zipped.open(asc_filename), skip_header=5)
     return np.rint(floats).astype(int)
 
+
+def make_path(grid_reference):
+    return "../../terrain/asc/{}/{}_OST50GRID_20170713.zip".format(
+        grid_reference[:2],
+        grid_reference,
+    )
+
+
+def get_heights(input_path):
+    """
+    """
+    # Get heights
+    grid = parse_zipped_asc(input_path)
+
+    grid_reference = os.path.basename(input_path).split('_')[0]
+    (width, height) = grid.shape
+
+    # Get tile to the right; if it exists, add its left-most column
+    # as our right-most. Else, duplicate values of right-most column
+    right_file = make_path(get_neighbor(grid_reference, 1, 0))
+    right = parse_zipped_asc(right_file)
+    if right is not None:
+        grid = np.insert(grid, width, right[:, 0], axis=1)
+    else:
+        grid = np.insert(grid, width, grid[:, -1], axis=1)
+
+    # Get the tile to the top; if it exists, add its bottom-most row
+    # as our top-most. Else duplicate values of top-most row
+    top_file = make_path(get_neighbor(grid_reference, 0, 1))
+    top = parse_zipped_asc(top_file)
+    if top is not None:
+        grid = np.insert(grid, 0, np.append(top[-1], top[-1][-1]), axis=0)
+    else:
+        grid = np.insert(grid, 0, grid[0], axis=0)
+
+    # Get the tile to the top right; if it exists, set our top-right value
+    # to its bottom-left. Else, it's already been set as a duplicate
+    top_right_file = make_path(get_neighbor(grid_reference, 1, 1))
+    top_right = parse_zipped_asc(top_right_file)
+    if top_right is not None:
+        grid[0][-1] = top_right[-1][0]
+
+    return grid
 
 def determine_land(squares, nw_corner, outline):
     """
@@ -260,6 +308,61 @@ def parse_grid_reference(grid_reference):
     easting = e100km*100000 + int((easting+'00000')[:5])
     northing = n100km*100000 + int((northing+'00000')[:5])
     return (easting, northing)
+
+
+def make_grid_reference(vector, digits):
+    """
+    Turns easting northings into a grid reference
+    """
+    (eastings, northings) = vector
+
+    if digits%2 != 0 or digits < 0 or digits > 16:
+        raise ValueError('Invalid precision ‘'+digits+'’')
+
+    # Get the 100km-grid indices
+    e100k = math.floor(eastings/100000)
+    n100k = math.floor(northings/100000)
+
+    if e100k < 0 or e100k > 6 or n100k < 0 or n100k > 12:
+        raise ValueError("Co-ordinates are not within UK National Grid")
+
+    # Translate those into numeric equivalents of the grid letters
+    number1 = (19-n100k) - (19-n100k)%5 + math.floor((e100k+10)/5)
+    number2 = (19-n100k)*5%25 + e100k%5
+    grid_square = ''.join((number_to_letter(number1), number_to_letter(number2)))
+
+    # Strip 100km-grid indices from easting & northing, and reduce precision
+    digits = int(digits/2)
+    eastings = math.floor((eastings%100000)/math.pow(10, 5-digits))
+    northings = math.floor((northings%100000)/math.pow(10, 5-digits))
+
+    # Pad eastings & northings with leading zeros (just in case, allow up to 16-digit (mm) refs)
+    eastings_string = str(eastings).zfill(digits)
+    northings_string = str(northings).zfill(digits)
+    return "{}{}{}".format(grid_square, eastings_string, northings_string)
+
+
+def number_to_letter(n):
+    # Compensate for skipped 'I' and build grid letter-pairs
+    if n > 7:
+        n += 1
+    return chr(n+65)
+
+
+def get_neighbor(grid_reference, x, y):
+    """
+    Gets the neighbor i
+    """
+    grid_reference = re.sub(r"\s+", "", grid_reference).upper()
+    if not re.match(r"^[A-Z]{2}[0-9]{2}$", grid_reference):
+        raise ValueError("Invalid grid reference")
+
+    (easting, northing) = parse_grid_reference(grid_reference)
+    easting += 10000 * x
+    northing += 10000 * y
+
+    return make_grid_reference((easting, northing), 2)
+
 
 if __name__ == "__main__":
     main()
