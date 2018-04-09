@@ -6,7 +6,6 @@ export class Loader {
 
     private queue: {(): void; }[];
     private pending: { [propName: string]: boolean; }
-    private cache: { [propName: string]: any; }
 
     constructor() {
 
@@ -16,20 +15,11 @@ export class Loader {
         // Pending requests
         this.pending = {};
 
-        // Cached requests
-        this.cache = {};
-
         setTimeout(this.tick.bind(this), 17);
     }
 
     load(url: string) {
 
-        // If cached, return the value!
-        if (url in this.cache) {
-            return Promise.resolve(JSON.parse(this.cache[url]))
-        }
-
-        // Else create a new fetch...
         // Push onto queue and wait for resolve
         return new Promise((resolve) => {
             this.queue.push(resolve);
@@ -46,7 +36,6 @@ export class Loader {
             throw new Error('Response was not OK');
         }).then((text) => {
             delete this.pending[url];
-            this.cache[url] = text;
             return JSON.parse(text);
         }).catch((error) => {
             delete this.pending[url];
