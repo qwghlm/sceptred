@@ -50,3 +50,12 @@ export function debounce(func: (...args: any[]) => void, wait = 50) {
     h = window.setTimeout(() => func.apply(null, args), wait);
   };
 }
+
+// A performance-measuring function
+var lastTime;
+export function checkPerformance(msg? : string) {
+    if (msg) {
+        console.log(msg + ` took ${(performance.now() - lastTime).toFixed(1)}ms`)
+    }
+    lastTime = performance.now();
+}

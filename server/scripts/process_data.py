@@ -39,7 +39,7 @@ def main():
         sys.exit(1)
 
     # Walk through the data directory
-    load_data(source_directory, "nt")
+    load_data(source_directory, "")
 
 
 class UKOutline:

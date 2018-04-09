@@ -138,11 +138,14 @@ export class World extends THREE.EventDispatcher {
         });
     }
 
-    // Generic adds a mesh to the world
     addToWorld(mesh: THREE.Mesh) {
-
         this.tiles.add(mesh);
-        this.dispatchEvent({type: 'update'});
+        this.dispatchEvent({type: 'update', message: 'From ' + mesh.name });
+    }
+
+    addManyToWorld(meshes: THREE.Mesh[]) {
+        meshes.forEach(mesh => this.tiles.add(mesh));
+        this.dispatchEvent({type: 'update', message: "From " + meshes.join(', ')});
     }
 
     // Removes a mesh from the world
@@ -182,45 +185,53 @@ export class World extends THREE.EventDispatcher {
 
         // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.tiles.children
-            .filter(d => d.type == "Mesh")
-            .filter(d => ((d as THREE.Mesh).material as THREE.Material).type == 'MeshBasicMaterial')
+            .filter(d => d.type == "Mesh" && isEmptyMesh(<THREE.Mesh>d))
             .filter(d => {
                 var geometry = (<THREE.Mesh>d).geometry;
                 return frustum.intersectsBox(geometry.boundingBox);
-            });
+            })
+            .map(d => getDistanceFromPoint(<THREE.Mesh>d, center));
 
-        // Sort them by distance from center
-        var distances = emptyMeshes.map(d => {
-            var meshCenter = (<THREE.Mesh>d).geometry.boundingSphere.center.clone();
-            meshCenter.setZ(0);
-            return {
-                id: d.name,
-                distance: meshCenter.sub(center).length()
-            }
-        })
-        distances.sort((a, b) => a.distance - b.distance);
-        distances.forEach((d, i) => {
-            this.load(d.id);
+        emptyMeshes.sort((a, b) => a.distance - b.distance);
+        emptyMeshes.forEach((d, i) => {
+            this.load(d.name);
         });
 
         // Find land or sea meshes that are out of view and replace with an empty one
         var unwantedMeshes = this.tiles.children
+            .filter(d => d.type == "Mesh" && !isEmptyMesh(<THREE.Mesh>d))
             .filter(d => {
-                var geometry = (d as THREE.Mesh).geometry;
-                /* istanbul ignore else */
-                if (geometry) {
-                    return !frustum.intersectsBox(geometry.boundingBox);
-                }
-                else {
-                    return false;
-                }
-            });
-        unwantedMeshes.forEach(d => {
+                var geometry = (<THREE.Mesh>d).geometry;
+                return !frustum.intersectsBox(geometry.boundingBox);
+            })
+            .map(d => getDistanceFromPoint(<THREE.Mesh>d, center));
+
+        unwantedMeshes.sort((a, b) => b.distance - a.distance);
+
+        // Bulk-replace the meshes with empty ones
+        var newEmptyMeshes = unwantedMeshes.slice(0, 10).map(d => {
             this.removeFromWorld(d.name);
             let emptyGeometry = makeEmptyGeometry(d.name, this.transform, this.scale);
-            let emptyMesh = makeWireframe(emptyGeometry, d.name);
-            this.addToWorld(emptyMesh);
-        })
+            return makeWireframe(emptyGeometry, d.name);
+        });
+        if (newEmptyMeshes.length) {
+            this.addManyToWorld(newEmptyMeshes);
+        }
+    }
+}
+
+// Mesh utility functions
+
+function isEmptyMesh (mesh: THREE.Mesh) {
+    return (mesh.material as THREE.Material).type == 'MeshBasicMaterial'
+}
+
+function getDistanceFromPoint(mesh: THREE.Mesh, point: THREE.Vector3) {
+    var meshCenter = mesh.geometry.boundingSphere.center.clone();
+    meshCenter.setZ(0);
+    return {
+        name: mesh.name,
+        distance: meshCenter.sub(point).length()
     }
 }
 

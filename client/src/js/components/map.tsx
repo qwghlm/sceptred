@@ -77,7 +77,7 @@ export class Map extends React.Component<MapProps, {}> {
         }
 
         // Render and animate
-        this.renderWorld();
+        this.renderWorld({type:"init"});
         this.animateWorld();
 
         // Start listening to events
@@ -135,7 +135,7 @@ export class Map extends React.Component<MapProps, {}> {
     }
 
     // Renders the world, and updates the stats while we are at it
-    renderWorld() {
+    renderWorld(e: {type: string}) {
         this.stats.begin();
         this.renderer.render(this.world.scene, this.world.camera);
         this.stats.end();

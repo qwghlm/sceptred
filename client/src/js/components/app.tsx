@@ -187,7 +187,7 @@ export class App extends React.Component<{}, AppState> {
             </div>
             <div className="columns">
                 <div className="column col-12 mt-2">
-                    <Map debug={false}
+                    <Map debug={!window['SCEPTRED_PROD']}
                         gridReference={this.state.gridReference}
                         onInitError={this.onInitError}
                         onLoadError={this.onLoadError} />

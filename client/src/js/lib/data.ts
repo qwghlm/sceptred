@@ -16,7 +16,7 @@ import { GridData } from './types';
 // Converting to buffers: 2-6ms
 // Building geometries: 5-25ms
 // Total time: 40-90ms
-export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampleRate=2) {
+export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampleRate=1) {
 
     const tileOrigin = gridrefToCoords(data.meta.gridReference);
     const squareSize = data.meta.squareSize * sampleRate;
