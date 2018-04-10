@@ -164,7 +164,9 @@ export class World extends THREE.EventDispatcher {
         }
     }
 
-    // Checking to see if any unloaded meshes can be loaded in
+    // Checking to see if any unloaded meshes can be loaded in, and what loaded
+    // meshes can be culled out
+    // This is typically not called directly by the world, but by the parent renderer
     _update() {
 
         // Work out where the center of the screen coincides with the tilemap
