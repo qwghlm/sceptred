@@ -1,3 +1,11 @@
+## Project-specific
+
+# Terrain data
+terrain/asc
+terrain/shp
+
+## Binaries
+
 # Binaries for programs and plugins
 *.exe
 *.dll
@@ -7,26 +15,31 @@
 # Test binary, build with `go test -c`
 *.test
 
-# Output of the go coverage tool, specifically when used with LiteIDE
-*.out
+# Compiled Python
+*.pyc
+
+# Dev server
+server/tmp
+
+## Vendor
 
 # Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
 .glide/
 vendor
 !client/src/js/vendor
 
-# Dev server
-server/tmp
-
-# Terrain data
-terrain/asc
-terrain/shp
-
 # Node
 node_modules
+
+## Generated
 
 # Sourcemaps
 *.map
 
-# Test coverage
+## Coverage
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# JS test coverage
 coverage
