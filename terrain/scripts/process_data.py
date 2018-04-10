@@ -31,7 +31,7 @@ def main():
     """
     Main runner
     """
-    source_directory = "../../terrain/asc/"
+    source_directory = "../asc/"
 
     # Check to see if data exists first
     if not os.path.exists(source_directory):
@@ -46,7 +46,7 @@ class UKOutline:
     class __UKOutline:
 
         def __init__(self):
-            shapefile = "../../terrain/shp/GBR_adm0.shp"
+            shapefile = "../shp/GBR_adm0.shp"
             uk_outline_file = fiona.open(shapefile)[0]
             uk_outline_wgs84 = shape(uk_outline_file['geometry'])
 
@@ -172,7 +172,7 @@ def parse_zipped_asc(filepath):
 
 
 def make_path(grid_reference):
-    return "../../terrain/asc/{}/{}_OST50GRID_20170713.zip".format(
+    return "../asc/{}/{}_OST50GRID_20170713.zip".format(
         grid_reference[:2],
         grid_reference,
     )
