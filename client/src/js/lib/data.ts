@@ -1,8 +1,7 @@
 // Functions for parsing data from the API
 import * as THREE from 'three';
-import * as chroma from 'chroma-js';
 
-import { seaColor, landColorRange, landColorDomain } from './colors';
+import { seaColorRGB, landColor } from './colors';
 import { gridrefToCoords, getGridSquareSize } from './grid';
 import { GridData } from './types';
 
@@ -29,14 +28,6 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampl
     // Calculate vertices and colors
     var vertices = new Float32Array(3*gridHeight*gridWidth);
     var colors = new Uint8Array(3*gridHeight*gridWidth);
-
-    // Our colour scale maker for land
-    const landColor = chroma.scale(landColorRange)
-        .domain(landColorDomain)
-        .mode('lab');
-
-    // Sea is a constant
-    const seaColorRGB = chroma.num(seaColor).rgb();
 
     // Go through each row and then each column of the grid
     grid.forEach((row, y) => row.forEach((z, x) => {
