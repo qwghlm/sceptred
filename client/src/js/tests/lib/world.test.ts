@@ -8,12 +8,10 @@ const mockMetadata = (gridReference) => ({
 const mockData = (gridReference) => ({
     meta: mockMetadata(gridReference),
     heights: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
-    land: [[1, 1, 1], [1, 1, 1], [1, 1, 1]],
 });
 const mockBlankData = (gridReference) => ({
     meta: mockMetadata(gridReference),
     heights: [],
-    land: [],
 }
 
 // Forces all promises in queue to flush, so we can get e.g. a load result

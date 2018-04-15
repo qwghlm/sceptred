@@ -16,11 +16,6 @@ test('Loader loads as standard', async () => {
         expect(json).toEqual({foo: 3});
     });
 
-    const cachedResult = loader.load(url);
-    await cachedResult.then((json) => {
-        expect(json).toEqual({foo: 3});
-    });
-
 });
 
 test('Loader rejects if a call is repeated before completion', async () => {
