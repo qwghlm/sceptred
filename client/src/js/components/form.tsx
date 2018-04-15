@@ -10,6 +10,7 @@ interface SearchResult {
 interface SearchResultProps {
     name: string;
     gridReference: string;
+    isSelected: boolean;
     onSelect: (SearchResult) => void;
 }
 
@@ -18,7 +19,7 @@ interface SearchResultProps {
 export class AutoCompleteItem extends React.Component<SearchResultProps, {}> {
 
     render() {
-        return <li className="menu-item">
+        return <li className={this.props.isSelected ? "menu-item fake-hover" : "menu-item"}>
             <a href="#" onClick={(e) => {
                 e.preventDefault();
                 this.props.onSelect({
@@ -34,7 +35,36 @@ export class AutoCompleteItem extends React.Component<SearchResultProps, {}> {
 
 // The entire autocomplete
 
-export class AutoComplete extends React.Component<{results: SearchResult[] | null, onSelect: (SearchResult) => void}, {}> {
+interface AutoCompleteProps {
+    results: SearchResult[] | null,
+    onSelect: (SearchResult) => void
+}
+interface AutoCompleteState {
+    cursor: number,
+}
+export class AutoComplete extends React.Component<AutoCompleteProps, AutoCompleteState> {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            cursor: -1
+        };
+    }
+
+    moveCursor(step) {
+
+        this.setState((prevState: AutoCompleteState, props: AutoCompleteProps) => {
+            const newCursor = prevState.cursor + step;
+            if (props.results == null || newCursor < 0 || newCursor > props.results.length - 1) {
+                return {
+                    cursor: prevState.cursor
+                }
+            }
+            return {
+                cursor: newCursor
+            }
+        });
+    }
 
     render() {
 
@@ -46,7 +76,9 @@ export class AutoComplete extends React.Component<{results: SearchResult[] | nul
         }
         else {
             return <ul className="menu">
-                {this.props.results.map((r, i) => <AutoCompleteItem key={i} onSelect={this.props.onSelect} {...r}/>)}
+                {this.props.results.map((r, i) =>
+                    <AutoCompleteItem key={i} isSelected={i == this.state.cursor} onSelect={this.props.onSelect} {...r}/>
+                 )}
             </ul>;
         }
     }
@@ -62,6 +94,7 @@ export class SearchForm extends React.Component<{onSelect: (SearchResult) => voi
 
     doGeolookup: (string) => void;
     state: SearchFormState;
+    autocomplete: AutoComplete | null;
 
     constructor(props) {
         super(props);
@@ -94,7 +127,18 @@ export class SearchForm extends React.Component<{onSelect: (SearchResult) => voi
 
     // Handle keypress
     handleKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        this.updateSearchTerm((e.target as HTMLInputElement).value);
+
+        // Arrow up/down button should select next/previous list element
+        if (e.key == 'ArrowUp' && this.autocomplete !== null) {
+            this.autocomplete.moveCursor(-1);
+        }
+        else if (e.key == 'ArrowDown' && this.autocomplete !== null) {
+            this.autocomplete.moveCursor(1);
+        }
+        else {
+            this.updateSearchTerm((e.target as HTMLInputElement).value);
+        }
+
     }
 
     onSelect = (result) => {
@@ -121,7 +165,10 @@ export class SearchForm extends React.Component<{onSelect: (SearchResult) => voi
 
             </div>
 
-            <AutoComplete results={this.state.searchResults} onSelect={this.onSelect} />
+            <AutoComplete
+                ref={(el) => this.autocomplete = el}
+                results={this.state.searchResults}
+                onSelect={this.onSelect} />
 
         </div>
 
