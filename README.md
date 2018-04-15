@@ -37,7 +37,7 @@ To install the vendor files, it is recommended you use Glide:
 
 This only needs to be done once, before you first run.
 
-TODO Database
+TODO Database installation
 
 ### Development server & watcher
 
@@ -92,11 +92,38 @@ The CSS is currently handled by [Spectre.css](https://picturepan2.github.io/spec
 
 ### Server
 
-The server is a simple API server written in Go with the help of [Echo](https://echo.labstack.com/). The Ordnance Survey data has been converted into an optimized key-value store powered by [Badger](https://github.com/dgraph-io/badger).
+The server is a simple API server written in Go with the help of [Echo](https://echo.labstack.com/). This handles the homepage, and delivering each tile via a JSON API.
 
 ### Database
 
-TODO
+The database is a simple MongoDB database. There is one collection of ~2,800 Documents, each covering a 10x10 grid square in the UK. The format for each is:
+
+    {
+        "_id" : "NT27",
+        "meta" : {
+            "squareSize" : 50,
+            "gridReference" : "NT27"
+        },
+        "heights" : [
+            [8, 79, 81, 76, 79, 79, ...],
+            ...
+        ]
+    }
+
+To rebuild the database, you will need two sets of source files:
+
+ * The Ordnance Survey's [OS Terrain 50 dataset](https://www.ordnancesurvey.co.uk/business-and-government/products/terrain-50.html), which can be ordered [here](https://www.ordnancesurvey.co.uk/opendatadownload/products.html#TERR50). Make sure the ASCII Grid format is selected. After downloading, unzip the single zip file and place all of its contents in the directory `terrain/asc`.
+ * A shapefile for the United Kingdom's coastline - I have used the `GBR_adm0.shp` shapefile from [http://www.diva-gis.org/gdata](here), which can be reached by selecting United Kingdom / Administrative areas. I have not tested the script with other shapefiles. Download and unzip the shapefiles into `terrain/shp`.
+
+Once installed and unzipped into the above location, `cd` into `terrain/scripts`. Then install the Python libraries (virtualenv is recommended):
+
+    $ pip install -r requirements.txt
+
+And then run the script:
+
+    $ ./process_data.py
+
+On my MacBook Pro, converting the entire UK into the MongoDB database takes about 5-6 minutes.
 
 ## Copyright
 
