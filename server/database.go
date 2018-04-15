@@ -1,10 +1,12 @@
 //+build !test
 
-package sceptred
+package main
 
 import (
     "log"
     "os"
+
+    "sceptred/server/interfaces"
 
     "github.com/getsentry/raven-go"
     "gopkg.in/mgo.v2"
@@ -15,21 +17,21 @@ import (
 type MongoSession struct {
     *mgo.Session
 }
-func (s MongoSession) DB(name string) Database {
+func (s MongoSession) DB(name string) interfaces.Database {
     return MongoDatabase{Database: s.Session.DB(name)}
 }
 
 type MongoDatabase struct {
     *mgo.Database
 }
-func (d MongoDatabase) C(name string) Collection {
+func (d MongoDatabase) C(name string) interfaces.Collection {
     return MongoCollection{Collection: d.Database.C(name)}
 }
 
 type MongoCollection struct {
     *mgo.Collection
 }
-func (c MongoCollection) FindId(query interface{}) Query {
+func (c MongoCollection) FindId(query interface{}) interfaces.Query {
     return MongoQuery{Query: c.Collection.FindId(query)}
 }
 
@@ -42,7 +44,7 @@ func (q MongoQuery) One(result interface{}) error {
 
 // Database session
 
-func databaseSession() Session {
+func databaseSession() interfaces.Session {
     dbHost := os.Getenv("SCEPTRED_DB_HOST")
     if dbHost == "" {
         dbHost = "localhost"

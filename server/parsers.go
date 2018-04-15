@@ -1,4 +1,4 @@
-package sceptred
+package main
 
 import (
     "encoding/json"

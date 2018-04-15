@@ -1,4 +1,4 @@
-package sceptred_test
+package main
 
 import (
     "errors"
@@ -8,7 +8,6 @@ import (
     "strings"
     "testing"
 
-    "sceptred/server"
     mock "sceptred/server/mocks"
 
     "github.com/golang/mock/gomock"
@@ -16,7 +15,7 @@ import (
 
 )
 
-func makeMockData(size int) sceptred.GridData {
+func makeMockData(size int) GridData {
 
     heights := make([][]interface{}, size)
     for i, _ := range heights {
@@ -26,8 +25,8 @@ func makeMockData(size int) sceptred.GridData {
         }
     }
 
-    grid := sceptred.GridData{
-        sceptred.GridDataMeta{50, "NT27"},
+    grid := GridData{
+        GridDataMeta{50, "NT27"},
         heights,
     }
     return grid
@@ -61,7 +60,7 @@ func request(t *testing.T, method, path string, body interface{}) (int, string) 
         s.EXPECT().DB(gomock.Any()).Return(d)
     }
 
-    e := sceptred.Instance(s)
+    e := Instance(s)
 
     // Run test
     e.Logger.SetOutput(ioutil.Discard)

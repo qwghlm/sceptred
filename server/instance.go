@@ -1,4 +1,4 @@
-package sceptred
+package main
 
 import (
     "go/build"
@@ -7,8 +7,11 @@ import (
     "os"
     "regexp"
 
+    "sceptred/server/interfaces"
+
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
+
 )
 // Constants
 
@@ -45,7 +48,7 @@ func (r *renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 // Instance
 
-func Instance(s Session) *echo.Echo {
+func Instance(s interfaces.Session) *echo.Echo {
 
     // Setup Echo instance
     e := echo.New()

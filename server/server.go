@@ -1,6 +1,6 @@
 //+build !test
 
-package sceptred
+package main
 
 import (
     "os"

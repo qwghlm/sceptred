@@ -1,4 +1,4 @@
-package sceptred
+package interfaces
 
 // Generic interfaces, used in databases
 

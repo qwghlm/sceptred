@@ -1,10 +1,12 @@
-package sceptred
+package main
 
 import (
     "net/http"
     "os"
     "regexp"
     "strings"
+
+    "sceptred/server/interfaces"
 
     "github.com/getsentry/raven-go"
     "github.com/labstack/echo"
@@ -39,7 +41,7 @@ type GridDataMeta struct {
 }
 
 type databaseHandler struct {
-    session Session
+    session interfaces.Session
 }
 
 const gridSize = 200
