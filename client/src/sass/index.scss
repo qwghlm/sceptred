@@ -1,6 +1,29 @@
-@import "~spectre.css/src/spectre";
+@import "~spectre.css/src/variables";
+@import "~spectre.css/src/mixins";
+@import "~spectre.css/src/normalize";
+@import "~spectre.css/src/base";
+@import "~spectre.css/src/typography";
+@import "~spectre.css/src/buttons";
+@import "~spectre.css/src/forms";
+@import "~spectre.css/src/codes";
+@import "~spectre.css/src/layout";
+@import "~spectre.css/src/menus";
+@import "~spectre.css/src/utilities";
 
-// TODO Shrink imports and fix bloody linter
+// Media
+
+$media-sm: "only screen and (max-width : 640px)";
+$media-md: "only screen and (min-width : 641px) and (max-width : 959px)";
+$media-lg: "only screen and (min-width : 960px)";
+
+// Dimensions
+
+$padding: 8px;
+$header-height: 40px;
+
+// Colors
+
+$black: #333;
 
 body {
     font-family: Roboto, sans-serif;
@@ -8,12 +31,12 @@ body {
 
 header {
 
-    background: url(../img/logo.svg) 8px 8px no-repeat;
-    background-size: 40px 40px;
+    background: url(../img/logo.svg) $padding $padding no-repeat;
+    background-size: $header-height $header-height;
 
     padding: 1rem 0 1rem 56px;
     margin-bottom: 1rem;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid $black;
 
     text-transform: uppercase;
     letter-spacing: 3px;
@@ -23,36 +46,43 @@ header {
 
 .container {
 
-    @media only screen and (max-width: 640px) {
+    margin: 0 auto;
+
+    @media #{$media-sm} {
         width: 100%;
     }
-    @media only screen and (min-width: 641px) {
+    @media #{$media-md} {
         max-width: 640px;
     }
-    margin: 0 auto;
+    @media #{$media-lg} {
+        max-width: 800px;
+    }
 }
 
 .form-wrapper {
 
     input, button {
-        @media only screen and (max-width: 640px) {
+        @media #{$media-sm} {
             font-size: 140%;
-            height: 1.5*1.8rem;
+            height: 1.5 * 1.8rem;
         }
     }
 
 }
 
 .form-autocomplete {
+
     position: relative;
 
     .menu {
+
         position: absolute;
         left: 2px;
+        top: 38px;
+
         width: calc(100% - 4px);
 
-        top: 38px;
-        @media only screen and (max-width: 640px) {
+        @media #{$media-sm} {
             top: 54px;
         }
     }
@@ -61,7 +91,7 @@ header {
 .canvas-wrapper {
 
     overflow: hidden;
-    max-height: 1000px;
+    max-height: 960px;
 
     transition: max-height 400ms;
 
@@ -71,13 +101,13 @@ header {
 }
 
 .instructions {
-    @media only screen and (min-width: 641px) {
+    @media #{$media-md} {
         font-size: 80%;
     }
 }
 
 .debug-stats {
-    margin-top: 120px;
+    margin-top: 120px; // Arbitrary
 }
 
 footer {
