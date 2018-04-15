@@ -30,14 +30,13 @@ func handleIndex(c echo.Context) error {
 // Data
 
 type gridData struct {
-    Meta gridDataMeta      `json:"meta" bson:"meta"`
-    Heights [][]int16      `json:"heights" bson:"heights"`
-    Land [][]int16         `json:"land" bson:"land"`
+    Meta    gridDataMeta    `json:"meta" bson:"meta"`
+    Heights [][]interface{} `json:"heights" bson:"heights"`
 }
 
 type gridDataMeta struct {
-    SquareSize int         `json:"squareSize" bson:"squareSize"`
-    GridReference string   `json:"gridReference" bson:"gridReference"`
+    SquareSize    int    `json:"squareSize" bson:"squareSize"`
+    GridReference string `json:"gridReference" bson:"gridReference"`
 }
 
 const gridSize = 200
@@ -46,7 +45,7 @@ type databaseHandler struct {
     session *mgo.Session
 }
 
-func (h *databaseHandler) get (c echo.Context) error {
+func (h *databaseHandler) get(c echo.Context) error {
 
     // Get the grid square required
     gridSquare := strings.ToUpper(c.Param("gridSquare"))
@@ -64,10 +63,15 @@ func (h *databaseHandler) get (c echo.Context) error {
 
         // If no key found, return a blank object
         if err.Error() == "not found" {
-            heights := make([][]int16, 0)
-            land := make([][]int16, 0)
+            heights := make([][]interface{}, 0)
             squareSize := 50
-            result = &gridData{gridDataMeta{squareSize, gridSquare}, heights, land}
+            result = &gridData{
+                Meta: gridDataMeta{
+                    SquareSize:    squareSize,
+                    GridReference: gridSquare,
+                },
+                Heights: heights,
+            }
         } else {
             raven.CaptureError(err, nil)
             return echo.NewHTTPError(http.StatusInternalServerError, nil)
@@ -78,4 +82,3 @@ func (h *databaseHandler) get (c echo.Context) error {
     return c.JSON(http.StatusOK, result)
 
 }
-
