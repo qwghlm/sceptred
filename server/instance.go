@@ -69,10 +69,14 @@ func instance() *echo.Echo {
     }
 
     // Setup database
-    session, err := mgo.Dial("localhost")
+    dbHost := os.Getenv("SCEPTRED_DB_HOST")
+    if dbHost == "" {
+        dbHost = "localhost"
+    }
+    session, err := mgo.Dial(dbHost)
     if err != nil {
         raven.CaptureError(err, nil)
-        log.Fatal("Cannot connect to Mongo ", err)
+        log.Fatal("Cannot connect to Mongo on " + dbHost + ": ", err)
     }
     dataHandler := &databaseHandler{session: session}
 

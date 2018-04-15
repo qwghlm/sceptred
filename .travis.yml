@@ -6,7 +6,6 @@ go_import_path: sceptred
 install:
   - curl https://glide.sh/get | sh && glide install
   - npm install
-  - ./install.sh -t
 
 script:
   - npm run test:js

@@ -18,7 +18,7 @@ func main() {
     e := instance()
 
     // Start serving
-    port := os.Getenv("PORT")
+    port := os.Getenv("SCEPTRED_PORT")
     if port == "" {
         port = "8000"
     }

@@ -17,11 +17,9 @@ _This fortress built by Nature for her self_<br>
 Sceptred is a web application, split between a browser-based client and a server.
 
 * The client is written in [Typescript](http://www.typescriptlang.org/), and depends on [Three.js](https://threejs.org) to render the terrain in a WebGL context.
-* The server is written in [Go](https://golang.org/), and is ultimately backed by an adaptation of the Ordnance Survey's [Terrain 50](https://www.ordnancesurvey.co.uk/business-and-government/products/terrain-50.html) dataset.
+* The server is written in [Go](https://golang.org/), and is ultimately backed by an adaptation of the Ordnance Survey's [Terrain 50](https://www.ordnancesurvey.co.uk/business-and-government/products/terrain-50.html) dataset in a MongoDB database.
 
 The project is designed to use modern web development tools & practices. The client is compiled into JavaScript with [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/), and has automated testing in [Jest](https://facebook.github.io/jest/). The server is packaged up & deployed with [Docker](https://www.docker.com/), and the entire repo has integrations with [Travis](https://travis-ci.org/qwghlm/sceptred), [Codecov](https://codecov.io/gh/qwghlm/sceptred) and [Sentry](https://sentry.io).
-
-This is very much a work in progress at the moment, so code may change dramatically between versions.
 
 ## Developing
 
@@ -37,11 +35,9 @@ To install the vendor files, it is recommended you use Glide:
 
     $ glide install
 
-You will also need the database files that hold the terrain data. These are not included in the repo - they too large for Github so they are currently hosted on Amazon S3. To download them, run:
-
-    $ ./install.sh
-
 This only needs to be done once, before you first run.
+
+TODO Database
 
 ### Development server & watcher
 
@@ -97,6 +93,10 @@ The CSS is currently handled by [Spectre.css](https://picturepan2.github.io/spec
 ### Server
 
 The server is a simple API server written in Go with the help of [Echo](https://echo.labstack.com/). The Ordnance Survey data has been converted into an optimized key-value store powered by [Badger](https://github.com/dgraph-io/badger).
+
+### Database
+
+TODO
 
 ## Copyright
 

@@ -7,6 +7,9 @@ node_modules
 # Or Go vendor files
 vendor
 
+# Or terrain
+terrain
+
 # No coverage, and source code isn't needed either
 client/coverage
 **/*.out
