@@ -143,6 +143,15 @@ def convert_to_db(input_path):
     if np.max(land) == 0:
         return grid_reference
 
+    # Output an array where sea is the empty string, else number is height in metres
+    def heights_to_sea(h, l):
+        """Returns empty string if land is zero, else 1"""
+        if l == 0:
+            return ""
+        return h
+    vf = np.vectorize(heights_to_sea, otypes=[object])
+    converted_heights = vf(heights, land)
+
     # Flip heights and land upside down so they start from SW corner when returning
     document = {
         "_id": grid_reference.upper(),
@@ -150,8 +159,7 @@ def convert_to_db(input_path):
             "squareSize": 50,
             "gridReference": grid_reference.upper()
         },
-        "heights": np.flipud(heights).tolist(),
-        "land": np.flipud(land).tolist(),
+        "heights": np.flipud(converted_heights).tolist(),
     }
 
     # Upsert into database
