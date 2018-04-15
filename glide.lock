@@ -1,30 +1,18 @@
-hash: 0121e22cdd7a545bb6294753331401b90001247c9312d58c3c5fb2b9e19bac0d
-updated: 2018-04-07T17:32:39.868792+01:00
+hash: 0bc1907f3b2fa68a77e38541bb827b85d925277a644f94c1eee5ef785ec6c588
+updated: 2018-04-15T19:38:54.145716+01:00
 imports:
-- name: github.com/AndreasBriese/bbloom
-  version: 28f7e881ca57bc00e028f9ede9f0d9104cfeef5e
 - name: github.com/certifi/gocertifi
   version: deb3ae2ef2610fde3330947281941c562861188b
-- name: github.com/dgraph-io/badger
-  version: dc0df253d239ff6abe3ffbbcdf3cb1e49e646369
-  subpackages:
-  - options
-  - protos
-  - skl
-  - table
-  - "y"
 - name: github.com/dgrijalva/jwt-go
   version: 06ea1031745cb8b3dab3f6a236daf2b0aa468b7e
-- name: github.com/dgryski/go-farm
-  version: 2de33835d10275975374b37b2dcfd22c9020a1f5
 - name: github.com/getsentry/raven-go
   version: 563b81fc02b75d664e54da31f787c2cc2186780b
-- name: github.com/golang/protobuf
-  version: bbd03ef6da3a115852eaf24c8a1c46aeb39aa175
+- name: github.com/golang/mock
+  version: c34cdb4725f4c3844d095133c6e40e448b86589b
   subpackages:
-  - proto
+  - gomock
 - name: github.com/labstack/echo
-  version: a5d81b8d4a627f3f49dcb3164ef2bb5239682227
+  version: 6d227dfea4d2e52cb76856120b3c17f758139b4e
   subpackages:
   - middleware
 - name: github.com/labstack/gommon
@@ -53,14 +41,17 @@ imports:
   version: e0c57d8f86c17f0724497efcb3bc617e82834821
   subpackages:
   - context
-  - internal/timeseries
-  - trace
 - name: golang.org/x/sys
   version: 2f1e207ee39ff70f3433e49c6eb52677a515e3b5
   subpackages:
   - unix
 - name: gopkg.in/mgo.v2
   version: 3f83fa5005286a7fe593b055f0d7771a7dce4655
+  subpackages:
+  - bson
+  - internal/json
+  - internal/sasl
+  - internal/scram
 testImports:
 - name: github.com/davecgh/go-spew
   version: 8991bc29aa16c548c550c7ff78260e27b9ab7c73
