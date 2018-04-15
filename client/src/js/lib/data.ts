@@ -22,7 +22,6 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampl
     const squareSize = data.meta.squareSize * sampleRate;
 
     var grid = sample(data.heights, sampleRate)
-    var land = sample(data.land, sampleRate)
 
     const gridHeight = grid.length;
     const gridWidth = grid[0].length;
@@ -45,7 +44,7 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampl
         // Work out index of this point in the vertices & colors arrays
         // Each array is spaced out with three values, hence the multiplier
         const i = 3*(x + gridWidth*y);
-        const isLand = z > 0 || land[y][x];
+        const isLand = grid[y][x] !== "";
 
         // Assign vertices
         vertices.set([

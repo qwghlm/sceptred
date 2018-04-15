@@ -28,7 +28,7 @@ import pyproj
 
 from lib import parse_grid_reference, get_neighbor
 
-def main(name_filter="nt"):
+def main(name_filter=""):
     """
     Main runner
     """
