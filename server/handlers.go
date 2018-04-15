@@ -8,7 +8,6 @@ import (
 
     "github.com/getsentry/raven-go"
     "github.com/labstack/echo"
-    "gopkg.in/mgo.v2"
 )
 
 // Index
@@ -39,11 +38,11 @@ type gridDataMeta struct {
     GridReference string `json:"gridReference" bson:"gridReference"`
 }
 
-const gridSize = 200
-
 type databaseHandler struct {
-    session *mgo.Session
+    session Session
 }
+
+const gridSize = 200
 
 func (h *databaseHandler) get(c echo.Context) error {
 

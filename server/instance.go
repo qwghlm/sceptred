@@ -4,14 +4,11 @@ import (
     "go/build"
     "html/template"
     "io"
-    "log"
     "os"
     "regexp"
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
-    "github.com/getsentry/raven-go"
-    "gopkg.in/mgo.v2"
 )
 // Constants
 
@@ -69,15 +66,7 @@ func instance() *echo.Echo {
     }
 
     // Setup database
-    dbHost := os.Getenv("SCEPTRED_DB_HOST")
-    if dbHost == "" {
-        dbHost = "localhost"
-    }
-    session, err := mgo.Dial(dbHost)
-    if err != nil {
-        raven.CaptureError(err, nil)
-        log.Fatal("Cannot connect to Mongo on " + dbHost + ": ", err)
-    }
+    session := databaseSession()
     dataHandler := &databaseHandler{session: session}
 
     // Handlers are in handlers.go
