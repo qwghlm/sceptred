@@ -1,4 +1,4 @@
-package main
+package sceptred
 
 import (
     "net/http"
@@ -28,12 +28,12 @@ func handleIndex(c echo.Context) error {
 
 // Data
 
-type gridData struct {
-    Meta    gridDataMeta    `json:"meta" bson:"meta"`
+type GridData struct {
+    Meta    GridDataMeta    `json:"meta" bson:"meta"`
     Heights [][]interface{} `json:"heights" bson:"heights"`
 }
 
-type gridDataMeta struct {
+type GridDataMeta struct {
     SquareSize    int    `json:"squareSize" bson:"squareSize"`
     GridReference string `json:"gridReference" bson:"gridReference"`
 }
@@ -55,7 +55,7 @@ func (h *databaseHandler) get(c echo.Context) error {
     }
 
     s := h.session.DB("local").C("sceptred")
-    var result *gridData
+    var result *GridData
     err := s.FindId(gridSquare).One(&result)
 
     if err != nil {
@@ -64,8 +64,8 @@ func (h *databaseHandler) get(c echo.Context) error {
         if err.Error() == "not found" {
             heights := make([][]interface{}, 0)
             squareSize := 50
-            result = &gridData{
-                Meta: gridDataMeta{
+            result = &GridData{
+                Meta: GridDataMeta{
                     SquareSize:    squareSize,
                     GridReference: gridSquare,
                 },

@@ -1,4 +1,6 @@
-package main
+//+build !test
+
+package sceptred
 
 import (
     "log"
@@ -7,21 +9,6 @@ import (
     "github.com/getsentry/raven-go"
     "gopkg.in/mgo.v2"
 )
-
-// Generic interfaces
-
-type Session interface {
-    DB(name string) Database
-}
-type Database interface {
-    C(name string) Collection
-}
-type Collection interface {
-    FindId(id interface{}) Query
-}
-type Query interface {
-    One(result interface{}) error
-}
 
 // Mongo-specific interfaces
 

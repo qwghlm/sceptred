@@ -1,4 +1,4 @@
-package main
+package sceptred
 
 import (
     "go/build"
@@ -45,7 +45,7 @@ func (r *renderer) Render(w io.Writer, name string, data interface{}, c echo.Con
 
 // Instance
 
-func instance() *echo.Echo {
+func Instance(s Session) *echo.Echo {
 
     // Setup Echo instance
     e := echo.New()
@@ -66,8 +66,7 @@ func instance() *echo.Echo {
     }
 
     // Setup database
-    session := databaseSession()
-    dataHandler := &databaseHandler{session: session}
+    dataHandler := &databaseHandler{session: s}
 
     // Handlers are in handlers.go
     e.GET("/", handleIndex)
