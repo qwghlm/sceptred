@@ -12,7 +12,7 @@ const mockData = (gridReference) => ({
 const mockBlankData = (gridReference) => ({
     meta: mockMetadata(gridReference),
     heights: [],
-}
+});
 
 // Forces all promises in queue to flush, so we can get e.g. a load result
 function flushPromises() {

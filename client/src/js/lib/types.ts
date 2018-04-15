@@ -4,6 +4,5 @@ export interface GridData {
         squareSize: number,
         gridReference: string
     },
-    heights: number[][],
-    land: number[][],
+    heights: any[][],
 }

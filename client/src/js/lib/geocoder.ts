@@ -1,4 +1,4 @@
-import { coordsToGridref } from './grid.ts';
+import { coordsToGridref } from './grid';
 import * as THREE from 'three';
 
 var geocoder;
