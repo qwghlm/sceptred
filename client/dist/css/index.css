@@ -1911,6 +1911,15 @@ header {
   .canvas-wrapper.inactive {
     max-height: 0px; }
 
+.canvas-wrapper-inner {
+  position: absolute;
+  line-height: 0; }
+  .canvas-wrapper-inner button.btn-link {
+    position: absolute;
+    bottom: 0.5rem;
+    right: 0.5rem;
+    background: rgba(0, 0, 0, 0.5); }
+
 @media only screen and (min-width: 641px) and (max-width: 959px) {
   .instructions {
     font-size: 80%; } }

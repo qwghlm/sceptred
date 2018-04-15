@@ -105,6 +105,21 @@ header {
     }
 }
 
+.canvas-wrapper-inner {
+
+    position: absolute;
+    line-height: 0;
+
+    button.btn-link {
+
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.5rem;
+
+        background: rgba(0, 0, 0, 0.5)
+    }
+}
+
 .instructions {
     @media #{$media-md} {
         font-size: 80%;

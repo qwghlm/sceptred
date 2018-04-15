@@ -125,15 +125,6 @@ export class Map extends React.Component<MapProps, {}> {
         }
     }
 
-    // Simple resizer
-    onWindowResize() {
-        var base = ReactDOM.findDOMNode(this) as HTMLElement;
-        var width = base.offsetWidth;
-        var height = Math.floor(width * 0.8);
-        this.world.setSize(width, height);
-        this.renderer.setSize(width, height);
-    }
-
     // Renders the world, and updates the stats while we are at it
     renderWorld(e: {type: string}) {
         this.stats.begin();
@@ -148,6 +139,37 @@ export class Map extends React.Component<MapProps, {}> {
         this.controls.update();
     }
 
+    // Simple resizer
+
+    onWindowResize = (e) => {
+        var base = ReactDOM.findDOMNode(this) as HTMLElement;
+        var width = base.offsetWidth;
+        var height = Math.floor(width * 0.8);
+        this.world.setSize(width, height);
+        this.renderer.setSize(width, height);
+    }
+
+    onFullScreen = (e) => {
+
+        const canvas = ReactDOM.findDOMNode(this).querySelector('canvas');
+
+        const requestNames = [
+            'requestFullscreen',
+            'webkitRequestFullscreen',
+            'mozRequestFullScreen',
+            'msRequestFullscreen',
+        ]
+        for (var i=0; i<requestNames.length; i++) {
+            if (requestNames[i] in canvas) {
+                canvas[requestNames[i]]();
+                return;
+            }
+        }
+
+        // TODO Can we make the fullscreen 100%?
+        console.log("Unable to fullscreen, sorry.")
+    }
+
     // Render function that outputs the canvas renderer
     render() {
 
@@ -156,7 +178,17 @@ export class Map extends React.Component<MapProps, {}> {
         }
         return <div className={"canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive")}>
 
-            <canvas></canvas>
+            <div className="canvas-wrapper-inner">
+
+                <canvas></canvas>
+
+                <button className="btn btn-link" onClick={this.onFullScreen}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 18 18">
+                        <path d="M4.5 11H3v4h4v-1.5H4.5V11zM3 7h1.5V4.5H7V3H3v4zm10.5 6.5H11V15h4v-4h-1.5v2.5zM11 3v1.5h2.5V7H15V3h-4z" stroke="#FFFFFF" fill="#FFFFFF" />
+                    </svg>
+                </button>
+
+            </div>
 
             <div className="instructions">
                 <p className={isTouch() ? "d-none" : ""}>
