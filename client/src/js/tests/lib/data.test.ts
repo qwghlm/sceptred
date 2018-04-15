@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeLandGeometry, makeEmptyGeometry, stitchGeometries } from '../../lib/data';
+import { makeLandGeometry, makeEmptyGeometry, stitchGeometries, sample } from '../../lib/data';
 
 test('makeLandGeometry() works properly', () => {
 
@@ -77,3 +77,22 @@ test('makeEmptyGeometry() works properly', () => {
     expect(faces[1].b).toEqual(3);
     expect(faces[1].c).toEqual(1);
 });
+
+test("sample() works properly", () => {
+    const input = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+    ];
+
+    let sampleOne = sample(input);
+    expect(sampleOne).toEqual(input);
+
+    let sampleTwo = sample(input, 2);
+    expect(sampleTwo).toEqual([
+        [0, 2],
+        [6, 8]
+    ]);
+
+    expect(() => sample(input, 3)).toThrow()
+})

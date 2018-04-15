@@ -114,7 +114,7 @@ export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, s
 
 }
 
-function sample(input, sampleRate=1) {
+export function sample(input, sampleRate=1) {
 
     if ((input.length - 1) % sampleRate !== 0) {
         throw new Error("Sample rate must be factor of array size");
