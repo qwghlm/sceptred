@@ -28,3 +28,13 @@ test('debounce() extends properly', () => {
     expect(test).toHaveBeenCalledTimes(1);
 
 });
+
+test('checkPerformance works properly', () => {
+    global.console = {
+        log: jest.fn()
+    }
+    utils.checkPerformance();
+    expect(global.console.log).toHaveBeenCalledTimes(0);
+    utils.checkPerformance("Now checking");
+    expect(global.console.log).toHaveBeenCalledTimes(1);
+})
