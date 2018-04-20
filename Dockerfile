@@ -23,4 +23,4 @@ COPY --from=0 /go/bin/server /serve
 COPY --from=0 /go/src/sceptred/client /go/src/sceptred/client
 COPY --from=0 /go/src/sceptred/server/templates /go/src/sceptred/server/templates
 ENTRYPOINT ["/serve"]
-EXPOSE 8000
+EXPOSE 8080

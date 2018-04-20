@@ -16,7 +16,7 @@ _This fortress built by Nature for her self_<br>
 
 Sceptred is a web application, split between a browser-based client and a server.
 
-* The client is written in [Typescript](http://www.typescriptlang.org/), and depends on [Three.js](https://threejs.org) to render the terrain in a WebGL context.
+* The client is written in [Typescript](http://www.typescriptlang.org/), and uses [Three.js](https://threejs.org) to render the terrain in a WebGL context.
 * The server is written in [Go](https://golang.org/), and is ultimately backed by an adaptation of the Ordnance Survey's [Terrain 50](https://www.ordnancesurvey.co.uk/business-and-government/products/terrain-50.html) dataset in a MongoDB database.
 
 The project is designed to use modern web development tools & practices. The client is compiled into JavaScript with [Webpack](https://webpack.js.org/) and [Babel](https://babeljs.io/), and has automated testing in [Jest](https://facebook.github.io/jest/). The server is packaged up & deployed with [Docker](https://www.docker.com/), and the entire repo has integrations with [Travis](https://travis-ci.org/qwghlm/sceptred), [Codecov](https://codecov.io/gh/qwghlm/sceptred) and [Sentry](https://sentry.io).
@@ -25,7 +25,7 @@ The project is designed to use modern web development tools & practices. The cli
 
 ### Before you start
 
-Prerequisites: Go, Node + npm, [Glide](https://github.com/Masterminds/glide).
+Prerequisites: Go, Node + npm, [Glide](https://github.com/Masterminds/glide), a MongoDB instance
 
 To install Webpack and associated build & test functionality, run:
 
@@ -35,9 +35,13 @@ To install the vendor files, it is recommended you use Glide:
 
     $ glide install
 
-This only needs to be done once, before you first run.
+To install the database, download the database dump (a copy is [here](https://sceptred-qwghlm.s3.amazonaws.com/db/dump.zip), about 200MB in size). Unzip and `cd` into the `dump` folder. Then install using `mongorestore`:
 
-TODO Database installation
+    $ mongorestore --db sceptred ./sceptred
+
+You may need to set the `--host`, `--username` and `--password` flags to correctly connect to your MongoDB instance.
+
+All of these only needs to be done once, before you first run.
 
 ### Development server & watcher
 

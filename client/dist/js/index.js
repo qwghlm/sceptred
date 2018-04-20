@@ -61,7 +61,7 @@ var SCEPTRED =
 /******/ 	__webpack_require__.p = "/static/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 19);
+/******/ 	return __webpack_require__(__webpack_require__.s = 20);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -46246,9 +46246,9 @@ module.exports = emptyFunction;
 /* WEBPACK VAR INJECTION */(function(process) {
 
 if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(20);
-} else {
   module.exports = __webpack_require__(21);
+} else {
+  module.exports = __webpack_require__(22);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -46657,6 +46657,7 @@ exports.isRetina = isRetina;
 exports.webglEnabled = webglEnabled;
 exports.extend = extend;
 exports.debounce = debounce;
+exports.checkPerformance = checkPerformance;
 // Feature detection
 /* istanbul ignore next */
 function isMobile() {
@@ -46713,6 +46714,14 @@ function debounce(func) {
         }, wait);
     };
 }
+// A performance-measuring function
+var lastTime;
+function checkPerformance(msg) {
+    if (msg) {
+        console.log(msg + (' took ' + (performance.now() - lastTime).toFixed(1) + 'ms'));
+    }
+    lastTime = performance.now();
+}
 
 /***/ }),
 /* 10 */
@@ -46731,7 +46740,7 @@ function debounce(func) {
 if (process.env.NODE_ENV !== 'production') {
   var invariant = __webpack_require__(6);
   var warning = __webpack_require__(7);
-  var ReactPropTypesSecret = __webpack_require__(22);
+  var ReactPropTypesSecret = __webpack_require__(23);
   var loggedTypeFailures = {};
 }
 
@@ -46820,9 +46829,9 @@ if (process.env.NODE_ENV === 'production') {
   // DCE check should happen before ReactDOM bundle executes so that
   // DevTools can report bad minification during injection.
   checkDCE();
-  module.exports = __webpack_require__(23);
+  module.exports = __webpack_require__(24);
 } else {
-  module.exports = __webpack_require__(26);
+  module.exports = __webpack_require__(27);
 }
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
@@ -47076,7 +47085,7 @@ module.exports = shallowEqual;
  * 
  */
 
-var isTextNode = __webpack_require__(24);
+var isTextNode = __webpack_require__(25);
 
 /*eslint-disable no-bitwise */
 
@@ -47135,6 +47144,23 @@ module.exports = focusNode;
 
 /***/ }),
 /* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+// Colors
+// For sea
+var seaColor = exports.seaColor = 0x082044;
+// For land
+var landColorRange = exports.landColorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
+var landColorDomain = exports.landColorDomain = [0, 200, 400, 600, 800, 1000, 1400];
+
+/***/ }),
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -47198,7 +47224,7 @@ var index = typeof fetch=='function' ? fetch.bind() : function(url, options) {
 
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47212,29 +47238,34 @@ var _reactDom = __webpack_require__(11);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
-var _app = __webpack_require__(31);
+var _app = __webpack_require__(32);
 
-var _package = __webpack_require__(52);
+var _package = __webpack_require__(43);
 
-__webpack_require__(42);
+__webpack_require__(44);
 
-__webpack_require__(47);
+__webpack_require__(49);
 
-__webpack_require__(48);
+__webpack_require__(50);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// Configure raven
-Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
-    release: _package.version
-}).install();
-// Load app
-Raven.context(function () {
+function load() {
     _reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
-});
+}
+// Configure raven
+if (window['SCEPTRED_PROD']) {
+    Raven.config('https://7ce65e7cf3a348d0acee6762f7c8fc85@sentry.io/305797', {
+        release: _package.version
+    }).install();
+    // Load app
+    Raven.context(load);
+} else {
+    load();
+}
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -47262,7 +47293,7 @@ isValidElement:K,version:"16.2.0",__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_F
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48627,7 +48658,7 @@ module.exports = react;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48646,7 +48677,7 @@ module.exports = ReactPropTypesSecret;
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48882,7 +48913,7 @@ Z.injectIntoDevTools({findFiberByHostInstance:pb,bundleType:0,version:"16.2.0",r
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48897,7 +48928,7 @@ Z.injectIntoDevTools({findFiberByHostInstance:pb,bundleType:0,version:"16.2.0",r
  * @typechecks
  */
 
-var isNode = __webpack_require__(25);
+var isNode = __webpack_require__(26);
 
 /**
  * @param {*} object The object to check.
@@ -48910,7 +48941,7 @@ function isTextNode(object) {
 module.exports = isTextNode;
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48938,7 +48969,7 @@ function isNode(object) {
 module.exports = isNode;
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -48972,8 +49003,8 @@ var containsNode = __webpack_require__(16);
 var focusNode = __webpack_require__(17);
 var emptyObject = __webpack_require__(5);
 var checkPropTypes = __webpack_require__(10);
-var hyphenateStyleName = __webpack_require__(27);
-var camelizeStyleName = __webpack_require__(29);
+var hyphenateStyleName = __webpack_require__(28);
+var camelizeStyleName = __webpack_require__(30);
 
 /**
  * WARNING: DO NOT manually require this module.
@@ -64340,7 +64371,7 @@ module.exports = reactDom;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64355,7 +64386,7 @@ module.exports = reactDom;
 
 
 
-var hyphenate = __webpack_require__(28);
+var hyphenate = __webpack_require__(29);
 
 var msPattern = /^ms-/;
 
@@ -64382,7 +64413,7 @@ function hyphenateStyleName(string) {
 module.exports = hyphenateStyleName;
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64418,7 +64449,7 @@ function hyphenate(string) {
 module.exports = hyphenate;
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64433,7 +64464,7 @@ module.exports = hyphenate;
 
 
 
-var camelize = __webpack_require__(30);
+var camelize = __webpack_require__(31);
 
 var msPattern = /^-ms-/;
 
@@ -64461,7 +64492,7 @@ function camelizeStyleName(string) {
 module.exports = camelizeStyleName;
 
 /***/ }),
-/* 30 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64496,7 +64527,7 @@ function camelize(string) {
 module.exports = camelize;
 
 /***/ }),
-/* 31 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64513,9 +64544,9 @@ var _react = __webpack_require__(3);
 
 var React = _interopRequireWildcard(_react);
 
-var _map = __webpack_require__(32);
+var _map = __webpack_require__(33);
 
-var _geocoder = __webpack_require__(41);
+var _geocoder = __webpack_require__(42);
 
 var _utils = __webpack_require__(9);
 
@@ -64690,7 +64721,7 @@ var App = exports.App = function (_React$Component4) {
         key: 'render',
         value: function render() {
             // Render form, then error state, then map
-            return React.createElement("div", null, React.createElement("div", { className: "columns form-wrapper " + (this.state.enabled ? "" : "d-none") }, React.createElement("div", { className: "column col-12" }, React.createElement(SearchForm, { onSelect: this.updateMap }))), React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: false, gridReference: this.state.gridReference, onInitError: this.onInitError, onLoadError: this.onLoadError }))));
+            return React.createElement("div", null, React.createElement("div", { className: "columns form-wrapper " + (this.state.enabled ? "" : "d-none") }, React.createElement("div", { className: "column col-12" }, React.createElement(SearchForm, { onSelect: this.updateMap }))), React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: !window['SCEPTRED_PROD'], gridReference: this.state.gridReference, onInitError: this.onInitError, onLoadError: this.onLoadError }))));
         }
     }]);
 
@@ -64698,7 +64729,7 @@ var App = exports.App = function (_React$Component4) {
 }(React.Component);
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64723,11 +64754,11 @@ var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _stats = __webpack_require__(33);
+var _stats = __webpack_require__(34);
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _world = __webpack_require__(34);
+var _world = __webpack_require__(35);
 
 var _utils = __webpack_require__(9);
 
@@ -64741,7 +64772,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-__webpack_require__(40);
+__webpack_require__(41);
 
 // Map class
 var Map = exports.Map = function (_React$Component) {
@@ -64789,7 +64820,7 @@ var Map = exports.Map = function (_React$Component) {
             controls.staticMoving = true;
             controls.dynamicDampingFactor = 0.3;
             // Rotate (ctrl), zoom (shift), pan (none, default)
-            controls.keys = [17, 16, -1];
+            controls.keys = [16, 17, -1];
             // Set up stats to record
             var stats = this.stats = (0, _stats2.default)();
             if (this.props.debug) {
@@ -64798,7 +64829,7 @@ var Map = exports.Map = function (_React$Component) {
                 base.parentNode.appendChild(stats.dom);
             }
             // Render and animate
-            this.renderWorld();
+            this.renderWorld({ type: "init" });
             this.animateWorld();
             // Start listening to events
             // Re-render if world updates, or if controls move camera
@@ -64860,7 +64891,7 @@ var Map = exports.Map = function (_React$Component) {
 
     }, {
         key: "renderWorld",
-        value: function renderWorld() {
+        value: function renderWorld(e) {
             this.stats.begin();
             this.renderer.render(this.world.scene, this.world.camera);
             this.stats.end();
@@ -64882,7 +64913,7 @@ var Map = exports.Map = function (_React$Component) {
             if (!(0, _utils.webglEnabled)()) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
-            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("canvas", null), React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Use your mouse to pan around the map. Hold down ", React.createElement("code", null, "Ctrl"), " to rotate the world. Hold down ", React.createElement("code", null, "Shift"), " to zoom, or use your mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.")));
+            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("canvas", null), React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Drag your mouse to pan around the map. Hold down ", React.createElement("code", null, "Shift"), "+drag to rotate the world. Hold down ", React.createElement("code", null, "Ctrl"), "+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.")));
         }
     }]);
 
@@ -64890,7 +64921,7 @@ var Map = exports.Map = function (_React$Component) {
 }(React.Component);
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -65070,7 +65101,7 @@ Stats.Panel = function ( name, fg, bg ) {
 
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65087,13 +65118,15 @@ var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _data = __webpack_require__(35);
+var _colors = __webpack_require__(18);
+
+var _data = __webpack_require__(36);
 
 var _grid = __webpack_require__(8);
 
-var _loader = __webpack_require__(38);
+var _loader = __webpack_require__(39);
 
-var _scale = __webpack_require__(39);
+var _scale = __webpack_require__(40);
 
 var _utils = __webpack_require__(9);
 
@@ -65108,7 +65141,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 // Constants we use
 var metresPerPixel = 50;
 var heightFactor = 2;
-var seaColor = 0x082044;
 // Models the world in which our tiles live
 
 var World = exports.World = function (_THREE$EventDispatche) {
@@ -65144,8 +65176,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
         scene.add(_this.tiles);
         // Set up scale
         _this.scale = new THREE.Vector3(1 / metresPerPixel, 1 / metresPerPixel, heightFactor / metresPerPixel);
-        // Setup lookup of buffer geometries
-        _this.bufferGeometries = {};
         // Set up loader
         _this.loader = new _loader.Loader();
         return _this;
@@ -65183,12 +65213,9 @@ var World = exports.World = function (_THREE$EventDispatche) {
         value: function load(gridReference) {
             var _this2 = this;
 
-            // FIXME
-            // var url = `/data/${gridReference}`;
-            var url = '/data/' + gridReference.toLowerCase() + '.json';
-            var fallback = JSON.stringify({ meta: { gridReference: gridReference }, data: [], land: [] });
+            var url = '/data/' + gridReference;
             // Set load and error listeners
-            return this.loader.load(url, fallback).catch(function (errorResponse) {
+            return this.loader.load(url).catch(function (errorResponse) {
                 console.error(errorResponse);
             }).then(function (json) {
                 return _this2.onLoad(json);
@@ -65205,36 +65232,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
             // TODO gridSquare or gridReference?
             var gridSquare = grid.meta.gridReference;
             this.removeFromWorld(gridSquare);
-            // If data exists, then make a land geometry
-            if (grid.data.length) {
+            // If height data exists, then make a land geometry
+            if (grid.heights.length) {
                 var geometry = (0, _data.makeLandGeometry)(grid, this.transform);
-                // Try stitching this to existing geometries
-                var neighbors = {
-                    right: (0, _grid.getNeighboringSquare)(gridSquare, 1, 0),
-                    top: (0, _grid.getNeighboringSquare)(gridSquare, 0, 1),
-                    topRight: (0, _grid.getNeighboringSquare)(gridSquare, 1, 1)
-                };
-                Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this3.bufferGeometries) {
-                        var neighborGeometry = _this3.bufferGeometries[neighbors[direction]];
-                        (0, _data.stitchGeometries)(geometry, neighborGeometry, direction);
-                    }
-                });
-                // Add the geometry to the world
                 var landMesh = makeLand(geometry, gridSquare);
                 this.addToWorld(landMesh);
-                // Now go through existing geometries and stitch them to this
-                neighbors = {
-                    right: (0, _grid.getNeighboringSquare)(gridSquare, -1, 0),
-                    top: (0, _grid.getNeighboringSquare)(gridSquare, 0, -1),
-                    topRight: (0, _grid.getNeighboringSquare)(gridSquare, -1, -1)
-                };
-                Object.keys(neighbors).forEach(function (direction) {
-                    if (neighbors[direction] in _this3.bufferGeometries) {
-                        var neighborGeometry = _this3.bufferGeometries[neighbors[direction]];
-                        (0, _data.stitchGeometries)(neighborGeometry, geometry, direction);
-                    }
-                });
             } else {
                 var seaGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
                 var seaMesh = makeSea(seaGeometry, gridSquare);
@@ -65249,19 +65251,21 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 }
             });
         }
-        // Generic adds a mesh to the world
-
     }, {
         key: 'addToWorld',
-        value: function addToWorld(obj) {
-            this.tiles.add(obj);
-            if (obj.type == 'Mesh') {
-                var geometry = obj.geometry;
-                if (geometry.type == 'BufferGeometry') {
-                    this.bufferGeometries[obj.name] = geometry;
-                }
-            }
-            this.dispatchEvent({ type: 'update' });
+        value: function addToWorld(mesh) {
+            this.tiles.add(mesh);
+            this.dispatchEvent({ type: 'update', message: 'From ' + mesh.name });
+        }
+    }, {
+        key: 'addManyToWorld',
+        value: function addManyToWorld(meshes) {
+            var _this4 = this;
+
+            meshes.forEach(function (mesh) {
+                return _this4.tiles.add(mesh);
+            });
+            this.dispatchEvent({ type: 'update', message: "From " + meshes.join(', ') });
         }
         // Removes a mesh from the world
 
@@ -65271,9 +65275,6 @@ var World = exports.World = function (_THREE$EventDispatche) {
             var obj = this.tiles.getObjectByName(name);
             if (obj) {
                 this.tiles.remove(obj);
-                if (obj.name in this.bufferGeometries) {
-                    delete this.bufferGeometries[obj.name];
-                }
             }
         }
         // Clears the entire world
@@ -65284,14 +65285,15 @@ var World = exports.World = function (_THREE$EventDispatche) {
             while (this.tiles.children.length) {
                 this.tiles.remove(this.tiles.children[0]);
             }
-            this.bufferGeometries = {};
         }
-        // Checking to see if any unloaded meshes can be loaded in
+        // Checking to see if any unloaded meshes can be loaded in, and what loaded
+        // meshes can be culled out
+        // This is typically not called directly by the world, but by the parent renderer
 
     }, {
         key: '_update',
         value: function _update() {
-            var _this4 = this;
+            var _this5 = this;
 
             // Work out where the center of the screen coincides with the tilemap
             var raycaster = new THREE.Raycaster();
@@ -65308,56 +65310,61 @@ var World = exports.World = function (_THREE$EventDispatche) {
             frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
             // Find every empty mesh on screen that is displayed in the camera
             var emptyMeshes = this.tiles.children.filter(function (d) {
-                return d.type == "Mesh";
+                return d.type == "Mesh" && isEmptyMesh(d);
             }).filter(function (d) {
                 var geometry = d.geometry;
-                /* istanbul ignore else */
-                if (geometry) {
-                    return frustum.intersectsBox(geometry.boundingBox);
-                } else {
-                    return false;
-                }
+                return frustum.intersectsBox(geometry.boundingBox);
+            }).map(function (d) {
+                return getDistanceFromPoint(d, center);
             });
-            // Sort them by distance from center
-            var distances = emptyMeshes.map(function (d) {
-                var meshCenter = d.geometry.boundingSphere.center.clone();
-                meshCenter.setZ(0);
-                return {
-                    id: d.name,
-                    distance: meshCenter.sub(center).length()
-                };
-            });
-            distances.sort(function (a, b) {
+            emptyMeshes.sort(function (a, b) {
                 return a.distance - b.distance;
             });
-            distances.forEach(function (d, i) {
-                _this4.load(d.id);
+            emptyMeshes.forEach(function (d, i) {
+                _this5.load(d.name);
             });
             // Find land or sea meshes that are out of view and replace with an empty one
             var unwantedMeshes = this.tiles.children.filter(function (d) {
+                return d.type == "Mesh" && !isEmptyMesh(d);
+            }).filter(function (d) {
                 var geometry = d.geometry;
-                /* istanbul ignore else */
-                if (geometry) {
-                    return !frustum.intersectsBox(geometry.boundingBox);
-                } else {
-                    return false;
-                }
+                return !frustum.intersectsBox(geometry.boundingBox);
+            }).map(function (d) {
+                return getDistanceFromPoint(d, center);
             });
-            unwantedMeshes.forEach(function (d) {
-                _this4.removeFromWorld(d.name);
-                var emptyGeometry = (0, _data.makeEmptyGeometry)(d.name, _this4.transform, _this4.scale);
-                var emptyMesh = makeWireframe(emptyGeometry, d.name);
-                _this4.addToWorld(emptyMesh);
+            unwantedMeshes.sort(function (a, b) {
+                return b.distance - a.distance;
             });
+            // Bulk-replace the meshes with empty ones
+            var newEmptyMeshes = unwantedMeshes.slice(0, 10).map(function (d) {
+                _this5.removeFromWorld(d.name);
+                var emptyGeometry = (0, _data.makeEmptyGeometry)(d.name, _this5.transform, _this5.scale);
+                return makeWireframe(emptyGeometry, d.name);
+            });
+            if (newEmptyMeshes.length) {
+                this.addManyToWorld(newEmptyMeshes);
+            }
         }
     }]);
 
     return World;
 }(THREE.EventDispatcher);
+// Mesh utility functions
+
+
+function isEmptyMesh(mesh) {
+    return mesh.material.type == 'MeshBasicMaterial';
+}
+function getDistanceFromPoint(mesh, point) {
+    var meshCenter = mesh.geometry.boundingSphere.center.clone();
+    meshCenter.setZ(0);
+    return {
+        name: mesh.name,
+        distance: meshCenter.sub(point).length()
+    };
+}
 // Generic mesh making functions
 // Make a land mesh
-
-
 function makeLand(geometry, name) {
     var land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         vertexColors: THREE.VertexColors,
@@ -65369,7 +65376,7 @@ function makeLand(geometry, name) {
 // Make a sea mesh
 function makeSea(geometry, name) {
     var sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        color: seaColor
+        color: _colors.seaColor
     }));
     sea.name = name;
     return sea;
@@ -65386,7 +65393,7 @@ function makeWireframe(geometry, name) {
 }
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65397,24 +65404,22 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.makeLandGeometry = makeLandGeometry;
 exports.makeEmptyGeometry = makeEmptyGeometry;
-exports.stitchGeometries = stitchGeometries;
+exports.sample = sample;
 
 var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _chromaJs = __webpack_require__(36);
+var _chromaJs = __webpack_require__(37);
 
 var chroma = _interopRequireWildcard(_chromaJs);
+
+var _colors = __webpack_require__(18);
 
 var _grid = __webpack_require__(8);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
-// Colors for each altitude
-var colorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC']; // Functions for parsing data from the API
-
-var colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 // Parses the grid data and transforms from Ordnance Survey into world co-ordinates
 //
 // This is relatively costly:
@@ -65425,55 +65430,38 @@ var colorDomain = [0, 200, 400, 600, 800, 1000, 1400];
 // Converting to buffers: 2-6ms
 // Building geometries: 5-25ms
 // Total time: 40-90ms
+// Functions for parsing data from the API
 function makeLandGeometry(data, transform) {
+    var sampleRate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
     var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
-    var squareSize = data.meta.squareSize;
-    // Grid data starts in north-west while Ordnance Survey origin is in south-west
-    // so we reverse the rows first
-    var grid = data.data.reverse(); // FIXME
-    var land = data.land.reverse();
-    // Extend the grid by 1 = we have 200x200 squares, so need 201x201 points to define them
-    // Naively at first, we just clone the values in the 200th row & column for 201st.
-    // This will cause discontinuities on mountainous terrain, so we later modify the grid if & when
-    // we find neighbouring tiles to the north and east
-    function extendByOne(d) {
-        d.forEach(function (row) {
-            return row.push(row[row.length - 1]);
-        });
-        d[d.length] = d[d.length - 1];
-    }
-    extendByOne(grid);
-    extendByOne(land);
+    var squareSize = data.meta.squareSize * sampleRate;
+    var grid = sample(data.heights, sampleRate);
     var gridHeight = grid.length;
     var gridWidth = grid[0].length;
     // Calculate vertices and colors
     var vertices = new Float32Array(3 * gridHeight * gridWidth);
     var colors = new Uint8Array(3 * gridHeight * gridWidth);
     // Our colour scale maker for land
-    var colorFunction = chroma.scale(colorRange).domain(colorDomain).mode('lab');
-    var seaColor = chroma.num(0x082044).rgb();
+    var landColor = chroma.scale(_colors.landColorRange).domain(_colors.landColorDomain).mode('lab');
+    // Sea is a constant
+    var seaColorRGB = chroma.num(_colors.seaColor).rgb();
     // Go through each row and then each column of the grid
     grid.forEach(function (row, y) {
         return row.forEach(function (z, x) {
-            // Work out index of this point in the vertices array
-            var i = x + gridWidth * y;
-            var isLand = z > 0 || land[y][x];
+            // Work out index of this point in the vertices & colors arrays
+            // Each array is spaced out with three values, hence the multiplier
+            var i = 3 * (x + gridWidth * y);
+            var isLand = grid[y][x] !== "";
             // Assign vertices
-            // BufferGeometry stores each x, y, z value separately so we multiply by 3
-            // to get the position inside the
-            vertices[i * 3] = tileOrigin.x + x * squareSize;
-            vertices[i * 3 + 1] = tileOrigin.y + y * squareSize;
-            vertices[i * 3 + 2] = isLand ? z : 0;
-            // Assign colors
-            // Same for r, g, b
-            var color = isLand ? colorFunction(z).rgb() : seaColor;
-            colors[i * 3] = color[0];
-            colors[i * 3 + 1] = color[1];
-            colors[i * 3 + 2] = color[2];
+            vertices.set([tileOrigin.x + x * squareSize, tileOrigin.y + y * squareSize, isLand ? z : 0], i);
+            // Assign colors - r, g, b
+            var color = isLand ? landColor(z).rgb() : seaColorRGB;
+            colors.set(color, i);
         });
     });
     // Calculate the faces - two triangles which form between them a square
-    var faces = [];
+    var faces = new Uint16Array(6 * (gridWidth - 1) * (gridHeight - 1));
     grid.forEach(function (row, y) {
         return row.forEach(function (z, x) {
             // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
@@ -65486,22 +65474,22 @@ function makeLandGeometry(data, transform) {
                 b = i + 1,
                 c = i + gridWidth,
                 d = i + gridWidth + 1;
-            // Assign faces (clockwise)
-            // a--b
-            // |//|
+            // Assign faces (clockwise): ACD, ADB
             // c--d
-            faces.push(a, b, c);
-            faces.push(b, d, c);
+            // |//|
+            // a--b
+            faces.set([a, c, d, a, d, b], 6 * (i - y));
         });
     });
     // Build our buffers
     var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
     var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
+    var facesBuffer = new THREE.BufferAttribute(faces, 1);
     // And create a geometry from them
     var geometry = new THREE.BufferGeometry();
     geometry.addAttribute('position', verticesBuffer);
     geometry.addAttribute('color', colorsBuffer);
-    geometry.setIndex(faces);
+    geometry.setIndex(facesBuffer);
     geometry.computeVertexNormals();
     geometry.computeBoundingBox();
     return geometry;
@@ -65518,59 +65506,29 @@ function makeEmptyGeometry(gridSquare, transform, scale) {
     geometry.computeBoundingBox();
     return geometry;
 }
-// Updates a target land geometry's Z and color values along an edge to that of its neighbor,
-// with the relation being defined by the relation attribute
-//
-// Stitches take about 6-10ms
-function stitchGeometries(target, neighbor, relation) {
-    // Get the BufferAttribute positions of both
-    var targetPositions = target.getAttribute('position');
-    var neighbourPositions = neighbor.getAttribute('position');
-    var targetColors = target.getAttribute('color');
-    var neighbourColors = neighbor.getAttribute('color');
-    // Work out the height and width of the geometries (201 x 201)
-    var targetHeight = Math.sqrt(targetPositions.count);
-    var targetWidth = targetHeight;
-    // If the neighbor is to the top, then its bottom row [0] should be copied to the
-    // target's top [200]
-    if (relation == "top") {
-        for (var i = 0; i < targetWidth - 1; i++) {
-            var neighborIndex = i;
-            var targetIndex = targetWidth * (targetHeight - 1) + i;
-            targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
-            targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
-            targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
-            targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
-        }
-    } else if (relation == "right") {
-        for (var i = 0; i < targetHeight - 1; i++) {
-            var neighborIndex = i * targetWidth;
-            var targetIndex = (i + 1) * targetWidth - 1;
-            targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
-            targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
-            targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
-            targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
-        }
-    } else if (relation == "topRight") {
-        var neighborIndex = 0;
-        var targetIndex = targetHeight * targetWidth - 1;
-        targetPositions.setZ(targetIndex, neighbourPositions.getZ(neighborIndex));
-        targetColors.setX(targetIndex, neighbourColors.getX(neighborIndex));
-        targetColors.setY(targetIndex, neighbourColors.getY(neighborIndex));
-        targetColors.setZ(targetIndex, neighbourColors.getZ(neighborIndex));
+function sample(input) {
+    var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    if ((input.length - 1) % sampleRate !== 0) {
+        throw new Error("Sample rate must be factor of array size");
     }
-    // All done! Update the target with the new positions array
-    targetPositions.needsUpdate = true;
-    target.addAttribute('position', targetPositions);
-    targetColors.needsUpdate = true;
-    target.addAttribute('color', targetColors);
-    // And recalculate the normal vectors to smooth the shading
-    target.computeVertexNormals();
-    return target;
+    var n = 1 + (input.length - 1) / sampleRate;
+    var output = new Array(n);
+    for (var i = 0; i < n; i++) {
+        if (sampleRate === 1) {
+            output[i] = input[i].slice();
+        } else {
+            output[i] = new Array(n);
+            for (var j = 0; j < n; j++) {
+                output[i][j] = input[i * sampleRate][j * sampleRate];
+            }
+        }
+    }
+    return output;
 }
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
@@ -68330,10 +68288,10 @@ function stitchGeometries(target, neighbor, relation) {
 
 }).call(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(37)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -68361,7 +68319,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68386,21 +68344,14 @@ var Loader = exports.Loader = function () {
         this.queue = [];
         // Pending requests
         this.pending = {};
-        // Cached requests
-        this.cache = {};
         setTimeout(this.tick.bind(this), 17);
     }
 
     _createClass(Loader, [{
         key: "load",
-        value: function load(url, fallback) {
+        value: function load(url) {
             var _this = this;
 
-            // If cached, return the value!
-            if (url in this.cache) {
-                return Promise.resolve(JSON.parse(this.cache[url]));
-            }
-            // Else create a new fetch...
             // Push onto queue and wait for resolve
             return new Promise(function (resolve) {
                 _this.queue.push(resolve);
@@ -68414,13 +68365,9 @@ var Loader = exports.Loader = function () {
                 if (response.ok) {
                     return response.text();
                 }
-                if (response.status == 404) {
-                    return Promise.resolve(fallback);
-                }
                 throw new Error('Response was not OK');
             }).then(function (text) {
                 delete _this.pending[url];
-                _this.cache[url] = text;
                 return JSON.parse(text);
             }).catch(function (error) {
                 delete _this.pending[url];
@@ -68448,7 +68395,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68480,7 +68427,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -69123,7 +69070,7 @@ __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"].prototype.constructor =
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69231,15 +69178,21 @@ function latLonToOsGrid(latitude, longitude) {
 ;
 
 /***/ }),
-/* 42 */
+/* 43 */
+/***/ (function(module, exports) {
+
+module.exports = {"name":"sceptred","version":"0.0.14","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
+
+/***/ }),
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(43);
+__webpack_require__(45);
 
-__webpack_require__(46);
+__webpack_require__(48);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69313,18 +69266,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 43 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(44).polyfill();
+module.exports = __webpack_require__(46).polyfill();
 
 
 /***/ }),
-/* 44 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70507,10 +70460,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(45)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(47)))
 
 /***/ }),
-/* 45 */
+/* 47 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70537,32 +70490,23 @@ module.exports = g;
 
 
 /***/ }),
-/* 46 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
-if (!window.fetch) window.fetch = __webpack_require__(18).default || __webpack_require__(18);
+if (!window.fetch) window.fetch = __webpack_require__(19).default || __webpack_require__(19);
 
 
 /***/ }),
-/* 47 */
+/* 49 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 48 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
-
-/***/ }),
-/* 49 */,
-/* 50 */,
-/* 51 */,
-/* 52 */
-/***/ (function(module, exports) {
-
-module.exports = {"name":"sceptred","version":"0.0.12","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
 
 /***/ })
 /******/ ]);
