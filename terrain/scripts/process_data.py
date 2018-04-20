@@ -76,7 +76,7 @@ class DB:
     class __DB:
         """Secret hidden class"""
 
-        def __init__(self, db_name='local', collection_name='sceptred'):
+        def __init__(self, db_name='sceptred', collection_name='sceptred'):
             client = MongoClient('mongodb://localhost:27017/', serverSelectionTimeoutMS=500)
             client.get_database('admin').command({'serverStatus': 1})
             self.collection = client[db_name][collection_name]

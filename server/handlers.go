@@ -56,7 +56,16 @@ func (h *databaseHandler) get(c echo.Context) error {
         return echo.NewHTTPError(http.StatusBadRequest)
     }
 
-    s := h.session.DB("local").C("sceptred")
+    dbName := os.Getenv("SCEPTRED_DB_NAME")
+    if dbName == "" {
+        dbName = "sceptred"
+    }
+    dbCollection := os.Getenv("SCEPTRED_DB_COLLECTION")
+    if dbCollection == "" {
+        dbCollection = "sceptred"
+    }
+
+    s := h.session.DB(dbName).C(dbCollection)
     var result *GridData
     err := s.FindId(gridSquare).One(&result)
 
