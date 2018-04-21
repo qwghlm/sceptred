@@ -56,9 +56,9 @@ func (h *databaseHandler) get(c echo.Context) error {
         return echo.NewHTTPError(http.StatusBadRequest)
     }
 
+    var result *GridData
     dbCollection := "sceptred"
     s := h.session.DB("").C(dbCollection)
-    var result *GridData
     err := s.FindId(gridSquare).One(&result)
 
     if err != nil {

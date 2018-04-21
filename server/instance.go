@@ -11,8 +11,8 @@ import (
 
     "github.com/labstack/echo"
     "github.com/labstack/echo/middleware"
-
 )
+
 // Constants
 
 var srcPath = build.Default.GOPATH + "/src/sceptred"
@@ -32,7 +32,7 @@ func cacheHeader(next echo.HandlerFunc) echo.HandlerFunc {
         } else if dataRegexp.MatchString(url) {
             cacheTime = "900"
         }
-        c.Response().Header().Set("Cache-Control", "max-age=" + cacheTime)
+        c.Response().Header().Set("Cache-Control", "max-age="+cacheTime)
         return next(c)
     }
 }
@@ -42,6 +42,7 @@ func cacheHeader(next echo.HandlerFunc) echo.HandlerFunc {
 type renderer struct {
     templates *template.Template
 }
+
 func (r *renderer) Render(w io.Writer, name string, data interface{}, c echo.Context) error {
     return r.templates.ExecuteTemplate(w, name, data)
 }
@@ -75,8 +76,8 @@ func Instance(s interfaces.Session) *echo.Echo {
     e.GET("/", handleIndex)
     e.GET("/data/:gridSquare", dataHandler.get)
 
-    e.Static("/static", srcPath + "/client/dist/")
-    e.File("/favicon.ico", srcPath + "/client/dist/favicon.ico")
+    e.Static("/static", srcPath+"/client/dist/")
+    e.File("/favicon.ico", srcPath+"/client/dist/favicon.ico")
     return e
 
 }

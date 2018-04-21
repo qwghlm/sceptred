@@ -47,8 +47,19 @@ func (q MongoQuery) One(result interface{}) error {
 
 func databaseSession() interfaces.Session {
 
-    dbUser := os.Getenv("SCEPTRED_DB_USER")
-    dbPassword := os.Getenv("SCEPTRED_DB_PASSWORD")
+    dbString := getDatabaseCredentials()
+    session, err := mgo.Dial(dbString)
+    if err != nil {
+        raven.CaptureError(err, nil)
+        log.Fatal("Cannot connect to Mongo on "+dbString+": ", err)
+    }
+    return MongoSession{session}
+}
+
+func getDatabaseCredentials() string {
+
+    dbUser := getEnv("SCEPTRED_DB_USER")
+    dbPassword := getEnv("SCEPTRED_DB_PASSWORD")
 
     // Blank auth if either no db user & password
     var dbAuth string
@@ -58,24 +69,23 @@ func databaseSession() interfaces.Session {
         dbAuth = fmt.Sprintf("%s:%s@", dbUser, dbPassword)
     }
 
-    dbHost := os.Getenv("SCEPTRED_DB_HOST")
+    dbHost := getEnv("SCEPTRED_DB_HOST")
     if dbHost == "" {
         dbHost = "localhost"
     }
-    dbPort := os.Getenv("SCEPTRED_DB_PORT")
+    dbPort := getEnv("SCEPTRED_DB_PORT")
     if dbPort == "" {
         dbPort = "27017"
     }
-    dbName := os.Getenv("SCEPTRED_DB_NAME")
+    dbName := getEnv("SCEPTRED_DB_NAME")
     if dbName == "" {
         dbName = "sceptred"
     }
+    return fmt.Sprintf("%s%s:%s/%s", dbAuth, dbHost, dbPort, dbName)
+}
 
-    dbString := fmt.Sprintf("%s%s:%s/%s", dbAuth, dbHost, dbPort, dbName)
-    session, err := mgo.Dial(dbString)
-    if err != nil {
-        raven.CaptureError(err, nil)
-        log.Fatal("Cannot connect to Mongo on " + dbString + ": ", err)
-    }
-    return MongoSession{session}
+func getEnv(key string) string {
+
+    // TODO: Integration with Google's services
+    return os.Getenv(key)
 }

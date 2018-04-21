@@ -12,15 +12,14 @@ import (
 
     "github.com/golang/mock/gomock"
     "github.com/stretchr/testify/assert"
-
 )
 
 func makeMockData(size int) GridData {
 
     heights := make([][]interface{}, size)
-    for i, _ := range heights {
+    for i := range heights {
         heights[i] = make([]interface{}, size)
-        for j, _ := range heights[i] {
+        for j := range heights[i] {
             heights[i][j] = 2
         }
     }
@@ -47,9 +46,9 @@ func request(t *testing.T, method, path string, body interface{}) (int, string) 
     d := mock.NewMockDatabase(ctrl)
     c := mock.NewMockCollection(ctrl)
     s := mock.NewMockSession(ctrl)
-    if (strings.HasPrefix(path, "/data") && !strings.HasSuffix(path, "xxxx")) {
+    if strings.HasPrefix(path, "/data") && !strings.HasSuffix(path, "xxxx") {
 
-        if (path[len(path)-4:] == "nt27") {
+        if path[len(path)-4:] == "nt27" {
             grid := makeMockData(2)
             q.EXPECT().One(gomock.Any()).SetArg(0, &grid)
         } else {
@@ -86,7 +85,7 @@ func Test404(t *testing.T) {
 
 func TestData(t *testing.T) {
 
-    // Test for NT27, which is present in both the test DB and the production DB
+    // Test for NT27, which the mock will return data for
     code, body := request(t, "GET", "/data/nt27", nil)
     assert.Equal(t, http.StatusOK, code)
     assert.Contains(t, body, "[2,2")
@@ -95,7 +94,7 @@ func TestData(t *testing.T) {
 
 func TestMissingData(t *testing.T) {
 
-    // Test for NT38, which is not present in both the test DB and the production DB
+    // Test for NT38, which the mock will return zero data for
     code, body := request(t, "GET", "/data/nt38", nil)
     assert.Equal(t, http.StatusOK, code)
     assert.Contains(t, body, "[]")
