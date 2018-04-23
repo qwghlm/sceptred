@@ -89,14 +89,16 @@ export function makeLandGeometry(data: GridData, transform: THREE.Matrix4, sampl
 }
 
 // Returns an empty square, useful for either the grid or an element of sea
-export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4, scale: THREE.Vector3) {
+export function makeEmptyGeometry(gridSquare:string, transform: THREE.Matrix4) {
 
+    // Infer scale from transform, and work out size of the square
+    let scale = new THREE.Vector3();
+    transform.decompose(new THREE.Vector3(), new THREE.Quaternion(), scale);
     let square = getGridSquareSize(gridSquare).applyMatrix4((new THREE.Matrix4()).scale(scale));
 
     // Calculate position of square
     // The half-square addition at the end is to take into account PlaneGeometry
     // is created around the centre of the square and we want it to be bottom-left
-
     let coords = gridrefToCoords(gridSquare).applyMatrix4(transform);
     let geometry = new THREE.PlaneGeometry(square.x, square.y);
     geometry.translate(coords.x + square.x/2, coords.y + square.y/2, coords.z);

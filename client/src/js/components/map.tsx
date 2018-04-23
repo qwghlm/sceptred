@@ -130,6 +130,7 @@ export class Map extends React.Component<MapProps, {}> {
     // Renders the world, and updates the stats while we are at it
     renderWorld(e: {type: string}) {
         this.stats.begin();
+        this.world.updateLevelsOfDetail();
         this.renderer.render(this.world.scene, this.world.camera);
         this.stats.end();
         this.world.update();

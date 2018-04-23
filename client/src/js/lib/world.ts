@@ -122,20 +122,20 @@ export class World extends THREE.EventDispatcher {
             this.addToWorld(landMesh);
         }
         else {
-            const seaMesh = makeSea(gridSquare, this.transform, this.scale);
+            const seaMesh = makeSea(gridSquare, this.transform);
             this.addToWorld(seaMesh)
         }
 
         // Queue the surrounding squares
         getSurroundingSquares(gridSquare, 1).forEach(surroundingSquare => {
             if (!(this.tiles.getObjectByName(surroundingSquare))) {
-                let emptyMesh = makeEmpty(surroundingSquare, this.transform, this.scale);
+                let emptyMesh = makeEmpty(surroundingSquare, this.transform);
                 this.addToWorld(emptyMesh);
             }
         });
     }
 
-    addToWorld(mesh: THREE.Mesh) {
+    addToWorld(mesh: THREE.Object3D) {
         this.tiles.add(mesh);
         this.dispatchEvent({type: 'update', message: 'From ' + mesh.name });
     }
@@ -161,6 +161,15 @@ export class World extends THREE.EventDispatcher {
         }
     }
 
+    // Updates level of detail on tiles
+    updateLevelsOfDetail() {
+        this.tiles.children.forEach((object) => {
+            if (object instanceof THREE.LOD) {
+                object.update(this.camera);
+            }
+        });
+    }
+
     // Checking to see if any unloaded meshes can be loaded in, and what loaded
     // meshes can be culled out
     // This is typically not called directly by the world, but by the parent renderer
@@ -184,10 +193,9 @@ export class World extends THREE.EventDispatcher {
 
         // Find every empty mesh on screen that is displayed in the camera
         var emptyMeshes = this.tiles.children
-            .filter(d => d.type == "Mesh" && isEmptyMesh(<THREE.Mesh>d))
+            .filter(isEmpty)
             .filter(d => {
-                var geometry = (<THREE.Mesh>d).geometry;
-                return frustum.intersectsBox(geometry.boundingBox);
+                return frustum.intersectsBox(getGeometry(d).boundingBox);
             })
             .map(d => getDistanceFromPoint(<THREE.Mesh>d, center));
 
@@ -198,19 +206,18 @@ export class World extends THREE.EventDispatcher {
 
         // Find land or sea meshes that are out of view and replace with an empty one
         var unwantedMeshes = this.tiles.children
-            .filter(d => d.type == "Mesh" && !isEmptyMesh(<THREE.Mesh>d))
+            .filter(isLandOrSea)
             .filter(d => {
-                var geometry = (<THREE.Mesh>d).geometry;
-                return !frustum.intersectsBox(geometry.boundingBox);
+                return !frustum.intersectsBox(getGeometry(d).boundingBox);
             })
-            .map(d => getDistanceFromPoint(<THREE.Mesh>d, center));
+            .map(d => getDistanceFromPoint(d, center));
 
         unwantedMeshes.sort((a, b) => b.distance - a.distance);
 
         // Bulk-replace the meshes with empty ones
         var newEmptyMeshes = unwantedMeshes.slice(0, 10).map(d => {
             this.removeFromWorld(d.name);
-            return makeEmpty(d.name, this.transform, this.scale);
+            return makeEmpty(d.name, this.transform);
         });
         if (newEmptyMeshes.length) {
             this.addManyToWorld(newEmptyMeshes);
@@ -220,15 +227,38 @@ export class World extends THREE.EventDispatcher {
 
 // Mesh utility functions
 
-function isEmptyMesh (mesh: THREE.Mesh) {
-    return (mesh.material as THREE.Material).type == 'MeshBasicMaterial'
+function isEmpty(obj: THREE.Object3D) {
+    if (obj.type == "Mesh") {
+        return (<THREE.Material>(<THREE.Mesh>obj).material).type == 'MeshBasicMaterial';
+    }
+    return false;
 }
 
-function getDistanceFromPoint(mesh: THREE.Mesh, point: THREE.Vector3) {
-    var meshCenter = mesh.geometry.boundingSphere.center.clone();
+function isLandOrSea(obj: THREE.Object3D) {
+    if (obj.type == "Mesh") {
+        return (<THREE.Material>(<THREE.Mesh>obj).material).type != 'MeshBasicMaterial';
+    }
+    else if (obj.type == "LOD") {
+        return true;
+    }
+    return false;
+}
+
+function getGeometry(obj: THREE.Object3D) {
+    if (obj.type == "Mesh") {
+        return (<THREE.Mesh>obj).geometry;
+    }
+    else if (obj.type == "LOD") {
+        return (<THREE.Mesh>(<THREE.LOD>obj).children[0]).geometry;
+    }
+    throw Error("Object does not have geometry");
+}
+
+function getDistanceFromPoint(obj: THREE.Object3D, point: THREE.Vector3) {
+    var meshCenter = getGeometry(obj).boundingSphere.center.clone();
     meshCenter.setZ(0);
     return {
-        name: mesh.name,
+        name: obj.name,
         distance: meshCenter.sub(point).length()
     }
 }

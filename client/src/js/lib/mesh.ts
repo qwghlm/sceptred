@@ -5,22 +5,28 @@ import { makeLandGeometry, makeEmptyGeometry } from './geometry';
 import { GridData } from './types';
 import { seaColor } from './colors';
 
-// Make a land mesh
+// Make a series of land meshes
 export function makeLand(data: GridData, transform: THREE.Matrix4) {
 
-    let geometry = makeLandGeometry(data, transform);
-    let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        vertexColors: THREE.VertexColors,
-        side: THREE.DoubleSide
-    }));
-    land.name = data.meta.gridReference;
-    return land;
+    const sampleRates = [1, 4, 8]
+    var lod = new THREE.LOD();
+    for (var i=0; i<sampleRates.length; i++) {
+        let geometry = makeLandGeometry(data, transform, sampleRates[i]);
+        let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+            vertexColors: THREE.VertexColors,
+            side: THREE.DoubleSide
+        }));
+        lod.addLevel(land, (i+1)*250);
+    }
+
+    lod.name = data.meta.gridReference;
+    return lod;
 }
 
 // Make a sea mesh
-export function makeSea(gridSquare: string, transform: THREE.Matrix4, scale: THREE.Vector3) {
+export function makeSea(gridSquare: string, transform: THREE.Matrix4) {
 
-    let geometry = makeEmptyGeometry(gridSquare, transform, scale);
+    let geometry = makeEmptyGeometry(gridSquare, transform);
     let sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         color: seaColor,
     }))
@@ -29,9 +35,9 @@ export function makeSea(gridSquare: string, transform: THREE.Matrix4, scale: THR
 }
 
 // Make a wireframe mesh for unloaded
-export function makeEmpty(gridSquare: string, transform: THREE.Matrix4, scale: THREE.Vector3) {
+export function makeEmpty(gridSquare: string, transform: THREE.Matrix4) {
 
-    let geometry = makeEmptyGeometry(gridSquare, transform, scale);
+    let geometry = makeEmptyGeometry(gridSquare, transform);
     let wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
