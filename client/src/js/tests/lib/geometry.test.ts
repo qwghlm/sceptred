@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { makeLandGeometry, makeEmptyGeometry, sample } from '../../lib/data';
+import { makeLandGeometry, makeEmptyGeometry, sample } from '../../lib/geometry';
 
 test('makeLandGeometry() works properly', () => {
 

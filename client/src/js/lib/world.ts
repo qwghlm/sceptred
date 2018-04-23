@@ -255,7 +255,14 @@ function getGeometry(obj: THREE.Object3D) {
 }
 
 function getDistanceFromPoint(obj: THREE.Object3D, point: THREE.Vector3) {
-    var meshCenter = getGeometry(obj).boundingSphere.center.clone();
+    let boundingSphere = getGeometry(obj).boundingSphere;
+    if (boundingSphere === null) {
+        return {
+            name: obj.name,
+            distance: Infinity
+        }
+    }
+    let meshCenter = boundingSphere.center.clone();
     meshCenter.setZ(0);
     return {
         name: obj.name,

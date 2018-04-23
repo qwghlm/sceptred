@@ -5,10 +5,20 @@ const mockMetadata = (gridReference) => ({
     squareSize: 50,
     gridReference
 });
-const mockData = (gridReference) => ({
-    meta: mockMetadata(gridReference),
-    heights: [[4, 4, 4], [5, 5, 5], [6, 6, 6]],
-});
+const mockData = (gridReference) => {
+
+    let mockHeightData = new Array(201);
+    for (var i=0; i<mockHeightData.length; i++) {
+        mockHeightData[i] = new Array(201);
+        for (var j=0; j<mockHeightData[i].length; j++) {
+            mockHeightData[i][j] = 4;
+        }
+    }
+    return {
+        meta: mockMetadata(gridReference),
+        heights: mockHeightData,
+    }
+};
 const mockBlankData = (gridReference) => ({
     meta: mockMetadata(gridReference),
     heights: [],
@@ -58,9 +68,28 @@ Object.defineProperties(window.HTMLElement.prototype, {
 });
 
 // Filters uses to filter out land, sea and empty meshes
-const landFilter = d => d.geometry.type == 'BufferGeometry';
-const seaFilter = d => d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshPhongMaterial';
-const emptyFilter = d => d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshBasicMaterial';
+const landFilter = (d) => {
+    return d.type == 'LOD';
+}
+const seaFilter = (d) => {
+    return d.type == 'Mesh' && d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshPhongMaterial';
+}
+const emptyFilter = (d) => {
+    return d.type == 'Mesh' && d.geometry.type == 'PlaneGeometry' && d.material.type == 'MeshBasicMaterial';
+}
+
+//
+const updateGeometry = (d) => {
+    if (d.type == 'LOD') {
+        d.children.forEach(e => updateGeometry(e))
+    }
+    else {
+        d.geometry.computeBoundingSphere();
+        d.geometry.computeBoundingBox();
+    }
+}
+
+
 
 test('World works', async () => {
 
@@ -75,11 +104,7 @@ test('World works', async () => {
     await flushPromises();
 
     // Trigger these manually as we do not have a renderer
-    world.camera.updateMatrixWorld();
-    const updateGeometry = (d) => {
-        d.geometry.computeBoundingSphere();
-        d.geometry.computeBoundingBox();
-    }
+    world.camera.updateMatrixWorld(false);
     world.tiles.children.forEach(d => {
         updateGeometry(d);
     });
@@ -102,15 +127,15 @@ test('World works', async () => {
     expect(tiles.filter(emptyFilter).length).toBe(16);
 
     // Zoom in and trigger another update
-    world.camera.position.z -= 100;
-    world.camera.updateMatrixWorld();
+    world.camera.position.z -= 150;
+    world.camera.updateMatrixWorld(false);
     world._update();
     await flushPromises();
 
     tiles = world.tiles.children;
     expect(tiles.filter(landFilter).length).toBe(4);
-    expect(tiles.filter(seaFilter).length).toBe(1);
-    expect(tiles.filter(emptyFilter).length).toBe(24);
+    expect(tiles.filter(seaFilter).length).toBe(0);
+    expect(tiles.filter(emptyFilter).length).toBe(21);
 
     world.removeAllFromWorld();
     expect(world.tiles.children.length).toBe(0);
