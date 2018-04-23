@@ -26,6 +26,7 @@ module.exports = function(env, caller) {
 
     var plugins = [
         new ManifestPlugin({
+            fileName: "webpack-manifest.json",
             map: (obj) => {
                 var extension = obj.name.split('.').pop();
                 if (extension == 'js') {

@@ -17,7 +17,7 @@ import (
 func handleIndex(c echo.Context) error {
 
     // Load JSON metdata
-    m, err := parseJSON(srcPath + "/client/dist/manifest.json")
+    m, err := parseJSON(srcPath + "/client/dist/webpack-manifest.json")
     if err != nil {
         raven.CaptureError(err, nil)
         return err
