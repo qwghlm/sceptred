@@ -8,6 +8,8 @@ import './vendor/polyfills';
 import '../sass/index.scss';
 import '../favicon.ico';
 
+require('../manifest.json');
+
 declare global {
     const Raven: any;
 }

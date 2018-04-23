@@ -47279,6 +47279,7 @@ __webpack_require__(54);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+__webpack_require__(55);
 function load() {
     _reactDom2.default.render(_react2.default.createElement(_app.App, null), document.getElementById('app'));
 }
@@ -70791,6 +70792,12 @@ if (!window.fetch) window.fetch = __webpack_require__(19).default || __webpack_r
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
+
+/***/ }),
+/* 55 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__.p + "manifest.json";
 
 /***/ })
 /******/ ]);

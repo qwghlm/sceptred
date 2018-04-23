@@ -138,8 +138,21 @@ module.exports = function(env, caller) {
                 },
 
                 {
-                    test: /\.json$/,
+                    test: /package\.json$/,
                     loader: "json-loader"
+                },
+
+                {
+                    test: /manifest\.json$/,
+                    use: [
+                        {
+                            loader: "file-loader",
+                            options: {
+                                name: '[path][name].[ext]',
+                                context: './client/src'
+                            },
+                        },
+                    ],
                 },
 
                 {

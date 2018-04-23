@@ -1,4 +1,13 @@
 {
-  "short_name": "Sceptred",
-  "name": "Sceptred"
+    "short_name": "Sceptred",
+    "name": "Sceptred",
+    "description": "A project to model Great Britain in 3D",
+    "lang": "en-GB",
+
+    "start_url": "/",
+
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#5755d9"
+
 }
