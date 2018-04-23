@@ -23,6 +23,29 @@ export function webglEnabled() {
     }
 }
 
+export function getFullScreenFunction() {
+    const requestNames = [
+        'requestFullscreen',
+        'webkitRequestFullscreen',
+        'mozRequestFullScreen',
+        'msRequestFullscreen',
+    ];
+    for (var i=0; i<requestNames.length; i++) {
+        if (requestNames[i] in document.documentElement) {
+            return requestNames[i];
+        }
+    }
+    return false;
+}
+
+export function getFullScreenPrefix() {
+    const functionName = getFullScreenFunction();
+    if (functionName === false) {
+        return false;
+    }
+    return functionName.substring(0, functionName.toLowerCase().indexOf('request'));
+}
+
 // http://youmightnotneedjquery.com/
 export function extend(...args: any[]) {
 

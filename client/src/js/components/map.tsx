@@ -8,7 +8,7 @@ import Stats from "stats";
 
 import { MapInstructions, MapFullScreenButton } from './map.components';
 import { World } from '../lib/world';
-import { webglEnabled } from '../lib/utils';
+import { webglEnabled, getFullScreenPrefix, getFullScreenFunction } from '../lib/utils';
 
 // Properties that can be passed to map
 
@@ -143,16 +143,28 @@ export class Map extends React.Component<MapProps, {}> {
 
     // Simple resizer
     onWindowResize = (e) => {
-        var base = ReactDOM.findDOMNode(this) as HTMLElement;
-        var width = base.offsetWidth;
-        var height = Math.floor(width * 0.8);
+
+        var width, height;
+        const prefix = getFullScreenPrefix();
+        const fullScreenElementID = (prefix == "") ? 'fullscreenElement' : prefix + 'FullscreenElement';
+        if (document[fullScreenElementID] === null) {
+            var base = ReactDOM.findDOMNode(this) as HTMLElement;
+            width = base.offsetWidth;
+            height = Math.floor(width * 0.8);
+        }
+        else {
+            width = window.innerWidth;
+            height = window.innerHeight;
+        }
         this.world.setSize(width, height);
         this.renderer.setSize(width, height);
     }
 
-    onFullScreen = (fullscreenFunctionName) => {
+    onFullScreen = (e) => {
+
         const canvas = ReactDOM.findDOMNode(this).querySelector('canvas');
-        if (canvas === null) {
+        const fullscreenFunctionName = getFullScreenFunction()
+        if (canvas === null || fullscreenFunctionName === false) {
             return;
         }
         if (fullscreenFunctionName in canvas) {
