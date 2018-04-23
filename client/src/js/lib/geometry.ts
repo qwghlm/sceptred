@@ -1,4 +1,4 @@
-// Functions for parsing data from the API
+// Functions for creating geometries
 import * as THREE from 'three';
 
 import { seaColorRGB, landColor } from './colors';

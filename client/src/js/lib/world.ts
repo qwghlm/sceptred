@@ -1,9 +1,8 @@
 import * as THREE from 'three';
 
-import { seaColor } from './colors';
-import { makeLandGeometry, makeEmptyGeometry } from './data';
 import { coordsToGridref, gridrefToCoords, getSurroundingSquares, getNeighboringSquare } from './grid';
 import { Loader } from './loader';
+import { makeLand, makeSea, makeEmpty } from './mesh';
 import { makeTransform, makeScale } from './scale';
 import { GridData } from './types';
 import { debounce } from './utils';
@@ -101,10 +100,12 @@ export class World extends THREE.EventDispatcher {
 
         // Set load and error listeners
         return this.loader.load(url)
+            .then((json) => {
+                this.onLoad(json)
+            })
             .catch((errorResponse) => {
                 console.error(errorResponse);
             })
-            .then((json) => this.onLoad(json))
     }
 
     // Manipulating meshes
@@ -112,27 +113,23 @@ export class World extends THREE.EventDispatcher {
     // Loads the grid data from the API
     onLoad(grid: GridData) {
 
-        // TODO gridSquare or gridReference?
-        let gridSquare = grid.meta.gridReference;
+        const gridSquare = grid.meta.gridReference;
         this.removeFromWorld(gridSquare);
 
         // If height data exists, then make a land geometry
         if (grid.heights.length) {
-            let geometry = makeLandGeometry(grid, this.transform);
-            let landMesh = makeLand(geometry, gridSquare);
+            const landMesh = makeLand(grid, this.transform);
             this.addToWorld(landMesh);
         }
         else {
-            let seaGeometry = makeEmptyGeometry(gridSquare, this.transform, this.scale)
-            let seaMesh = makeSea(seaGeometry, gridSquare);
+            const seaMesh = makeSea(gridSquare, this.transform, this.scale);
             this.addToWorld(seaMesh)
         }
 
         // Queue the surrounding squares
         getSurroundingSquares(gridSquare, 1).forEach(surroundingSquare => {
             if (!(this.tiles.getObjectByName(surroundingSquare))) {
-                let emptyGeometry = makeEmptyGeometry(surroundingSquare, this.transform, this.scale);
-                let emptyMesh = makeWireframe(emptyGeometry, surroundingSquare);
+                let emptyMesh = makeEmpty(surroundingSquare, this.transform, this.scale);
                 this.addToWorld(emptyMesh);
             }
         });
@@ -213,8 +210,7 @@ export class World extends THREE.EventDispatcher {
         // Bulk-replace the meshes with empty ones
         var newEmptyMeshes = unwantedMeshes.slice(0, 10).map(d => {
             this.removeFromWorld(d.name);
-            let emptyGeometry = makeEmptyGeometry(d.name, this.transform, this.scale);
-            return makeWireframe(emptyGeometry, d.name);
+            return makeEmpty(d.name, this.transform, this.scale);
         });
         if (newEmptyMeshes.length) {
             this.addManyToWorld(newEmptyMeshes);
@@ -237,37 +233,3 @@ function getDistanceFromPoint(mesh: THREE.Mesh, point: THREE.Vector3) {
     }
 }
 
-// Generic mesh making functions
-
-// Make a land mesh
-function makeLand(geometry: THREE.BufferGeometry, name: string) {
-
-    let land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        vertexColors: THREE.VertexColors,
-        side: THREE.DoubleSide
-    }));
-    land.name = name;
-    return land;
-}
-
-// Make a sea mesh
-function makeSea(geometry: THREE.Geometry, name: string) {
-
-    let sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        color: seaColor,
-    }))
-    sea.name = name;
-    return sea;
-}
-
-// Make a wireframe mesh for unloaded
-function makeWireframe(geometry: THREE.Geometry, name: string) {
-
-    let wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
-        color: 0xFFFFFF,
-        transparent: true,
-        wireframe: true,
-    }));
-    wireframe.name = name;
-    return wireframe;
-}
