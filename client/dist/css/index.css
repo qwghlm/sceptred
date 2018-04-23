@@ -1912,7 +1912,7 @@ header {
     max-height: 0px; }
 
 .canvas-wrapper-inner {
-  position: absolute;
+  position: relative;
   line-height: 0; }
   .canvas-wrapper-inner button.btn-link {
     position: absolute;
