@@ -256,6 +256,21 @@ process.umask = function() { return 0; };
 
 /***/ }),
 /* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+if (process.env.NODE_ENV === 'production') {
+  module.exports = __webpack_require__(21);
+} else {
+  module.exports = __webpack_require__(22);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -46197,21 +46212,6 @@ function LensFlare() {
 
 
 /***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(21);
-} else {
-  module.exports = __webpack_require__(22);
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
-
-/***/ }),
 /* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -46379,6 +46379,106 @@ module.exports = emptyObject;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.isMobile = isMobile;
+exports.isTouch = isTouch;
+exports.isRetina = isRetina;
+exports.webglEnabled = webglEnabled;
+exports.getFullScreenFunction = getFullScreenFunction;
+exports.getFullScreenPrefix = getFullScreenPrefix;
+exports.extend = extend;
+exports.debounce = debounce;
+exports.checkPerformance = checkPerformance;
+// Feature detection
+/* istanbul ignore next */
+function isMobile() {
+    return window.matchMedia("(max-width: 640px)").matches;
+}
+/* istanbul ignore next */
+function isTouch() {
+    return 'ontouchstart' in window || !!navigator.maxTouchPoints;
+}
+/* istanbul ignore next */
+function isRetina() {
+    return window.devicePixelRatio && window.devicePixelRatio > 1.3;
+}
+/* istanbul ignore next */
+function webglEnabled() {
+    try {
+        var canvas = document.createElement('canvas');
+        return !!('WebGLRenderingContext' in window && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch (e) {
+        return false;
+    }
+}
+function getFullScreenFunction() {
+    var requestNames = ['requestFullscreen', 'webkitRequestFullscreen', 'mozRequestFullScreen', 'msRequestFullscreen'];
+    for (var i = 0; i < requestNames.length; i++) {
+        if (requestNames[i] in document.documentElement) {
+            return requestNames[i];
+        }
+    }
+    return false;
+}
+function getFullScreenPrefix() {
+    var functionName = getFullScreenFunction();
+    if (functionName === false) {
+        return false;
+    }
+    return functionName.substring(0, functionName.toLowerCase().indexOf('request'));
+}
+// http://youmightnotneedjquery.com/
+function extend() {
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+    }
+
+    var out = args[0] || {};
+    for (var i = 1; i < args.length; i++) {
+        if (!args[i]) continue;
+        for (var key in args[i]) {
+            /* istanbul ignore else  */
+            if (args[i].hasOwnProperty(key)) {
+                out[key] = args[i][key];
+            }
+        }
+    }
+    return out;
+}
+// Debounces a function so it is only called every `wait` seconds
+function debounce(func) {
+    var wait = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
+
+    var h = void 0;
+    return function () {
+        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
+            args[_key2] = arguments[_key2];
+        }
+
+        clearTimeout(h);
+        h = window.setTimeout(function () {
+            return func.apply(null, args);
+        }, wait);
+    };
+}
+// A performance-measuring function
+var lastTime;
+function checkPerformance(msg) {
+    if (msg) {
+        console.log(msg + (' took ' + (performance.now() - lastTime).toFixed(1) + 'ms'));
+    }
+    lastTime = performance.now();
+}
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(process) {/**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -46435,7 +46535,7 @@ module.exports = invariant;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46504,7 +46604,7 @@ module.exports = warning;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -46520,7 +46620,7 @@ exports.getGridSquareSize = getGridSquareSize;
 exports.getSurroundingSquares = getSurroundingSquares;
 exports.getNeighboringSquare = getNeighboringSquare;
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -46642,88 +46742,6 @@ function numberToLetter(n) {
 }
 
 /***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.isMobile = isMobile;
-exports.isTouch = isTouch;
-exports.isRetina = isRetina;
-exports.webglEnabled = webglEnabled;
-exports.extend = extend;
-exports.debounce = debounce;
-exports.checkPerformance = checkPerformance;
-// Feature detection
-/* istanbul ignore next */
-function isMobile() {
-    return window.matchMedia("(max-width: 640px)").matches;
-}
-/* istanbul ignore next */
-function isTouch() {
-    return 'ontouchstart' in window || !!navigator.maxTouchPoints;
-}
-/* istanbul ignore next */
-function isRetina() {
-    return window.devicePixelRatio && window.devicePixelRatio > 1.3;
-}
-/* istanbul ignore next */
-function webglEnabled() {
-    try {
-        var canvas = document.createElement('canvas');
-        return !!('WebGLRenderingContext' in window && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
-    } catch (e) {
-        return false;
-    }
-}
-// http://youmightnotneedjquery.com/
-function extend() {
-    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-        args[_key] = arguments[_key];
-    }
-
-    var out = args[0] || {};
-    for (var i = 1; i < args.length; i++) {
-        if (!args[i]) continue;
-        for (var key in args[i]) {
-            /* istanbul ignore else  */
-            if (args[i].hasOwnProperty(key)) {
-                out[key] = args[i][key];
-            }
-        }
-    }
-    return out;
-}
-// Debounces a function so it is only called every `wait` seconds
-function debounce(func) {
-    var wait = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 50;
-
-    var h = void 0;
-    return function () {
-        for (var _len2 = arguments.length, args = Array(_len2), _key2 = 0; _key2 < _len2; _key2++) {
-            args[_key2] = arguments[_key2];
-        }
-
-        clearTimeout(h);
-        h = window.setTimeout(function () {
-            return func.apply(null, args);
-        }, wait);
-    };
-}
-// A performance-measuring function
-var lastTime;
-function checkPerformance(msg) {
-    if (msg) {
-        console.log(msg + (' took ' + (performance.now() - lastTime).toFixed(1) + 'ms'));
-    }
-    lastTime = performance.now();
-}
-
-/***/ }),
 /* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -46738,8 +46756,8 @@ function checkPerformance(msg) {
 
 
 if (process.env.NODE_ENV !== 'production') {
-  var invariant = __webpack_require__(6);
-  var warning = __webpack_require__(7);
+  var invariant = __webpack_require__(7);
+  var warning = __webpack_require__(8);
   var ReactPropTypesSecret = __webpack_require__(23);
   var loggedTypeFailures = {};
 }
@@ -47154,7 +47172,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.landColor = exports.seaColorRGB = exports.seaColor = undefined;
 
-var _chromaJs = __webpack_require__(38);
+var _chromaJs = __webpack_require__(43);
 
 var chroma = _interopRequireWildcard(_chromaJs);
 
@@ -47241,7 +47259,7 @@ var index = typeof fetch=='function' ? fetch.bind() : function(url, options) {
 "use strict";
 
 
-var _react = __webpack_require__(2);
+var _react = __webpack_require__(1);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -47251,13 +47269,13 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(32);
 
-var _package = __webpack_require__(44);
+var _package = __webpack_require__(47);
 
-__webpack_require__(45);
+__webpack_require__(48);
 
-__webpack_require__(50);
+__webpack_require__(53);
 
-__webpack_require__(51);
+__webpack_require__(54);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47327,8 +47345,8 @@ if (process.env.NODE_ENV !== "production") {
 
 var _assign = __webpack_require__(4);
 var emptyObject = __webpack_require__(5);
-var invariant = __webpack_require__(6);
-var warning = __webpack_require__(7);
+var invariant = __webpack_require__(7);
+var warning = __webpack_require__(8);
 var emptyFunction = __webpack_require__(3);
 var checkPropTypes = __webpack_require__(10);
 
@@ -48704,7 +48722,7 @@ module.exports = ReactPropTypesSecret;
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(2),l=__webpack_require__(12),B=__webpack_require__(4),C=__webpack_require__(3),ba=__webpack_require__(13),da=__webpack_require__(14),ea=__webpack_require__(15),fa=__webpack_require__(16),ia=__webpack_require__(17),D=__webpack_require__(5);
+var aa=__webpack_require__(1),l=__webpack_require__(12),B=__webpack_require__(4),C=__webpack_require__(3),ba=__webpack_require__(13),da=__webpack_require__(14),ea=__webpack_require__(15),fa=__webpack_require__(16),ia=__webpack_require__(17),D=__webpack_require__(5);
 function E(a){for(var b=arguments.length-1,c="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);b=Error(c+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}aa?void 0:E("227");
 var oa={children:!0,dangerouslySetInnerHTML:!0,defaultValue:!0,defaultChecked:!0,innerHTML:!0,suppressContentEditableWarning:!0,suppressHydrationWarning:!0,style:!0};function pa(a,b){return(a&b)===b}
 var ta={MUST_USE_PROPERTY:1,HAS_BOOLEAN_VALUE:4,HAS_NUMERIC_VALUE:8,HAS_POSITIVE_NUMERIC_VALUE:24,HAS_OVERLOADED_BOOLEAN_VALUE:32,HAS_STRING_BOOLEAN_VALUE:64,injectDOMPropertyConfig:function(a){var b=ta,c=a.Properties||{},d=a.DOMAttributeNamespaces||{},e=a.DOMAttributeNames||{};a=a.DOMMutationMethods||{};for(var f in c){ua.hasOwnProperty(f)?E("48",f):void 0;var g=f.toLowerCase(),h=c[f];g={attributeName:g,attributeNamespace:null,propertyName:f,mutationMethod:null,mustUseProperty:pa(h,b.MUST_USE_PROPERTY),
@@ -49001,9 +49019,9 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var React = __webpack_require__(2);
-var invariant = __webpack_require__(6);
-var warning = __webpack_require__(7);
+var React = __webpack_require__(1);
+var invariant = __webpack_require__(7);
+var warning = __webpack_require__(8);
 var ExecutionEnvironment = __webpack_require__(12);
 var _assign = __webpack_require__(4);
 var emptyFunction = __webpack_require__(3);
@@ -64551,13 +64569,13 @@ exports.App = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(2);
+var _react = __webpack_require__(1);
 
 var React = _interopRequireWildcard(_react);
 
 var _form = __webpack_require__(33);
 
-var _map = __webpack_require__(35);
+var _map = __webpack_require__(36);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -64596,7 +64614,7 @@ var App = exports.App = function (_React$Component) {
         _this.state = {
             enabled: true,
             errorMessage: "",
-            gridReference: ""
+            gridReference: "NT27"
         };
         return _this;
     }
@@ -64624,17 +64642,19 @@ var App = exports.App = function (_React$Component) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.SearchForm = exports.AutoComplete = exports.AutoCompleteItem = undefined;
+exports.SearchForm = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(2);
+var _react = __webpack_require__(1);
 
 var React = _interopRequireWildcard(_react);
 
 var _geocoder = __webpack_require__(34);
 
-var _utils = __webpack_require__(9);
+var _utils = __webpack_require__(6);
+
+var _autocomplete = __webpack_require__(35);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -64644,131 +64664,42 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-// An individual search result in the autocomplete
-var AutoCompleteItem = exports.AutoCompleteItem = function (_React$Component) {
-    _inherits(AutoCompleteItem, _React$Component);
-
-    function AutoCompleteItem() {
-        _classCallCheck(this, AutoCompleteItem);
-
-        var _this = _possibleConstructorReturn(this, (AutoCompleteItem.__proto__ || Object.getPrototypeOf(AutoCompleteItem)).apply(this, arguments));
-
-        _this.onClick = function (e) {
-            e.preventDefault();
-            _this.props.onSelect({
-                name: _this.props.name,
-                gridReference: _this.props.gridReference
-            });
-        };
-        return _this;
-    }
-
-    _createClass(AutoCompleteItem, [{
-        key: 'render',
-        value: function render() {
-            return React.createElement("li", { className: this.props.isHovered ? "menu-item fake-hover" : "menu-item" }, React.createElement("a", { href: "#", onClick: this.onClick }, this.props.name));
-        }
-    }]);
-
-    return AutoCompleteItem;
-}(React.Component);
-
-var AutoComplete = exports.AutoComplete = function (_React$Component2) {
-    _inherits(AutoComplete, _React$Component2);
-
-    function AutoComplete(props) {
-        _classCallCheck(this, AutoComplete);
-
-        var _this2 = _possibleConstructorReturn(this, (AutoComplete.__proto__ || Object.getPrototypeOf(AutoComplete)).call(this, props));
-
-        _this2.state = {
-            cursor: -1
-        };
-        return _this2;
-    }
-
-    _createClass(AutoComplete, [{
-        key: 'moveCursor',
-        value: function moveCursor(step) {
-            this.setState(function (prevState, props) {
-                var newCursor = prevState.cursor + step;
-                if (props.results == null || newCursor < 0 || newCursor > props.results.length - 1) {
-                    return {
-                        cursor: prevState.cursor
-                    };
-                }
-                return {
-                    cursor: newCursor
-                };
-            });
-        }
-    }, {
-        key: 'hitEnter',
-        value: function hitEnter() {
-            if (this.state.cursor >= 0) {
-                var result = this.props.results[this.state.cursor];
-                this.props.onSelect({
-                    name: result.name,
-                    gridReference: result.gridReference
-                });
-            }
-        }
-    }, {
-        key: 'render',
-        value: function render() {
-            var _this3 = this;
-
-            if (this.props.results === null) {
-                return null;
-            } else if (this.props.results.length === 0) {
-                return React.createElement("ul", { className: "menu" }, React.createElement("em", null, "No results found"));
-            } else {
-                return React.createElement("ul", { className: "menu" }, this.props.results.map(function (r, i) {
-                    return React.createElement(AutoCompleteItem, Object.assign({ key: i, isHovered: i == _this3.state.cursor, onSelect: _this3.props.onSelect }, r));
-                }));
-            }
-        }
-    }]);
-
-    return AutoComplete;
-}(React.Component);
-
-var SearchForm = exports.SearchForm = function (_React$Component3) {
-    _inherits(SearchForm, _React$Component3);
+var SearchForm = exports.SearchForm = function (_React$Component) {
+    _inherits(SearchForm, _React$Component);
 
     function SearchForm(props) {
         _classCallCheck(this, SearchForm);
 
         // Handle keypress
-        var _this4 = _possibleConstructorReturn(this, (SearchForm.__proto__ || Object.getPrototypeOf(SearchForm)).call(this, props));
+        var _this = _possibleConstructorReturn(this, (SearchForm.__proto__ || Object.getPrototypeOf(SearchForm)).call(this, props));
 
-        _this4.handleKey = function (e) {
+        _this.handleKey = function (e) {
             // Arrow up/down button should select next/previous list element
-            if (_this4.autocomplete === null) {
-                _this4.updateSearchTerm(e.target.value);
+            if (_this.autocomplete === null) {
+                _this.updateSearchTerm(e.target.value);
             } else if (e.key == 'ArrowUp') {
-                _this4.autocomplete.moveCursor(-1);
+                _this.autocomplete.moveCursor(-1);
             } else if (e.key == 'ArrowDown') {
-                _this4.autocomplete.moveCursor(1);
+                _this.autocomplete.moveCursor(1);
             } else if (e.key == 'Enter') {
-                _this4.autocomplete.hitEnter();
+                _this.autocomplete.hitEnter();
             } else {
-                _this4.updateSearchTerm(e.target.value);
+                _this.updateSearchTerm(e.target.value);
             }
         };
-        _this4.onSelect = function (result) {
-            _this4.setState({
+        _this.onSelect = function (result) {
+            _this.setState({
                 searchTerm: result.name,
                 searchResults: null
             });
-            _this4.props.onSelect(result);
+            _this.props.onSelect(result);
         };
-        _this4.state = {
+        _this.state = {
             searchTerm: "",
             searchResults: null
         };
-        _this4.doGeolookup = (0, _utils.debounce)(_this4._doGeolookup.bind(_this4), 400);
-        return _this4;
+        _this.doGeolookup = (0, _utils.debounce)(_this._doGeolookup.bind(_this), 400);
+        return _this;
     }
     // Updates when form value is changed
 
@@ -64786,23 +64717,23 @@ var SearchForm = exports.SearchForm = function (_React$Component3) {
     }, {
         key: '_doGeolookup',
         value: function _doGeolookup(value) {
-            var _this5 = this;
+            var _this2 = this;
 
             (0, _geocoder.geocode)(value).then(function (results) {
-                _this5.setState({ searchResults: results });
+                _this2.setState({ searchResults: results });
             }).catch(function (status) {
-                _this5.setState({ searchResults: [] });
+                _this2.setState({ searchResults: [] });
             });
         }
     }, {
         key: 'render',
         value: function render() {
-            var _this6 = this;
+            var _this3 = this;
 
             return React.createElement("div", { className: "form-autocomplete" }, React.createElement("div", { className: "form-autocomplete-input" }, React.createElement("input", { className: "form-input", type: "text", id: "search-text", value: this.state.searchTerm, onChange: function onChange(e) {
-                    return _this6.updateSearchTerm(e.target.value);
-                }, onKeyUp: this.handleKey, placeholder: "Enter a place name..." }), React.createElement("label", { className: "text-assistive", htmlFor: "search-text" }, "Enter an OS grid reference e.g. NT27")), React.createElement(AutoComplete, { ref: function ref(el) {
-                    return _this6.autocomplete = el;
+                    return _this3.updateSearchTerm(e.target.value);
+                }, onKeyUp: this.handleKey, placeholder: "Enter a place name..." }), React.createElement("label", { className: "text-assistive", htmlFor: "search-text" }, "Enter an OS grid reference e.g. NT27")), React.createElement(_autocomplete.AutoComplete, { ref: function ref(el) {
+                    return _this3.autocomplete = el;
                 }, results: this.state.searchResults, onSelect: this.onSelect }));
         }
     }]);
@@ -64822,9 +64753,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.geocode = geocode;
 
-var _grid = __webpack_require__(8);
+var _grid = __webpack_require__(9);
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -64928,11 +64859,134 @@ function latLonToOsGrid(latitude, longitude) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.MapInstructions = exports.MapFullScreenButton = exports.Map = undefined;
+exports.AutoComplete = exports.AutoCompleteItem = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(2);
+var _react = __webpack_require__(1);
+
+var React = _interopRequireWildcard(_react);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+// An individual search result in the autocomplete
+var AutoCompleteItem = exports.AutoCompleteItem = function (_React$Component) {
+    _inherits(AutoCompleteItem, _React$Component);
+
+    function AutoCompleteItem() {
+        _classCallCheck(this, AutoCompleteItem);
+
+        var _this = _possibleConstructorReturn(this, (AutoCompleteItem.__proto__ || Object.getPrototypeOf(AutoCompleteItem)).apply(this, arguments));
+
+        _this.onClick = function (e) {
+            e.preventDefault();
+            _this.props.onSelect({
+                name: _this.props.name,
+                gridReference: _this.props.gridReference
+            });
+        };
+        return _this;
+    }
+
+    _createClass(AutoCompleteItem, [{
+        key: "render",
+        value: function render() {
+            return React.createElement("li", { className: this.props.isHovered ? "menu-item fake-hover" : "menu-item" }, React.createElement("a", { href: "#", onClick: this.onClick }, this.props.name));
+        }
+    }]);
+
+    return AutoCompleteItem;
+}(React.Component);
+
+var AutoComplete = exports.AutoComplete = function (_React$Component2) {
+    _inherits(AutoComplete, _React$Component2);
+
+    function AutoComplete(props) {
+        _classCallCheck(this, AutoComplete);
+
+        var _this2 = _possibleConstructorReturn(this, (AutoComplete.__proto__ || Object.getPrototypeOf(AutoComplete)).call(this, props));
+
+        _this2.resetCursor = function (e) {
+            _this2.setState({
+                cursor: -1
+            });
+        };
+        _this2.state = {
+            cursor: -1
+        };
+        return _this2;
+    }
+
+    _createClass(AutoComplete, [{
+        key: "moveCursor",
+        value: function moveCursor(step) {
+            // Sets new cursor position
+            this.setState(function (prevState, props) {
+                var newCursor = prevState.cursor + step;
+                // If no results, or cursor is at its limits, do nothing
+                if (props.results == null || newCursor < 0 || newCursor > props.results.length - 1) {
+                    return {
+                        cursor: prevState.cursor
+                    };
+                }
+                // Else return new position
+                return {
+                    cursor: newCursor
+                };
+            });
+        }
+    }, {
+        key: "hitEnter",
+        value: function hitEnter() {
+            if (this.state.cursor >= 0 && this.props.results != null) {
+                var result = this.props.results[this.state.cursor];
+                this.props.onSelect({
+                    name: result.name,
+                    gridReference: result.gridReference
+                });
+            }
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var _this3 = this;
+
+            if (this.props.results === null) {
+                return null;
+            } else if (this.props.results.length === 0) {
+                return React.createElement("ul", { className: "menu" }, React.createElement("em", null, "No results found"));
+            } else {
+                return React.createElement("ul", { className: "menu", onMouseMove: this.resetCursor }, this.props.results.map(function (r, i) {
+                    return React.createElement(AutoCompleteItem, Object.assign({ key: i, isHovered: i == _this3.state.cursor, onSelect: _this3.props.onSelect }, r));
+                }));
+            }
+        }
+    }]);
+
+    return AutoComplete;
+}(React.Component);
+
+/***/ }),
+/* 36 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Map = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
 
 var React = _interopRequireWildcard(_react);
 
@@ -64940,17 +64994,19 @@ var _reactDom = __webpack_require__(11);
 
 var ReactDOM = _interopRequireWildcard(_reactDom);
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _stats = __webpack_require__(36);
+var _stats = __webpack_require__(37);
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _world = __webpack_require__(37);
+var _map = __webpack_require__(38);
 
-var _utils = __webpack_require__(9);
+var _world = __webpack_require__(39);
+
+var _utils = __webpack_require__(6);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -64962,7 +65018,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-__webpack_require__(43);
+__webpack_require__(46);
 
 // Map class
 var Map = exports.Map = function (_React$Component) {
@@ -64975,14 +65031,26 @@ var Map = exports.Map = function (_React$Component) {
         var _this = _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
 
         _this.onWindowResize = function (e) {
-            var base = ReactDOM.findDOMNode(_this);
-            var width = base.offsetWidth;
-            var height = Math.floor(width * 0.8);
+            var width, height;
+            var prefix = (0, _utils.getFullScreenPrefix)();
+            var fullScreenElementID = prefix == "" ? 'fullscreenElement' : prefix + 'FullscreenElement';
+            if (document[fullScreenElementID] === null) {
+                var base = ReactDOM.findDOMNode(_this);
+                width = base.offsetWidth;
+                height = Math.floor(width * 0.8);
+            } else {
+                width = window.innerWidth;
+                height = window.innerHeight;
+            }
             _this.world.setSize(width, height);
             _this.renderer.setSize(width, height);
         };
-        _this.onFullScreen = function (fullscreenFunctionName) {
+        _this.onFullScreen = function (e) {
             var canvas = ReactDOM.findDOMNode(_this).querySelector('canvas');
+            var fullscreenFunctionName = (0, _utils.getFullScreenFunction)();
+            if (canvas === null || fullscreenFunctionName === false) {
+                return;
+            }
             if (fullscreenFunctionName in canvas) {
                 canvas[fullscreenFunctionName]();
             } else {
@@ -65072,6 +65140,8 @@ var Map = exports.Map = function (_React$Component) {
                 }, animationTime);
             }
         }
+        // Navigate to a new location on the map
+
     }, {
         key: "navigateTo",
         value: function navigateTo(gridReference) {
@@ -65090,6 +65160,7 @@ var Map = exports.Map = function (_React$Component) {
         key: "renderWorld",
         value: function renderWorld(e) {
             this.stats.begin();
+            this.world.updateLevelsOfDetail();
             this.renderer.render(this.world.scene, this.world.camera);
             this.stats.end();
             this.world.update();
@@ -65110,74 +65181,15 @@ var Map = exports.Map = function (_React$Component) {
             if (!(0, _utils.webglEnabled)()) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
-            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("div", { className: "canvas-wrapper-inner" }, React.createElement("canvas", null), React.createElement(MapFullScreenButton, { onFullScreen: this.onFullScreen })), React.createElement(MapInstructions, null));
+            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("div", { className: "canvas-wrapper-inner" }, React.createElement("canvas", null), React.createElement(_map.MapFullScreenButton, { onFullScreen: this.onFullScreen })), React.createElement(_map.MapInstructions, null));
         }
     }]);
 
     return Map;
 }(React.Component);
 
-var MapFullScreenButton = exports.MapFullScreenButton = function (_React$Component2) {
-    _inherits(MapFullScreenButton, _React$Component2);
-
-    function MapFullScreenButton() {
-        _classCallCheck(this, MapFullScreenButton);
-
-        var _this3 = _possibleConstructorReturn(this, (MapFullScreenButton.__proto__ || Object.getPrototypeOf(MapFullScreenButton)).apply(this, arguments));
-
-        _this3.onClick = function (e) {
-            var fullscreenFunctionName = _this3.getFullScreenFunction();
-            _this3.props.onFullScreen(fullscreenFunctionName);
-        };
-        return _this3;
-    }
-
-    _createClass(MapFullScreenButton, [{
-        key: "getFullScreenFunction",
-        value: function getFullScreenFunction() {
-            var requestNames = ['requestFullscreen', 'webkitRequestFullscreen', 'mozRequestFullScreen', 'msRequestFullscreen'];
-            for (var i = 0; i < requestNames.length; i++) {
-                if (requestNames[i] in document.documentElement) {
-                    return requestNames[i];
-                }
-            }
-            return false;
-        }
-    }, {
-        key: "render",
-        value: function render() {
-            var isCapable = !!this.getFullScreenFunction();
-            if (!isCapable) {
-                return "";
-            }
-            return React.createElement("button", { className: "btn btn-link", onClick: this.onClick }, React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 18 18" }, React.createElement("path", { d: "M4.5 11H3v4h4v-1.5H4.5V11zM3 7h1.5V4.5H7V3H3v4zm10.5 6.5H11V15h4v-4h-1.5v2.5zM11 3v1.5h2.5V7H15V3h-4z", stroke: "#FFFFFF", fill: "#FFFFFF" })));
-        }
-    }]);
-
-    return MapFullScreenButton;
-}(React.Component);
-
-var MapInstructions = exports.MapInstructions = function (_React$Component3) {
-    _inherits(MapInstructions, _React$Component3);
-
-    function MapInstructions() {
-        _classCallCheck(this, MapInstructions);
-
-        return _possibleConstructorReturn(this, (MapInstructions.__proto__ || Object.getPrototypeOf(MapInstructions)).apply(this, arguments));
-    }
-
-    _createClass(MapInstructions, [{
-        key: "render",
-        value: function render() {
-            return React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Drag your mouse to pan around the map. Hold down ", React.createElement("code", null, "Shift"), "+drag to rotate the world. Hold down ", React.createElement("code", null, "Ctrl"), "+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out."));
-        }
-    }]);
-
-    return MapInstructions;
-}(React.Component);
-
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -65357,7 +65369,77 @@ Stats.Panel = function ( name, fg, bg ) {
 
 
 /***/ }),
-/* 37 */
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MapInstructions = exports.MapFullScreenButton = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(1);
+
+var React = _interopRequireWildcard(_react);
+
+var _utils = __webpack_require__(6);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var MapFullScreenButton = exports.MapFullScreenButton = function (_React$Component) {
+    _inherits(MapFullScreenButton, _React$Component);
+
+    function MapFullScreenButton() {
+        _classCallCheck(this, MapFullScreenButton);
+
+        return _possibleConstructorReturn(this, (MapFullScreenButton.__proto__ || Object.getPrototypeOf(MapFullScreenButton)).apply(this, arguments));
+    }
+
+    _createClass(MapFullScreenButton, [{
+        key: "render",
+        value: function render() {
+            var isCapable = !!(0, _utils.getFullScreenFunction)();
+            if (!isCapable) {
+                return "";
+            }
+            return React.createElement("button", { className: "btn btn-link", onClick: this.props.onFullScreen }, React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 18 18" }, React.createElement("path", { d: "M4.5 11H3v4h4v-1.5H4.5V11zM3 7h1.5V4.5H7V3H3v4zm10.5 6.5H11V15h4v-4h-1.5v2.5zM11 3v1.5h2.5V7H15V3h-4z", stroke: "#FFFFFF", fill: "#FFFFFF" })));
+        }
+    }]);
+
+    return MapFullScreenButton;
+}(React.Component);
+
+var MapInstructions = exports.MapInstructions = function (_React$Component2) {
+    _inherits(MapInstructions, _React$Component2);
+
+    function MapInstructions() {
+        _classCallCheck(this, MapInstructions);
+
+        return _possibleConstructorReturn(this, (MapInstructions.__proto__ || Object.getPrototypeOf(MapInstructions)).apply(this, arguments));
+    }
+
+    _createClass(MapInstructions, [{
+        key: "render",
+        value: function render() {
+            return React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Drag your mouse to pan around the map. Hold down ", React.createElement("code", null, "Shift"), "+drag to rotate the world. Hold down ", React.createElement("code", null, "Ctrl"), "+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out."));
+        }
+    }]);
+
+    return MapInstructions;
+}(React.Component);
+
+/***/ }),
+/* 39 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65370,21 +65452,19 @@ exports.World = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _colors = __webpack_require__(18);
+var _grid = __webpack_require__(9);
 
-var _data = __webpack_require__(40);
+var _loader = __webpack_require__(40);
 
-var _grid = __webpack_require__(8);
+var _mesh = __webpack_require__(41);
 
-var _loader = __webpack_require__(41);
+var _scale = __webpack_require__(45);
 
-var _scale = __webpack_require__(42);
-
-var _utils = __webpack_require__(9);
+var _utils = __webpack_require__(6);
 
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
@@ -65471,10 +65551,10 @@ var World = exports.World = function (_THREE$EventDispatche) {
 
             var url = '/data/' + gridReference;
             // Set load and error listeners
-            return this.loader.load(url).catch(function (errorResponse) {
+            return this.loader.load(url).then(function (json) {
+                _this2.onLoad(json);
+            }).catch(function (errorResponse) {
                 console.error(errorResponse);
-            }).then(function (json) {
-                return _this2.onLoad(json);
             });
         }
         // Manipulating meshes
@@ -65485,24 +65565,20 @@ var World = exports.World = function (_THREE$EventDispatche) {
         value: function onLoad(grid) {
             var _this3 = this;
 
-            // TODO gridSquare or gridReference?
             var gridSquare = grid.meta.gridReference;
             this.removeFromWorld(gridSquare);
             // If height data exists, then make a land geometry
             if (grid.heights.length) {
-                var geometry = (0, _data.makeLandGeometry)(grid, this.transform);
-                var landMesh = makeLand(geometry, gridSquare);
+                var landMesh = (0, _mesh.makeLand)(grid, this.transform);
                 this.addToWorld(landMesh);
             } else {
-                var seaGeometry = (0, _data.makeEmptyGeometry)(gridSquare, this.transform, this.scale);
-                var seaMesh = makeSea(seaGeometry, gridSquare);
+                var seaMesh = (0, _mesh.makeSea)(gridSquare, this.transform);
                 this.addToWorld(seaMesh);
             }
             // Queue the surrounding squares
             (0, _grid.getSurroundingSquares)(gridSquare, 1).forEach(function (surroundingSquare) {
                 if (!_this3.tiles.getObjectByName(surroundingSquare)) {
-                    var emptyGeometry = (0, _data.makeEmptyGeometry)(surroundingSquare, _this3.transform, _this3.scale);
-                    var emptyMesh = makeWireframe(emptyGeometry, surroundingSquare);
+                    var emptyMesh = (0, _mesh.makeEmpty)(surroundingSquare, _this3.transform);
                     _this3.addToWorld(emptyMesh);
                 }
             });
@@ -65542,6 +65618,19 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 this.tiles.remove(this.tiles.children[0]);
             }
         }
+        // Updates level of detail on tiles
+
+    }, {
+        key: 'updateLevelsOfDetail',
+        value: function updateLevelsOfDetail() {
+            var _this5 = this;
+
+            this.tiles.children.forEach(function (object) {
+                if (object instanceof THREE.LOD) {
+                    object.update(_this5.camera);
+                }
+            });
+        }
         // Checking to see if any unloaded meshes can be loaded in, and what loaded
         // meshes can be culled out
         // This is typically not called directly by the world, but by the parent renderer
@@ -65549,7 +65638,7 @@ var World = exports.World = function (_THREE$EventDispatche) {
     }, {
         key: '_update',
         value: function _update() {
-            var _this5 = this;
+            var _this6 = this;
 
             // Work out where the center of the screen coincides with the tilemap
             var raycaster = new THREE.Raycaster();
@@ -65565,11 +65654,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
             var frustum = new THREE.Frustum();
             frustum.setFromMatrix(new THREE.Matrix4().multiplyMatrices(this.camera.projectionMatrix, this.camera.matrixWorldInverse));
             // Find every empty mesh on screen that is displayed in the camera
-            var emptyMeshes = this.tiles.children.filter(function (d) {
-                return d.type == "Mesh" && isEmptyMesh(d);
-            }).filter(function (d) {
-                var geometry = d.geometry;
-                return frustum.intersectsBox(geometry.boundingBox);
+            var emptyMeshes = this.tiles.children.filter(isEmpty).filter(function (d) {
+                return frustum.intersectsBox(getGeometry(d).boundingBox);
             }).map(function (d) {
                 return getDistanceFromPoint(d, center);
             });
@@ -65577,14 +65663,11 @@ var World = exports.World = function (_THREE$EventDispatche) {
                 return a.distance - b.distance;
             });
             emptyMeshes.forEach(function (d, i) {
-                _this5.load(d.name);
+                _this6.load(d.name);
             });
             // Find land or sea meshes that are out of view and replace with an empty one
-            var unwantedMeshes = this.tiles.children.filter(function (d) {
-                return d.type == "Mesh" && !isEmptyMesh(d);
-            }).filter(function (d) {
-                var geometry = d.geometry;
-                return !frustum.intersectsBox(geometry.boundingBox);
+            var unwantedMeshes = this.tiles.children.filter(isLandOrSea).filter(function (d) {
+                return !frustum.intersectsBox(getGeometry(d).boundingBox);
             }).map(function (d) {
                 return getDistanceFromPoint(d, center);
             });
@@ -65593,9 +65676,8 @@ var World = exports.World = function (_THREE$EventDispatche) {
             });
             // Bulk-replace the meshes with empty ones
             var newEmptyMeshes = unwantedMeshes.slice(0, 10).map(function (d) {
-                _this5.removeFromWorld(d.name);
-                var emptyGeometry = (0, _data.makeEmptyGeometry)(d.name, _this5.transform, _this5.scale);
-                return makeWireframe(emptyGeometry, d.name);
+                _this6.removeFromWorld(d.name);
+                return (0, _mesh.makeEmpty)(d.name, _this6.transform);
             });
             if (newEmptyMeshes.length) {
                 this.addManyToWorld(newEmptyMeshes);
@@ -65608,48 +65690,313 @@ var World = exports.World = function (_THREE$EventDispatche) {
 // Mesh utility functions
 
 
-function isEmptyMesh(mesh) {
-    return mesh.material.type == 'MeshBasicMaterial';
+function isEmpty(obj) {
+    if (obj.type == "Mesh") {
+        return obj.material.type == 'MeshBasicMaterial';
+    }
+    return false;
 }
-function getDistanceFromPoint(mesh, point) {
-    var meshCenter = mesh.geometry.boundingSphere.center.clone();
+function isLandOrSea(obj) {
+    if (obj.type == "Mesh") {
+        return obj.material.type != 'MeshBasicMaterial';
+    } else if (obj.type == "LOD") {
+        return true;
+    }
+    return false;
+}
+function getGeometry(obj) {
+    if (obj.type == "Mesh") {
+        return obj.geometry;
+    } else if (obj.type == "LOD") {
+        return obj.children[0].geometry;
+    }
+    throw Error("Object does not have geometry");
+}
+function getDistanceFromPoint(obj, point) {
+    var boundingSphere = getGeometry(obj).boundingSphere;
+    if (boundingSphere === null) {
+        return {
+            name: obj.name,
+            distance: Infinity
+        };
+    }
+    var meshCenter = boundingSphere.center.clone();
     meshCenter.setZ(0);
     return {
-        name: mesh.name,
+        name: obj.name,
         distance: meshCenter.sub(point).length()
     };
 }
-// Generic mesh making functions
-// Make a land mesh
-function makeLand(geometry, name) {
-    var land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
-        vertexColors: THREE.VertexColors,
-        side: THREE.DoubleSide
-    }));
-    land.name = name;
-    return land;
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// Loader class, with queue manager
+var MAX_JOBS = 3;
+
+var Loader = exports.Loader = function () {
+    function Loader() {
+        _classCallCheck(this, Loader);
+
+        // Queue of URLs
+        this.queue = [];
+        // Pending requests
+        this.pending = {};
+        setTimeout(this.tick.bind(this), 17);
+    }
+
+    _createClass(Loader, [{
+        key: "load",
+        value: function load(url) {
+            var _this = this;
+
+            // Push onto queue and wait for resolve
+            return new Promise(function (resolve) {
+                _this.queue.push(resolve);
+            }).then(function () {
+                if (url in _this.pending) {
+                    return Promise.reject(new Error("Already loading, abort"));
+                }
+                _this.pending[url] = true;
+                return fetch(url);
+            }).then(function (response) {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('Response was not OK');
+            }).then(function (text) {
+                delete _this.pending[url];
+                return JSON.parse(text);
+            }).catch(function (error) {
+                delete _this.pending[url];
+                throw error;
+            });
+        }
+        // Check the queue and resolve as many jobs in the queue as possible
+
+    }, {
+        key: "tick",
+        value: function tick() {
+            var numToLoad = MAX_JOBS - Object.keys(this.pending).length;
+            while (this.queue.length > 0 && numToLoad-- > 0) {
+                var fn = this.queue.shift();
+                /* istanbul ignore else */ // This will never else
+                if (fn) {
+                    fn.call(null);
+                }
+            }
+            setTimeout(this.tick.bind(this), 25);
+        }
+    }]);
+
+    return Loader;
+}();
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.makeLand = makeLand;
+exports.makeSea = makeSea;
+exports.makeEmpty = makeEmpty;
+
+var _three = __webpack_require__(2);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _geometry = __webpack_require__(42);
+
+var _colors = __webpack_require__(18);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+// Make a series of land meshes
+function makeLand(data, transform) {
+    var sampleRates = [1, 4, 8];
+    var lod = new THREE.LOD();
+    for (var i = 0; i < sampleRates.length; i++) {
+        var geometry = (0, _geometry.makeLandGeometry)(data, transform, sampleRates[i]);
+        var land = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
+            vertexColors: THREE.VertexColors,
+            side: THREE.DoubleSide
+        }));
+        lod.addLevel(land, (i + 1) * 250);
+    }
+    lod.name = data.meta.gridReference;
+    return lod;
 }
 // Make a sea mesh
-function makeSea(geometry, name) {
+// Functions for creating meshes
+function makeSea(gridSquare, transform) {
+    var geometry = (0, _geometry.makeEmptyGeometry)(gridSquare, transform);
     var sea = new THREE.Mesh(geometry, new THREE.MeshPhongMaterial({
         color: _colors.seaColor
     }));
-    sea.name = name;
+    sea.name = gridSquare;
     return sea;
 }
 // Make a wireframe mesh for unloaded
-function makeWireframe(geometry, name) {
+function makeEmpty(gridSquare, transform) {
+    var geometry = (0, _geometry.makeEmptyGeometry)(gridSquare, transform);
     var wireframe = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
         color: 0xFFFFFF,
         transparent: true,
         wireframe: true
     }));
-    wireframe.name = name;
+    wireframe.name = gridSquare;
     return wireframe;
 }
 
 /***/ }),
-/* 38 */
+/* 42 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.makeLandGeometry = makeLandGeometry;
+exports.makeEmptyGeometry = makeEmptyGeometry;
+exports.sample = sample;
+
+var _three = __webpack_require__(2);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _colors = __webpack_require__(18);
+
+var _grid = __webpack_require__(9);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+//
+// This is relatively costly:
+//
+// Preparing grid data: ~1ms
+// Building vertices: 25-50ms
+// Building faces: 5-10ms
+// Converting to buffers: 2-6ms
+// Building geometries: 5-25ms
+// Total time: 40-90ms
+function makeLandGeometry(data, transform) {
+    var sampleRate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+    var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
+    var squareSize = data.meta.squareSize * sampleRate;
+    var grid = sample(data.heights, sampleRate);
+    var gridHeight = grid.length;
+    var gridWidth = grid[0].length;
+    // Calculate vertices and colors
+    var vertices = new Float32Array(3 * gridHeight * gridWidth);
+    var colors = new Uint8Array(3 * gridHeight * gridWidth);
+    // Go through each row and then each column of the grid
+    grid.forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Work out index of this point in the vertices & colors arrays
+            // Each array is spaced out with three values, hence the multiplier
+            var i = 3 * (x + gridWidth * y);
+            var isLand = grid[y][x] !== "";
+            // Assign vertices
+            vertices.set([tileOrigin.x + x * squareSize, tileOrigin.y + y * squareSize, isLand ? z : 0], i);
+            // Assign colors - r, g, b
+            var color = isLand ? (0, _colors.landColor)(z).rgb() : _colors.seaColorRGB;
+            colors.set(color, i);
+        });
+    });
+    // Calculate the faces - two triangles which form between them a square
+    var faces = new Uint16Array(6 * (gridWidth - 1) * (gridHeight - 1));
+    grid.forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
+            if (x == gridWidth - 1 || y == gridHeight - 1) {
+                return;
+            }
+            // Get indexes of the points for the square for which this point is the top-left
+            var i = x + gridWidth * y;
+            var a = i,
+                b = i + 1,
+                c = i + gridWidth,
+                d = i + gridWidth + 1;
+            // Assign faces (clockwise): ACD, ADB
+            // c--d
+            // |//|
+            // a--b
+            faces.set([a, c, d, a, d, b], 6 * (i - y));
+        });
+    });
+    // Build our buffers
+    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
+    var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
+    var facesBuffer = new THREE.BufferAttribute(faces, 1);
+    // And create a geometry from them
+    var geometry = new THREE.BufferGeometry();
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.addAttribute('color', colorsBuffer);
+    geometry.setIndex(facesBuffer);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    return geometry;
+}
+// Returns an empty square, useful for either the grid or an element of sea
+// Functions for creating geometries
+function makeEmptyGeometry(gridSquare, transform) {
+    // Infer scale from transform, and work out size of the square
+    var scale = new THREE.Vector3();
+    transform.decompose(new THREE.Vector3(), new THREE.Quaternion(), scale);
+    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
+    // Calculate position of square
+    // The half-square addition at the end is to take into account PlaneGeometry
+    // is created around the centre of the square and we want it to be bottom-left
+    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
+    var geometry = new THREE.PlaneGeometry(square.x, square.y);
+    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+    geometry.computeBoundingBox();
+    return geometry;
+}
+function sample(input) {
+    var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    if ((input.length - 1) % sampleRate !== 0) {
+        throw new Error("Sample rate must be factor of array size");
+    }
+    var n = 1 + (input.length - 1) / sampleRate;
+    var output = new Array(n);
+    for (var i = 0; i < n; i++) {
+        if (sampleRate === 1) {
+            output[i] = input[i].slice();
+        } else {
+            output[i] = new Array(n);
+            for (var j = 0; j < n; j++) {
+                output[i][j] = input[i * sampleRate][j * sampleRate];
+            }
+        }
+    }
+    return output;
+}
+
+/***/ }),
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
@@ -68409,10 +68756,10 @@ function makeWireframe(geometry, name) {
 
 }).call(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(39)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(44)(module)))
 
 /***/ }),
-/* 39 */
+/* 44 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -68440,210 +68787,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 40 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.makeLandGeometry = makeLandGeometry;
-exports.makeEmptyGeometry = makeEmptyGeometry;
-exports.sample = sample;
-
-var _three = __webpack_require__(1);
-
-var THREE = _interopRequireWildcard(_three);
-
-var _colors = __webpack_require__(18);
-
-var _grid = __webpack_require__(8);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
-//
-// This is relatively costly:
-//
-// Preparing grid data: ~1ms
-// Building vertices: 25-50ms
-// Building faces: 5-10ms
-// Converting to buffers: 2-6ms
-// Building geometries: 5-25ms
-// Total time: 40-90ms
-function makeLandGeometry(data, transform) {
-    var sampleRate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-
-    var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
-    var squareSize = data.meta.squareSize * sampleRate;
-    var grid = sample(data.heights, sampleRate);
-    var gridHeight = grid.length;
-    var gridWidth = grid[0].length;
-    // Calculate vertices and colors
-    var vertices = new Float32Array(3 * gridHeight * gridWidth);
-    var colors = new Uint8Array(3 * gridHeight * gridWidth);
-    // Go through each row and then each column of the grid
-    grid.forEach(function (row, y) {
-        return row.forEach(function (z, x) {
-            // Work out index of this point in the vertices & colors arrays
-            // Each array is spaced out with three values, hence the multiplier
-            var i = 3 * (x + gridWidth * y);
-            var isLand = grid[y][x] !== "";
-            // Assign vertices
-            vertices.set([tileOrigin.x + x * squareSize, tileOrigin.y + y * squareSize, isLand ? z : 0], i);
-            // Assign colors - r, g, b
-            var color = isLand ? (0, _colors.landColor)(z).rgb() : _colors.seaColorRGB;
-            colors.set(color, i);
-        });
-    });
-    // Calculate the faces - two triangles which form between them a square
-    var faces = new Uint16Array(6 * (gridWidth - 1) * (gridHeight - 1));
-    grid.forEach(function (row, y) {
-        return row.forEach(function (z, x) {
-            // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
-            if (x == gridWidth - 1 || y == gridHeight - 1) {
-                return;
-            }
-            // Get indexes of the points for the square for which this point is the top-left
-            var i = x + gridWidth * y;
-            var a = i,
-                b = i + 1,
-                c = i + gridWidth,
-                d = i + gridWidth + 1;
-            // Assign faces (clockwise): ACD, ADB
-            // c--d
-            // |//|
-            // a--b
-            faces.set([a, c, d, a, d, b], 6 * (i - y));
-        });
-    });
-    // Build our buffers
-    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
-    var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
-    var facesBuffer = new THREE.BufferAttribute(faces, 1);
-    // And create a geometry from them
-    var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', verticesBuffer);
-    geometry.addAttribute('color', colorsBuffer);
-    geometry.setIndex(facesBuffer);
-    geometry.computeVertexNormals();
-    geometry.computeBoundingBox();
-    return geometry;
-}
-// Returns an empty square, useful for either the grid or an element of sea
-// Functions for parsing data from the API
-function makeEmptyGeometry(gridSquare, transform, scale) {
-    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
-    // Calculate position of square
-    // The half-square addition at the end is to take into account PlaneGeometry
-    // is created around the centre of the square and we want it to be bottom-left
-    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
-    var geometry = new THREE.PlaneGeometry(square.x, square.y);
-    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-    geometry.computeBoundingBox();
-    return geometry;
-}
-function sample(input) {
-    var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    if ((input.length - 1) % sampleRate !== 0) {
-        throw new Error("Sample rate must be factor of array size");
-    }
-    var n = 1 + (input.length - 1) / sampleRate;
-    var output = new Array(n);
-    for (var i = 0; i < n; i++) {
-        if (sampleRate === 1) {
-            output[i] = input[i].slice();
-        } else {
-            output[i] = new Array(n);
-            for (var j = 0; j < n; j++) {
-                output[i][j] = input[i * sampleRate][j * sampleRate];
-            }
-        }
-    }
-    return output;
-}
-
-/***/ }),
-/* 41 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// Loader class, with queue manager
-var MAX_JOBS = 3;
-
-var Loader = exports.Loader = function () {
-    function Loader() {
-        _classCallCheck(this, Loader);
-
-        // Queue of URLs
-        this.queue = [];
-        // Pending requests
-        this.pending = {};
-        setTimeout(this.tick.bind(this), 17);
-    }
-
-    _createClass(Loader, [{
-        key: "load",
-        value: function load(url) {
-            var _this = this;
-
-            // Push onto queue and wait for resolve
-            return new Promise(function (resolve) {
-                _this.queue.push(resolve);
-            }).then(function () {
-                if (url in _this.pending) {
-                    return Promise.reject(new Error("Already loading, abort"));
-                }
-                _this.pending[url] = true;
-                return fetch(url);
-            }).then(function (response) {
-                if (response.ok) {
-                    return response.text();
-                }
-                throw new Error('Response was not OK');
-            }).then(function (text) {
-                delete _this.pending[url];
-                return JSON.parse(text);
-            }).catch(function (error) {
-                delete _this.pending[url];
-                throw error;
-            });
-        }
-        // Check the queue and resolve as many jobs in the queue as possible
-
-    }, {
-        key: "tick",
-        value: function tick() {
-            var numToLoad = MAX_JOBS - Object.keys(this.pending).length;
-            while (this.queue.length > 0 && numToLoad-- > 0) {
-                var fn = this.queue.shift();
-                /* istanbul ignore else */ // This will never else
-                if (fn) {
-                    fn.call(null);
-                }
-            }
-            setTimeout(this.tick.bind(this), 25);
-        }
-    }]);
-
-    return Loader;
-}();
-
-/***/ }),
-/* 42 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68655,7 +68799,7 @@ Object.defineProperty(exports, "__esModule", {
 exports.makeTransform = makeTransform;
 exports.makeScale = makeScale;
 
-var _three = __webpack_require__(1);
+var _three = __webpack_require__(2);
 
 var THREE = _interopRequireWildcard(_three);
 
@@ -68675,12 +68819,12 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 43 */
+/* 46 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_three__ = __webpack_require__(2);
 
 
 /**
@@ -69318,21 +69462,21 @@ __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"].prototype.constructor =
 
 
 /***/ }),
-/* 44 */
+/* 47 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"sceptred","version":"0.0.14","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
 
 /***/ }),
-/* 45 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(46);
-
 __webpack_require__(49);
+
+__webpack_require__(52);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69406,18 +69550,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 46 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(47).polyfill();
+module.exports = __webpack_require__(50).polyfill();
 
 
 /***/ }),
-/* 47 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70600,10 +70744,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(48)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(51)))
 
 /***/ }),
-/* 48 */
+/* 51 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70630,20 +70774,20 @@ module.exports = g;
 
 
 /***/ }),
-/* 49 */
+/* 52 */
 /***/ (function(module, exports, __webpack_require__) {
 
 if (!window.fetch) window.fetch = __webpack_require__(19).default || __webpack_require__(19);
 
 
 /***/ }),
-/* 50 */
+/* 53 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 51 */
+/* 54 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
