@@ -21,7 +21,7 @@ export class App extends React.Component<{}, AppState> {
             enabled: true,
             errorMessage: "",
             gridReference: "",
-        }
+        };
     }
 
     // Handler for if there is an error with the map
@@ -41,7 +41,7 @@ export class App extends React.Component<{}, AppState> {
     updateMap = (searchResult) => {
         this.setState({
             gridReference: searchResult.gridReference,
-        })
+        });
     }
 
     // Renderer
@@ -68,6 +68,6 @@ export class App extends React.Component<{}, AppState> {
                 </div>
             </div>
 
-        </div>
+        </div>;
     }
 }

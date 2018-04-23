@@ -71,7 +71,7 @@ export class AutoComplete extends React.Component<AutoCompleteProps, AutoComplet
     hitEnter() {
 
         if (this.state.cursor >= 0) {
-            const result = this.props.results[this.state.cursor]
+            const result = this.props.results[this.state.cursor];
             this.props.onSelect({
                 name: result.name,
                 gridReference: result.gridReference,

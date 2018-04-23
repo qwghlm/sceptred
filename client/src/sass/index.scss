@@ -93,6 +93,8 @@ header {
     }
 }
 
+// Canvas & its wrapper
+
 .canvas-wrapper {
 
     overflow: hidden;
@@ -103,6 +105,7 @@ header {
     &.inactive {
         max-height: 0px;
     }
+
 }
 
 .canvas-wrapper-inner {
@@ -120,15 +123,21 @@ header {
     }
 }
 
+// Instructions
+
 .instructions {
     @media #{$media-md} {
         font-size: 80%;
     }
 }
 
+// Debugger
+
 .debug-stats {
     margin-top: 120px; // Arbitrary
 }
+
+// Footer
 
 footer {
     padding-bottom: 2rem;

@@ -46201,6 +46201,21 @@ function LensFlare() {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
+if (process.env.NODE_ENV === 'production') {
+  module.exports = __webpack_require__(21);
+} else {
+  module.exports = __webpack_require__(22);
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 
 
 /**
@@ -46237,21 +46252,6 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(process) {
-
-if (process.env.NODE_ENV === 'production') {
-  module.exports = __webpack_require__(21);
-} else {
-  module.exports = __webpack_require__(22);
-}
-
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
 /* 4 */
@@ -46449,7 +46449,7 @@ module.exports = invariant;
 
 
 
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(3);
 
 /**
  * Similar to invariant but only logs a warning if the condition is not met.
@@ -46891,7 +46891,7 @@ module.exports = ExecutionEnvironment;
  * @typechecks
  */
 
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(3);
 
 /**
  * Upstream version of event listener. Does not take into account specific
@@ -47150,14 +47150,25 @@ module.exports = focusNode;
 
 
 Object.defineProperty(exports, "__esModule", {
-  value: true
+    value: true
 });
-// Colors
+exports.landColor = exports.seaColorRGB = exports.seaColor = undefined;
+
+var _chromaJs = __webpack_require__(38);
+
+var chroma = _interopRequireWildcard(_chromaJs);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
 // For sea
 var seaColor = exports.seaColor = 0x082044;
 // For land
-var landColorRange = exports.landColorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
-var landColorDomain = exports.landColorDomain = [0, 200, 400, 600, 800, 1000, 1400];
+var landColorRange = ['#3D7F28', '#155B11', '#C5BB52', '#B37528', '#999999', '#CCCCCC'];
+var landColorDomain = [0, 200, 400, 600, 800, 1000, 1400];
+// Sea is a constant
+var seaColorRGB = exports.seaColorRGB = chroma.num(seaColor).rgb();
+// Colour scale maker for land
+var landColor = exports.landColor = chroma.scale(landColorRange).domain(landColorDomain).mode('lab');
 
 /***/ }),
 /* 19 */
@@ -47230,7 +47241,7 @@ var index = typeof fetch=='function' ? fetch.bind() : function(url, options) {
 "use strict";
 
 
-var _react = __webpack_require__(3);
+var _react = __webpack_require__(2);
 
 var _react2 = _interopRequireDefault(_react);
 
@@ -47240,13 +47251,13 @@ var _reactDom2 = _interopRequireDefault(_reactDom);
 
 var _app = __webpack_require__(32);
 
-var _package = __webpack_require__(43);
+var _package = __webpack_require__(44);
 
-__webpack_require__(44);
-
-__webpack_require__(49);
+__webpack_require__(45);
 
 __webpack_require__(50);
+
+__webpack_require__(51);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -47278,7 +47289,7 @@ if (window['SCEPTRED_PROD']) {
  * LICENSE file in the root directory of this source tree.
  */
 
-var m=__webpack_require__(4),n=__webpack_require__(5),p=__webpack_require__(2),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
+var m=__webpack_require__(4),n=__webpack_require__(5),p=__webpack_require__(3),q="function"===typeof Symbol&&Symbol["for"],r=q?Symbol["for"]("react.element"):60103,t=q?Symbol["for"]("react.call"):60104,u=q?Symbol["for"]("react.return"):60105,v=q?Symbol["for"]("react.portal"):60106,w=q?Symbol["for"]("react.fragment"):60107,x="function"===typeof Symbol&&Symbol.iterator;
 function y(a){for(var b=arguments.length-1,e="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,c=0;c<b;c++)e+="\x26args[]\x3d"+encodeURIComponent(arguments[c+1]);b=Error(e+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}
 var z={isMounted:function(){return!1},enqueueForceUpdate:function(){},enqueueReplaceState:function(){},enqueueSetState:function(){}};function A(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}A.prototype.isReactComponent={};A.prototype.setState=function(a,b){"object"!==typeof a&&"function"!==typeof a&&null!=a?y("85"):void 0;this.updater.enqueueSetState(this,a,b,"setState")};A.prototype.forceUpdate=function(a){this.updater.enqueueForceUpdate(this,a,"forceUpdate")};
 function B(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}function C(){}C.prototype=A.prototype;var D=B.prototype=new C;D.constructor=B;m(D,A.prototype);D.isPureReactComponent=!0;function E(a,b,e){this.props=a;this.context=b;this.refs=n;this.updater=e||z}var F=E.prototype=new C;F.constructor=E;m(F,A.prototype);F.unstable_isAsyncReactComponent=!0;F.render=function(){return this.props.children};var G={current:null},H=Object.prototype.hasOwnProperty,I={key:!0,ref:!0,__self:!0,__source:!0};
@@ -47318,7 +47329,7 @@ var _assign = __webpack_require__(4);
 var emptyObject = __webpack_require__(5);
 var invariant = __webpack_require__(6);
 var warning = __webpack_require__(7);
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(3);
 var checkPropTypes = __webpack_require__(10);
 
 // TODO: this is special because it gets imported during build.
@@ -48693,7 +48704,7 @@ module.exports = ReactPropTypesSecret;
 /*
  Modernizr 3.0.0pre (Custom Build) | MIT
 */
-var aa=__webpack_require__(3),l=__webpack_require__(12),B=__webpack_require__(4),C=__webpack_require__(2),ba=__webpack_require__(13),da=__webpack_require__(14),ea=__webpack_require__(15),fa=__webpack_require__(16),ia=__webpack_require__(17),D=__webpack_require__(5);
+var aa=__webpack_require__(2),l=__webpack_require__(12),B=__webpack_require__(4),C=__webpack_require__(3),ba=__webpack_require__(13),da=__webpack_require__(14),ea=__webpack_require__(15),fa=__webpack_require__(16),ia=__webpack_require__(17),D=__webpack_require__(5);
 function E(a){for(var b=arguments.length-1,c="Minified React error #"+a+"; visit http://facebook.github.io/react/docs/error-decoder.html?invariant\x3d"+a,d=0;d<b;d++)c+="\x26args[]\x3d"+encodeURIComponent(arguments[d+1]);b=Error(c+" for the full message or use the non-minified dev environment for full errors and additional helpful warnings.");b.name="Invariant Violation";b.framesToPop=1;throw b;}aa?void 0:E("227");
 var oa={children:!0,dangerouslySetInnerHTML:!0,defaultValue:!0,defaultChecked:!0,innerHTML:!0,suppressContentEditableWarning:!0,suppressHydrationWarning:!0,style:!0};function pa(a,b){return(a&b)===b}
 var ta={MUST_USE_PROPERTY:1,HAS_BOOLEAN_VALUE:4,HAS_NUMERIC_VALUE:8,HAS_POSITIVE_NUMERIC_VALUE:24,HAS_OVERLOADED_BOOLEAN_VALUE:32,HAS_STRING_BOOLEAN_VALUE:64,injectDOMPropertyConfig:function(a){var b=ta,c=a.Properties||{},d=a.DOMAttributeNamespaces||{},e=a.DOMAttributeNames||{};a=a.DOMMutationMethods||{};for(var f in c){ua.hasOwnProperty(f)?E("48",f):void 0;var g=f.toLowerCase(),h=c[f];g={attributeName:g,attributeNamespace:null,propertyName:f,mutationMethod:null,mustUseProperty:pa(h,b.MUST_USE_PROPERTY),
@@ -48990,12 +49001,12 @@ if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
 
-var React = __webpack_require__(3);
+var React = __webpack_require__(2);
 var invariant = __webpack_require__(6);
 var warning = __webpack_require__(7);
 var ExecutionEnvironment = __webpack_require__(12);
 var _assign = __webpack_require__(4);
-var emptyFunction = __webpack_require__(2);
+var emptyFunction = __webpack_require__(3);
 var EventListener = __webpack_require__(13);
 var getActiveElement = __webpack_require__(14);
 var shallowEqual = __webpack_require__(15);
@@ -64536,17 +64547,92 @@ module.exports = camelize;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.App = exports.SearchForm = exports.AutoComplete = exports.AutoCompleteItem = undefined;
+exports.App = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(3);
+var _react = __webpack_require__(2);
 
 var React = _interopRequireWildcard(_react);
 
-var _map = __webpack_require__(33);
+var _form = __webpack_require__(33);
 
-var _geocoder = __webpack_require__(42);
+var _map = __webpack_require__(35);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var App = exports.App = function (_React$Component) {
+    _inherits(App, _React$Component);
+
+    // Initialise default state
+    function App(props) {
+        _classCallCheck(this, App);
+
+        // Handler for if there is an error with the map
+        var _this = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
+
+        _this.onInitError = function () {
+            _this.setState({
+                enabled: false
+            });
+        };
+        // When load fails
+        _this.onLoadError = function (message) {
+            _this.setState({
+                errorMessage: message
+            });
+        };
+        _this.updateMap = function (searchResult) {
+            _this.setState({
+                gridReference: searchResult.gridReference
+            });
+        };
+        _this.state = {
+            enabled: true,
+            errorMessage: "",
+            gridReference: ""
+        };
+        return _this;
+    }
+    // Renderer
+
+
+    _createClass(App, [{
+        key: 'render',
+        value: function render() {
+            // Render form, then error state, then map
+            return React.createElement("div", null, React.createElement("div", { className: "columns form-wrapper " + (this.state.enabled ? "" : "d-none") }, React.createElement("div", { className: "column col-12" }, React.createElement(_form.SearchForm, { onSelect: this.updateMap }))), React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: !window['SCEPTRED_PROD'], gridReference: this.state.gridReference, onInitError: this.onInitError, onLoadError: this.onLoadError }))));
+        }
+    }]);
+
+    return App;
+}(React.Component);
+
+/***/ }),
+/* 33 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.SearchForm = exports.AutoComplete = exports.AutoCompleteItem = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(2);
+
+var React = _interopRequireWildcard(_react);
+
+var _geocoder = __webpack_require__(34);
 
 var _utils = __webpack_require__(9);
 
@@ -64565,42 +64651,72 @@ var AutoCompleteItem = exports.AutoCompleteItem = function (_React$Component) {
     function AutoCompleteItem() {
         _classCallCheck(this, AutoCompleteItem);
 
-        return _possibleConstructorReturn(this, (AutoCompleteItem.__proto__ || Object.getPrototypeOf(AutoCompleteItem)).apply(this, arguments));
+        var _this = _possibleConstructorReturn(this, (AutoCompleteItem.__proto__ || Object.getPrototypeOf(AutoCompleteItem)).apply(this, arguments));
+
+        _this.onClick = function (e) {
+            e.preventDefault();
+            _this.props.onSelect({
+                name: _this.props.name,
+                gridReference: _this.props.gridReference
+            });
+        };
+        return _this;
     }
 
     _createClass(AutoCompleteItem, [{
         key: 'render',
         value: function render() {
-            var _this2 = this;
-
-            return React.createElement("li", { className: "menu-item" }, React.createElement("a", { href: "#", onClick: function onClick(e) {
-                    e.preventDefault();
-                    _this2.props.onSelect({
-                        name: _this2.props.name,
-                        gridReference: _this2.props.gridReference
-                    });
-                } }, this.props.name));
+            return React.createElement("li", { className: this.props.isHovered ? "menu-item fake-hover" : "menu-item" }, React.createElement("a", { href: "#", onClick: this.onClick }, this.props.name));
         }
     }]);
 
     return AutoCompleteItem;
 }(React.Component);
-// The entire autocomplete
-
 
 var AutoComplete = exports.AutoComplete = function (_React$Component2) {
     _inherits(AutoComplete, _React$Component2);
 
-    function AutoComplete() {
+    function AutoComplete(props) {
         _classCallCheck(this, AutoComplete);
 
-        return _possibleConstructorReturn(this, (AutoComplete.__proto__ || Object.getPrototypeOf(AutoComplete)).apply(this, arguments));
+        var _this2 = _possibleConstructorReturn(this, (AutoComplete.__proto__ || Object.getPrototypeOf(AutoComplete)).call(this, props));
+
+        _this2.state = {
+            cursor: -1
+        };
+        return _this2;
     }
 
     _createClass(AutoComplete, [{
+        key: 'moveCursor',
+        value: function moveCursor(step) {
+            this.setState(function (prevState, props) {
+                var newCursor = prevState.cursor + step;
+                if (props.results == null || newCursor < 0 || newCursor > props.results.length - 1) {
+                    return {
+                        cursor: prevState.cursor
+                    };
+                }
+                return {
+                    cursor: newCursor
+                };
+            });
+        }
+    }, {
+        key: 'hitEnter',
+        value: function hitEnter() {
+            if (this.state.cursor >= 0) {
+                var result = this.props.results[this.state.cursor];
+                this.props.onSelect({
+                    name: result.name,
+                    gridReference: result.gridReference
+                });
+            }
+        }
+    }, {
         key: 'render',
         value: function render() {
-            var _this4 = this;
+            var _this3 = this;
 
             if (this.props.results === null) {
                 return null;
@@ -64608,7 +64724,7 @@ var AutoComplete = exports.AutoComplete = function (_React$Component2) {
                 return React.createElement("ul", { className: "menu" }, React.createElement("em", null, "No results found"));
             } else {
                 return React.createElement("ul", { className: "menu" }, this.props.results.map(function (r, i) {
-                    return React.createElement(AutoCompleteItem, Object.assign({ key: i, onSelect: _this4.props.onSelect }, r));
+                    return React.createElement(AutoCompleteItem, Object.assign({ key: i, isHovered: i == _this3.state.cursor, onSelect: _this3.props.onSelect }, r));
                 }));
             }
         }
@@ -64624,24 +64740,35 @@ var SearchForm = exports.SearchForm = function (_React$Component3) {
         _classCallCheck(this, SearchForm);
 
         // Handle keypress
-        var _this5 = _possibleConstructorReturn(this, (SearchForm.__proto__ || Object.getPrototypeOf(SearchForm)).call(this, props));
+        var _this4 = _possibleConstructorReturn(this, (SearchForm.__proto__ || Object.getPrototypeOf(SearchForm)).call(this, props));
 
-        _this5.handleKey = function (e) {
-            _this5.updateSearchTerm(e.target.value);
+        _this4.handleKey = function (e) {
+            // Arrow up/down button should select next/previous list element
+            if (_this4.autocomplete === null) {
+                _this4.updateSearchTerm(e.target.value);
+            } else if (e.key == 'ArrowUp') {
+                _this4.autocomplete.moveCursor(-1);
+            } else if (e.key == 'ArrowDown') {
+                _this4.autocomplete.moveCursor(1);
+            } else if (e.key == 'Enter') {
+                _this4.autocomplete.hitEnter();
+            } else {
+                _this4.updateSearchTerm(e.target.value);
+            }
         };
-        _this5.onSelect = function (result) {
-            _this5.setState({
+        _this4.onSelect = function (result) {
+            _this4.setState({
                 searchTerm: result.name,
                 searchResults: null
             });
-            _this5.props.onSelect(result);
+            _this4.props.onSelect(result);
         };
-        _this5.state = {
+        _this4.state = {
             searchTerm: "",
             searchResults: null
         };
-        _this5.doGeolookup = (0, _utils.debounce)(_this5._doGeolookup.bind(_this5), 400);
-        return _this5;
+        _this4.doGeolookup = (0, _utils.debounce)(_this4._doGeolookup.bind(_this4), 400);
+        return _this4;
     }
     // Updates when form value is changed
 
@@ -64659,77 +64786,32 @@ var SearchForm = exports.SearchForm = function (_React$Component3) {
     }, {
         key: '_doGeolookup',
         value: function _doGeolookup(value) {
-            var _this6 = this;
+            var _this5 = this;
 
             (0, _geocoder.geocode)(value).then(function (results) {
-                _this6.setState({ searchResults: results });
+                _this5.setState({ searchResults: results });
             }).catch(function (status) {
-                _this6.setState({ searchResults: [] });
+                _this5.setState({ searchResults: [] });
             });
         }
     }, {
         key: 'render',
         value: function render() {
-            var _this7 = this;
+            var _this6 = this;
 
             return React.createElement("div", { className: "form-autocomplete" }, React.createElement("div", { className: "form-autocomplete-input" }, React.createElement("input", { className: "form-input", type: "text", id: "search-text", value: this.state.searchTerm, onChange: function onChange(e) {
-                    return _this7.updateSearchTerm(e.target.value);
-                }, onKeyUp: this.handleKey, placeholder: "Enter a place name..." }), React.createElement("label", { className: "text-assistive", htmlFor: "search-text" }, "Enter an OS grid reference e.g. NT27")), React.createElement(AutoComplete, { results: this.state.searchResults, onSelect: this.onSelect }));
+                    return _this6.updateSearchTerm(e.target.value);
+                }, onKeyUp: this.handleKey, placeholder: "Enter a place name..." }), React.createElement("label", { className: "text-assistive", htmlFor: "search-text" }, "Enter an OS grid reference e.g. NT27")), React.createElement(AutoComplete, { ref: function ref(el) {
+                    return _this6.autocomplete = el;
+                }, results: this.state.searchResults, onSelect: this.onSelect }));
         }
     }]);
 
     return SearchForm;
 }(React.Component);
 
-var App = exports.App = function (_React$Component4) {
-    _inherits(App, _React$Component4);
-
-    // Initialise default state
-    function App(props) {
-        _classCallCheck(this, App);
-
-        // Handler for if there is an error with the map
-        var _this8 = _possibleConstructorReturn(this, (App.__proto__ || Object.getPrototypeOf(App)).call(this, props));
-
-        _this8.onInitError = function () {
-            _this8.setState({
-                enabled: false
-            });
-        };
-        // When load fails
-        _this8.onLoadError = function (message) {
-            _this8.setState({
-                errorMessage: message
-            });
-        };
-        _this8.updateMap = function (searchResult) {
-            _this8.setState({
-                gridReference: searchResult.gridReference
-            });
-        };
-        _this8.state = {
-            enabled: true,
-            errorMessage: "",
-            gridReference: ""
-        };
-        return _this8;
-    }
-    // Renderer
-
-
-    _createClass(App, [{
-        key: 'render',
-        value: function render() {
-            // Render form, then error state, then map
-            return React.createElement("div", null, React.createElement("div", { className: "columns form-wrapper " + (this.state.enabled ? "" : "d-none") }, React.createElement("div", { className: "column col-12" }, React.createElement(SearchForm, { onSelect: this.updateMap }))), React.createElement("div", { className: "columns " + (this.state.errorMessage ? "" : "d-none") }, React.createElement("div", { className: "column col-12 mt-2 text-error" }, "Error: ", this.state.errorMessage)), React.createElement("div", { className: "columns" }, React.createElement("div", { className: "column col-12 mt-2" }, React.createElement(_map.Map, { debug: !window['SCEPTRED_PROD'], gridReference: this.state.gridReference, onInitError: this.onInitError, onLoadError: this.onLoadError }))));
-        }
-    }]);
-
-    return App;
-}(React.Component);
-
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -64738,11 +64820,119 @@ var App = exports.App = function (_React$Component4) {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.Map = undefined;
+exports.geocode = geocode;
+
+var _grid = __webpack_require__(8);
+
+var _three = __webpack_require__(1);
+
+var THREE = _interopRequireWildcard(_three);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+var geocoder;
+// Promise-based geocode function using Google Maps API
+function geocode(searchTerm) {
+    if (typeof geocoder == 'undefined') {
+        if (typeof google == 'undefined') {
+            return Promise.reject("Google Maps not loaded");
+        }
+        geocoder = new google.maps.Geocoder();
+    }
+    // https://developers.google.com/maps/documentation/javascript/geocoding
+    var params = {
+        address: searchTerm,
+        componentRestrictions: {
+            country: 'GB'
+        }
+    };
+    return new Promise(function (resolve, reject) {
+        geocoder.geocode(params, function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+                resolve(results.map(parseResult));
+            } else {
+                reject(status);
+            }
+        });
+    });
+}
+// Parses address and location from result
+function parseResult(result) {
+    var location = result.geometry.location;
+    var gridReference = latLonToOsGrid(location.lat(), location.lng());
+    var name = result.formatted_address;
+    return { name: name, gridReference: gridReference };
+}
+function toRadians(n) {
+    return n * Math.PI / 180;
+}
+// based on
+// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
+function latLonToOsGrid(latitude, longitude) {
+    // TODO Convert WGS84 to OSGB36
+    var φ = toRadians(latitude);
+    var λ = toRadians(longitude);
+    var a = 6377563.396,
+        b = 6356256.909; // Airy 1830 major & minor semi-axes
+    var F0 = 0.9996012717; // NatGrid scale factor on central meridian
+    var φ0 = toRadians(49),
+        λ0 = toRadians(-2); // NatGrid true origin is 49°N,2°W
+    var N0 = -100000,
+        E0 = 400000; // northing & easting of true origin, metres
+    var e2 = 1 - b * b / (a * a); // eccentricity squared
+    var n = (a - b) / (a + b),
+        n2 = n * n,
+        n3 = n * n * n; // n, n², n³
+    var cosφ = Math.cos(φ),
+        sinφ = Math.sin(φ);
+    var ν = a * F0 / Math.sqrt(1 - e2 * sinφ * sinφ); // nu = transverse radius of curvature
+    var ρ = a * F0 * (1 - e2) / Math.pow(1 - e2 * sinφ * sinφ, 1.5); // rho = meridional radius of curvature
+    var η2 = ν / ρ - 1; // eta = ?
+    var Ma = (1 + n + 5 / 4 * n2 + 5 / 4 * n3) * (φ - φ0);
+    var Mb = (3 * n + 3 * n * n + 21 / 8 * n3) * Math.sin(φ - φ0) * Math.cos(φ + φ0);
+    var Mc = (15 / 8 * n2 + 15 / 8 * n3) * Math.sin(2 * (φ - φ0)) * Math.cos(2 * (φ + φ0));
+    var Md = 35 / 24 * n3 * Math.sin(3 * (φ - φ0)) * Math.cos(3 * (φ + φ0));
+    var M = b * F0 * (Ma - Mb + Mc - Md); // meridional arc
+    var cos3φ = cosφ * cosφ * cosφ;
+    var cos5φ = cos3φ * cosφ * cosφ;
+    var tan2φ = Math.tan(φ) * Math.tan(φ);
+    var tan4φ = tan2φ * tan2φ;
+    var I = M + N0;
+    var II = ν / 2 * sinφ * cosφ;
+    var III = ν / 24 * sinφ * cos3φ * (5 - tan2φ + 9 * η2);
+    var IIIA = ν / 720 * sinφ * cos5φ * (61 - 58 * tan2φ + tan4φ);
+    var IV = ν * cosφ;
+    var V = ν / 6 * cos3φ * (ν / ρ - tan2φ);
+    var VI = ν / 120 * cos5φ * (5 - 18 * tan2φ + tan4φ + 14 * η2 - 58 * tan2φ * η2);
+    var Δλ = λ - λ0;
+    var Δλ2 = Δλ * Δλ,
+        Δλ3 = Δλ2 * Δλ,
+        Δλ4 = Δλ3 * Δλ,
+        Δλ5 = Δλ4 * Δλ,
+        Δλ6 = Δλ5 * Δλ;
+    var N = I + II * Δλ2 + III * Δλ4 + IIIA * Δλ6;
+    var E = E0 + IV * Δλ + V * Δλ3 + VI * Δλ5;
+    N = Number(N.toFixed(0));
+    E = Number(E.toFixed(0));
+    return (0, _grid.coordsToGridref)(new THREE.Vector3(E, N, 0));
+}
+;
+
+/***/ }),
+/* 35 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MapInstructions = exports.MapFullScreenButton = exports.Map = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _react = __webpack_require__(3);
+var _react = __webpack_require__(2);
 
 var React = _interopRequireWildcard(_react);
 
@@ -64754,11 +64944,11 @@ var _three = __webpack_require__(1);
 
 var THREE = _interopRequireWildcard(_three);
 
-var _stats = __webpack_require__(34);
+var _stats = __webpack_require__(36);
 
 var _stats2 = _interopRequireDefault(_stats);
 
-var _world = __webpack_require__(35);
+var _world = __webpack_require__(37);
 
 var _utils = __webpack_require__(9);
 
@@ -64772,7 +64962,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-__webpack_require__(41);
+__webpack_require__(43);
 
 // Map class
 var Map = exports.Map = function (_React$Component) {
@@ -64781,13 +64971,31 @@ var Map = exports.Map = function (_React$Component) {
     function Map() {
         _classCallCheck(this, Map);
 
-        return _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
+        // Simple resizer
+        var _this = _possibleConstructorReturn(this, (Map.__proto__ || Object.getPrototypeOf(Map)).apply(this, arguments));
+
+        _this.onWindowResize = function (e) {
+            var base = ReactDOM.findDOMNode(_this);
+            var width = base.offsetWidth;
+            var height = Math.floor(width * 0.8);
+            _this.world.setSize(width, height);
+            _this.renderer.setSize(width, height);
+        };
+        _this.onFullScreen = function (fullscreenFunctionName) {
+            var canvas = ReactDOM.findDOMNode(_this).querySelector('canvas');
+            if (fullscreenFunctionName in canvas) {
+                canvas[fullscreenFunctionName]();
+            } else {
+                console.error(fullscreenFunctionName + " not available on canvas");
+            }
+        };
+        return _this;
     }
+    // When map loads, render the webgl 3D context inside the canvas
+
 
     _createClass(Map, [{
         key: "componentDidMount",
-
-        // When map loads, render the webgl 3D context inside the canvas
         value: function componentDidMount() {
             var base = ReactDOM.findDOMNode(this);
             // If no canvas, i.e. webgl doesn't exist, fire error
@@ -64876,17 +65084,6 @@ var Map = exports.Map = function (_React$Component) {
                 this.props.onLoadError(e.message);
             }
         }
-        // Simple resizer
-
-    }, {
-        key: "onWindowResize",
-        value: function onWindowResize() {
-            var base = ReactDOM.findDOMNode(this);
-            var width = base.offsetWidth;
-            var height = Math.floor(width * 0.8);
-            this.world.setSize(width, height);
-            this.renderer.setSize(width, height);
-        }
         // Renders the world, and updates the stats while we are at it
 
     }, {
@@ -64913,15 +65110,74 @@ var Map = exports.Map = function (_React$Component) {
             if (!(0, _utils.webglEnabled)()) {
                 return React.createElement("div", null, React.createElement("p", null, "Sorry, this app requires WebGL, which is not supported by your browser. Please use a modern browser such as Chrome, Safari or Firefox."));
             }
-            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("canvas", null), React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Drag your mouse to pan around the map. Hold down ", React.createElement("code", null, "Shift"), "+drag to rotate the world. Hold down ", React.createElement("code", null, "Ctrl"), "+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out.")));
+            return React.createElement("div", { className: "canvas-wrapper " + (this.props.gridReference.length ? "" : "inactive") }, React.createElement("div", { className: "canvas-wrapper-inner" }, React.createElement("canvas", null), React.createElement(MapFullScreenButton, { onFullScreen: this.onFullScreen })), React.createElement(MapInstructions, null));
         }
     }]);
 
     return Map;
 }(React.Component);
 
+var MapFullScreenButton = exports.MapFullScreenButton = function (_React$Component2) {
+    _inherits(MapFullScreenButton, _React$Component2);
+
+    function MapFullScreenButton() {
+        _classCallCheck(this, MapFullScreenButton);
+
+        var _this3 = _possibleConstructorReturn(this, (MapFullScreenButton.__proto__ || Object.getPrototypeOf(MapFullScreenButton)).apply(this, arguments));
+
+        _this3.onClick = function (e) {
+            var fullscreenFunctionName = _this3.getFullScreenFunction();
+            _this3.props.onFullScreen(fullscreenFunctionName);
+        };
+        return _this3;
+    }
+
+    _createClass(MapFullScreenButton, [{
+        key: "getFullScreenFunction",
+        value: function getFullScreenFunction() {
+            var requestNames = ['requestFullscreen', 'webkitRequestFullscreen', 'mozRequestFullScreen', 'msRequestFullscreen'];
+            for (var i = 0; i < requestNames.length; i++) {
+                if (requestNames[i] in document.documentElement) {
+                    return requestNames[i];
+                }
+            }
+            return false;
+        }
+    }, {
+        key: "render",
+        value: function render() {
+            var isCapable = !!this.getFullScreenFunction();
+            if (!isCapable) {
+                return "";
+            }
+            return React.createElement("button", { className: "btn btn-link", onClick: this.onClick }, React.createElement("svg", { xmlns: "http://www.w3.org/2000/svg", width: "20", height: "20", viewBox: "0 0 18 18" }, React.createElement("path", { d: "M4.5 11H3v4h4v-1.5H4.5V11zM3 7h1.5V4.5H7V3H3v4zm10.5 6.5H11V15h4v-4h-1.5v2.5zM11 3v1.5h2.5V7H15V3h-4z", stroke: "#FFFFFF", fill: "#FFFFFF" })));
+        }
+    }]);
+
+    return MapFullScreenButton;
+}(React.Component);
+
+var MapInstructions = exports.MapInstructions = function (_React$Component3) {
+    _inherits(MapInstructions, _React$Component3);
+
+    function MapInstructions() {
+        _classCallCheck(this, MapInstructions);
+
+        return _possibleConstructorReturn(this, (MapInstructions.__proto__ || Object.getPrototypeOf(MapInstructions)).apply(this, arguments));
+    }
+
+    _createClass(MapInstructions, [{
+        key: "render",
+        value: function render() {
+            return React.createElement("div", { className: "instructions" }, React.createElement("p", { className: (0, _utils.isTouch)() ? "d-none" : "" }, "Drag your mouse to pan around the map. Hold down ", React.createElement("code", null, "Shift"), "+drag to rotate the world. Hold down ", React.createElement("code", null, "Ctrl"), "+drag to zoom, or alternatively use the mousewheel or scroll action on your touchpad."), React.createElement("p", { className: (0, _utils.isTouch)() ? "" : "d-none" }, "Swipe with a single finger to rotate the world, or swipe with two fingers to pan. You can pinch to zoom in and out."));
+        }
+    }]);
+
+    return MapInstructions;
+}(React.Component);
+
 /***/ }),
-/* 34 */
+/* 36 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -65101,7 +65357,7 @@ Stats.Panel = function ( name, fg, bg ) {
 
 
 /***/ }),
-/* 35 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -65120,13 +65376,13 @@ var THREE = _interopRequireWildcard(_three);
 
 var _colors = __webpack_require__(18);
 
-var _data = __webpack_require__(36);
+var _data = __webpack_require__(40);
 
 var _grid = __webpack_require__(8);
 
-var _loader = __webpack_require__(39);
+var _loader = __webpack_require__(41);
 
-var _scale = __webpack_require__(40);
+var _scale = __webpack_require__(42);
 
 var _utils = __webpack_require__(9);
 
@@ -65393,142 +65649,7 @@ function makeWireframe(geometry, name) {
 }
 
 /***/ }),
-/* 36 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.makeLandGeometry = makeLandGeometry;
-exports.makeEmptyGeometry = makeEmptyGeometry;
-exports.sample = sample;
-
-var _three = __webpack_require__(1);
-
-var THREE = _interopRequireWildcard(_three);
-
-var _chromaJs = __webpack_require__(37);
-
-var chroma = _interopRequireWildcard(_chromaJs);
-
-var _colors = __webpack_require__(18);
-
-var _grid = __webpack_require__(8);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
-//
-// This is relatively costly:
-//
-// Preparing grid data: ~1ms
-// Building vertices: 25-50ms
-// Building faces: 5-10ms
-// Converting to buffers: 2-6ms
-// Building geometries: 5-25ms
-// Total time: 40-90ms
-// Functions for parsing data from the API
-function makeLandGeometry(data, transform) {
-    var sampleRate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
-
-    var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
-    var squareSize = data.meta.squareSize * sampleRate;
-    var grid = sample(data.heights, sampleRate);
-    var gridHeight = grid.length;
-    var gridWidth = grid[0].length;
-    // Calculate vertices and colors
-    var vertices = new Float32Array(3 * gridHeight * gridWidth);
-    var colors = new Uint8Array(3 * gridHeight * gridWidth);
-    // Our colour scale maker for land
-    var landColor = chroma.scale(_colors.landColorRange).domain(_colors.landColorDomain).mode('lab');
-    // Sea is a constant
-    var seaColorRGB = chroma.num(_colors.seaColor).rgb();
-    // Go through each row and then each column of the grid
-    grid.forEach(function (row, y) {
-        return row.forEach(function (z, x) {
-            // Work out index of this point in the vertices & colors arrays
-            // Each array is spaced out with three values, hence the multiplier
-            var i = 3 * (x + gridWidth * y);
-            var isLand = grid[y][x] !== "";
-            // Assign vertices
-            vertices.set([tileOrigin.x + x * squareSize, tileOrigin.y + y * squareSize, isLand ? z : 0], i);
-            // Assign colors - r, g, b
-            var color = isLand ? landColor(z).rgb() : seaColorRGB;
-            colors.set(color, i);
-        });
-    });
-    // Calculate the faces - two triangles which form between them a square
-    var faces = new Uint16Array(6 * (gridWidth - 1) * (gridHeight - 1));
-    grid.forEach(function (row, y) {
-        return row.forEach(function (z, x) {
-            // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
-            if (x == gridWidth - 1 || y == gridHeight - 1) {
-                return;
-            }
-            // Get indexes of the points for the square for which this point is the top-left
-            var i = x + gridWidth * y;
-            var a = i,
-                b = i + 1,
-                c = i + gridWidth,
-                d = i + gridWidth + 1;
-            // Assign faces (clockwise): ACD, ADB
-            // c--d
-            // |//|
-            // a--b
-            faces.set([a, c, d, a, d, b], 6 * (i - y));
-        });
-    });
-    // Build our buffers
-    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
-    var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
-    var facesBuffer = new THREE.BufferAttribute(faces, 1);
-    // And create a geometry from them
-    var geometry = new THREE.BufferGeometry();
-    geometry.addAttribute('position', verticesBuffer);
-    geometry.addAttribute('color', colorsBuffer);
-    geometry.setIndex(facesBuffer);
-    geometry.computeVertexNormals();
-    geometry.computeBoundingBox();
-    return geometry;
-}
-// Returns an empty square, useful for either the grid or an element of sea
-function makeEmptyGeometry(gridSquare, transform, scale) {
-    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
-    // Calculate position of square
-    // The half-square addition at the end is to take into account PlaneGeometry
-    // is created around the centre of the square and we want it to be bottom-left
-    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
-    var geometry = new THREE.PlaneGeometry(square.x, square.y);
-    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
-    geometry.computeBoundingBox();
-    return geometry;
-}
-function sample(input) {
-    var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
-
-    if ((input.length - 1) % sampleRate !== 0) {
-        throw new Error("Sample rate must be factor of array size");
-    }
-    var n = 1 + (input.length - 1) / sampleRate;
-    var output = new Array(n);
-    for (var i = 0; i < n; i++) {
-        if (sampleRate === 1) {
-            output[i] = input[i].slice();
-        } else {
-            output[i] = new Array(n);
-            for (var j = 0; j < n; j++) {
-                output[i][j] = input[i * sampleRate][j * sampleRate];
-            }
-        }
-    }
-    return output;
-}
-
-/***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
@@ -68288,10 +68409,10 @@ function sample(input) {
 
 }).call(this);
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(38)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(39)(module)))
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -68319,7 +68440,134 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 39 */
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.makeLandGeometry = makeLandGeometry;
+exports.makeEmptyGeometry = makeEmptyGeometry;
+exports.sample = sample;
+
+var _three = __webpack_require__(1);
+
+var THREE = _interopRequireWildcard(_three);
+
+var _colors = __webpack_require__(18);
+
+var _grid = __webpack_require__(8);
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
+
+// Parses the grid data and transforms from Ordnance Survey into world co-ordinates
+//
+// This is relatively costly:
+//
+// Preparing grid data: ~1ms
+// Building vertices: 25-50ms
+// Building faces: 5-10ms
+// Converting to buffers: 2-6ms
+// Building geometries: 5-25ms
+// Total time: 40-90ms
+function makeLandGeometry(data, transform) {
+    var sampleRate = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 1;
+
+    var tileOrigin = (0, _grid.gridrefToCoords)(data.meta.gridReference);
+    var squareSize = data.meta.squareSize * sampleRate;
+    var grid = sample(data.heights, sampleRate);
+    var gridHeight = grid.length;
+    var gridWidth = grid[0].length;
+    // Calculate vertices and colors
+    var vertices = new Float32Array(3 * gridHeight * gridWidth);
+    var colors = new Uint8Array(3 * gridHeight * gridWidth);
+    // Go through each row and then each column of the grid
+    grid.forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Work out index of this point in the vertices & colors arrays
+            // Each array is spaced out with three values, hence the multiplier
+            var i = 3 * (x + gridWidth * y);
+            var isLand = grid[y][x] !== "";
+            // Assign vertices
+            vertices.set([tileOrigin.x + x * squareSize, tileOrigin.y + y * squareSize, isLand ? z : 0], i);
+            // Assign colors - r, g, b
+            var color = isLand ? (0, _colors.landColor)(z).rgb() : _colors.seaColorRGB;
+            colors.set(color, i);
+        });
+    });
+    // Calculate the faces - two triangles which form between them a square
+    var faces = new Uint16Array(6 * (gridWidth - 1) * (gridHeight - 1));
+    grid.forEach(function (row, y) {
+        return row.forEach(function (z, x) {
+            // Points that are in the right-most or bottom-most row/column cannot form top-left of a square
+            if (x == gridWidth - 1 || y == gridHeight - 1) {
+                return;
+            }
+            // Get indexes of the points for the square for which this point is the top-left
+            var i = x + gridWidth * y;
+            var a = i,
+                b = i + 1,
+                c = i + gridWidth,
+                d = i + gridWidth + 1;
+            // Assign faces (clockwise): ACD, ADB
+            // c--d
+            // |//|
+            // a--b
+            faces.set([a, c, d, a, d, b], 6 * (i - y));
+        });
+    });
+    // Build our buffers
+    var verticesBuffer = transform.applyToBufferAttribute(new THREE.BufferAttribute(vertices, 3));
+    var colorsBuffer = new THREE.BufferAttribute(colors, 3, true);
+    var facesBuffer = new THREE.BufferAttribute(faces, 1);
+    // And create a geometry from them
+    var geometry = new THREE.BufferGeometry();
+    geometry.addAttribute('position', verticesBuffer);
+    geometry.addAttribute('color', colorsBuffer);
+    geometry.setIndex(facesBuffer);
+    geometry.computeVertexNormals();
+    geometry.computeBoundingBox();
+    return geometry;
+}
+// Returns an empty square, useful for either the grid or an element of sea
+// Functions for parsing data from the API
+function makeEmptyGeometry(gridSquare, transform, scale) {
+    var square = (0, _grid.getGridSquareSize)(gridSquare).applyMatrix4(new THREE.Matrix4().scale(scale));
+    // Calculate position of square
+    // The half-square addition at the end is to take into account PlaneGeometry
+    // is created around the centre of the square and we want it to be bottom-left
+    var coords = (0, _grid.gridrefToCoords)(gridSquare).applyMatrix4(transform);
+    var geometry = new THREE.PlaneGeometry(square.x, square.y);
+    geometry.translate(coords.x + square.x / 2, coords.y + square.y / 2, coords.z);
+    geometry.computeBoundingBox();
+    return geometry;
+}
+function sample(input) {
+    var sampleRate = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+    if ((input.length - 1) % sampleRate !== 0) {
+        throw new Error("Sample rate must be factor of array size");
+    }
+    var n = 1 + (input.length - 1) / sampleRate;
+    var output = new Array(n);
+    for (var i = 0; i < n; i++) {
+        if (sampleRate === 1) {
+            output[i] = input[i].slice();
+        } else {
+            output[i] = new Array(n);
+            for (var j = 0; j < n; j++) {
+                output[i][j] = input[i * sampleRate][j * sampleRate];
+            }
+        }
+    }
+    return output;
+}
+
+/***/ }),
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68395,7 +68643,7 @@ var Loader = exports.Loader = function () {
 }();
 
 /***/ }),
-/* 40 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -68427,7 +68675,7 @@ function makeScale(scale) {
 }
 
 /***/ }),
-/* 41 */
+/* 43 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -69070,129 +69318,21 @@ __WEBPACK_IMPORTED_MODULE_0_three__["TrackballControls"].prototype.constructor =
 
 
 /***/ }),
-/* 42 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.geocode = geocode;
-
-var _grid = __webpack_require__(8);
-
-var _three = __webpack_require__(1);
-
-var THREE = _interopRequireWildcard(_three);
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
-
-var geocoder;
-// Promise-based geocode function using Google Maps API
-function geocode(searchTerm) {
-    if (typeof geocoder == 'undefined') {
-        if (typeof google == 'undefined') {
-            return Promise.reject("Google Maps not loaded");
-        }
-        geocoder = new google.maps.Geocoder();
-    }
-    // https://developers.google.com/maps/documentation/javascript/geocoding
-    var params = {
-        address: searchTerm,
-        componentRestrictions: {
-            country: 'GB'
-        }
-    };
-    return new Promise(function (resolve, reject) {
-        geocoder.geocode(params, function (results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-                resolve(results.map(parseResult));
-            } else {
-                reject(status);
-            }
-        });
-    });
-}
-// Parses address and location from result
-function parseResult(result) {
-    var location = result.geometry.location;
-    var gridReference = latLonToOsGrid(location.lat(), location.lng());
-    var name = result.formatted_address;
-    return { name: name, gridReference: gridReference };
-}
-function toRadians(n) {
-    return n * Math.PI / 180;
-}
-// based on
-// https://github.com/chrisveness/geodesy/blob/master/osgridref.js
-function latLonToOsGrid(latitude, longitude) {
-    // TODO Convert WGS84 to OSGB36
-    var φ = toRadians(latitude);
-    var λ = toRadians(longitude);
-    var a = 6377563.396,
-        b = 6356256.909; // Airy 1830 major & minor semi-axes
-    var F0 = 0.9996012717; // NatGrid scale factor on central meridian
-    var φ0 = toRadians(49),
-        λ0 = toRadians(-2); // NatGrid true origin is 49°N,2°W
-    var N0 = -100000,
-        E0 = 400000; // northing & easting of true origin, metres
-    var e2 = 1 - b * b / (a * a); // eccentricity squared
-    var n = (a - b) / (a + b),
-        n2 = n * n,
-        n3 = n * n * n; // n, n², n³
-    var cosφ = Math.cos(φ),
-        sinφ = Math.sin(φ);
-    var ν = a * F0 / Math.sqrt(1 - e2 * sinφ * sinφ); // nu = transverse radius of curvature
-    var ρ = a * F0 * (1 - e2) / Math.pow(1 - e2 * sinφ * sinφ, 1.5); // rho = meridional radius of curvature
-    var η2 = ν / ρ - 1; // eta = ?
-    var Ma = (1 + n + 5 / 4 * n2 + 5 / 4 * n3) * (φ - φ0);
-    var Mb = (3 * n + 3 * n * n + 21 / 8 * n3) * Math.sin(φ - φ0) * Math.cos(φ + φ0);
-    var Mc = (15 / 8 * n2 + 15 / 8 * n3) * Math.sin(2 * (φ - φ0)) * Math.cos(2 * (φ + φ0));
-    var Md = 35 / 24 * n3 * Math.sin(3 * (φ - φ0)) * Math.cos(3 * (φ + φ0));
-    var M = b * F0 * (Ma - Mb + Mc - Md); // meridional arc
-    var cos3φ = cosφ * cosφ * cosφ;
-    var cos5φ = cos3φ * cosφ * cosφ;
-    var tan2φ = Math.tan(φ) * Math.tan(φ);
-    var tan4φ = tan2φ * tan2φ;
-    var I = M + N0;
-    var II = ν / 2 * sinφ * cosφ;
-    var III = ν / 24 * sinφ * cos3φ * (5 - tan2φ + 9 * η2);
-    var IIIA = ν / 720 * sinφ * cos5φ * (61 - 58 * tan2φ + tan4φ);
-    var IV = ν * cosφ;
-    var V = ν / 6 * cos3φ * (ν / ρ - tan2φ);
-    var VI = ν / 120 * cos5φ * (5 - 18 * tan2φ + tan4φ + 14 * η2 - 58 * tan2φ * η2);
-    var Δλ = λ - λ0;
-    var Δλ2 = Δλ * Δλ,
-        Δλ3 = Δλ2 * Δλ,
-        Δλ4 = Δλ3 * Δλ,
-        Δλ5 = Δλ4 * Δλ,
-        Δλ6 = Δλ5 * Δλ;
-    var N = I + II * Δλ2 + III * Δλ4 + IIIA * Δλ6;
-    var E = E0 + IV * Δλ + V * Δλ3 + VI * Δλ5;
-    N = Number(N.toFixed(0));
-    E = Number(E.toFixed(0));
-    return (0, _grid.coordsToGridref)(new THREE.Vector3(E, N, 0));
-}
-;
-
-/***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports) {
 
 module.exports = {"name":"sceptred","version":"0.0.14","description":"A project to model Great Britain in 3D","main":"js/index.js","scripts":{"dist":"webpack -p","serve":"cd server && fresh","watch":"webpack --watch","test:js":"jest","test:go":"go test ./server -coverprofile=./server/cover.out -tags test","test":"npm run test:js && npm run test:go","coverage":"open ./client/coverage/index.html; go tool cover -html=./server/cover.out"},"repository":{"type":"git","url":"git+https://github.com/qwghlm/sceptred.git"},"keywords":["3d","map"],"author":"Chris Applegate","license":"MIT","bugs":{"url":"https://github.com/qwghlm/sceptred/issues"},"homepage":"https://github.com/qwghlm/sceptred#readme","devDependencies":{"@types/chroma-js":"^1.3.4","@types/enzyme":"^3.1.9","@types/enzyme-adapter-react-16":"^1.0.2","@types/googlemaps":"^3.30.8","@types/jest":"^22.1.4","@types/react":"^16.0.40","@types/react-dom":"^16.0.4","@types/stats":"^0.16.30","@types/three":"^0.89.10","babel-core":"^6.26.0","babel-jest":"^22.4.0","babel-loader":"^7.1.2","babel-preset-env":"^1.6.1","css-loader":"^0.28.9","enzyme":"^3.3.0","enzyme-adapter-react-16":"^1.1.1","extract-text-webpack-plugin":"^3.0.2","file-loader":"^1.1.6","handlebars":"^4.0.11","handlebars-loader":"^1.6.0","identity-obj-proxy":"^3.0.0","jest":"^22.2.2","jest-fetch-mock":"^1.4.2","node-sass":"^4.7.2","postcss-loader":"^2.1.0","react-addons-test-utils":"^15.6.2","sass-loader":"^6.0.6","ts-jest":"^22.0.4","ts-loader":"^3.5.0","typescript":"^2.7.2","webpack":"^3.11.0","webpack-bundle-analyzer":"^2.11.1","webpack-cleanup-plugin":"^0.5.1","webpack-livereload-plugin":"^1.0.0","webpack-manifest-plugin":"^2.0.0-rc.2"},"dependencies":{"chroma-js":"^1.3.6","es6-promise":"^4.2.4","normalize.css":"^8.0.0","react":"^16.2.0","react-dom":"^16.2.0","spectre.css":"^0.5.0","stats.js":"^0.17.0","three":"^0.90.0","unfetch":"^3.0.0"}}
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-__webpack_require__(45);
+__webpack_require__(46);
 
-__webpack_require__(48);
+__webpack_require__(49);
 
 // https://github.com/uxitten/polyfill/blob/master/string.polyfill.js
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/padStart
@@ -69266,18 +69406,18 @@ if (!String.prototype.repeat) {
 }
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 // This file can be required in Browserify and Node.js for automatic polyfill
 // To use it:  require('es6-promise/auto');
 
-module.exports = __webpack_require__(46).polyfill();
+module.exports = __webpack_require__(47).polyfill();
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process, global) {/*!
@@ -70460,10 +70600,10 @@ return Promise$1;
 
 //# sourceMappingURL=es6-promise.map
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(47)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0), __webpack_require__(48)))
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports) {
 
 var g;
@@ -70490,20 +70630,20 @@ module.exports = g;
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 if (!window.fetch) window.fetch = __webpack_require__(19).default || __webpack_require__(19);
 
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports = __webpack_require__.p + "favicon.ico";
