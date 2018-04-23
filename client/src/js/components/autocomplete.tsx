@@ -51,15 +51,26 @@ export class AutoComplete extends React.Component<AutoCompleteProps, AutoComplet
         };
     }
 
+    resetCursor = (e) => {
+        this.setState({
+            cursor: -1
+        });
+    }
+
     moveCursor(step) {
 
+        // Sets new cursor position
         this.setState((prevState: AutoCompleteState, props: AutoCompleteProps) => {
             const newCursor = prevState.cursor + step;
+
+            // If no results, or cursor is at its limits, do nothing
             if (props.results == null || newCursor < 0 || newCursor > props.results.length - 1) {
                 return {
                     cursor: prevState.cursor
                 };
             }
+
+            // Else return new position
             return {
                 cursor: newCursor
             };
@@ -67,6 +78,7 @@ export class AutoComplete extends React.Component<AutoCompleteProps, AutoComplet
     }
 
     hitEnter() {
+
         if (this.state.cursor >= 0 && this.props.results != null) {
             const result = this.props.results[this.state.cursor];
             this.props.onSelect({
@@ -85,7 +97,7 @@ export class AutoComplete extends React.Component<AutoCompleteProps, AutoComplet
             return <ul className="menu"><em>No results found</em></ul>;
         }
         else {
-            return <ul className="menu">
+            return <ul className="menu" onMouseMove={this.resetCursor}>
                 {this.props.results.map((r, i) =>
                     <AutoCompleteItem key={i} isHovered={i == this.state.cursor} onSelect={this.props.onSelect} {...r}/>
                  )}

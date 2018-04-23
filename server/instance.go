@@ -5,7 +5,6 @@ import (
     "html/template"
     "io"
     "os"
-    "regexp"
 
     "sceptred/server/interfaces"
 
@@ -16,26 +15,6 @@ import (
 // Constants
 
 var srcPath = build.Default.GOPATH + "/src/sceptred"
-
-var staticRegexp, _ = regexp.Compile("^(/static|favicon.ico)")
-var dataRegexp, _ = regexp.Compile("^/data")
-
-// Caching
-func cacheHeader(next echo.HandlerFunc) echo.HandlerFunc {
-    return func(c echo.Context) error {
-
-        // Different cache times for different types of request
-        cacheTime := "60"
-        url := c.Request().URL.String()
-        if staticRegexp.MatchString(url) {
-            cacheTime = "86400"
-        } else if dataRegexp.MatchString(url) {
-            cacheTime = "900"
-        }
-        c.Response().Header().Set("Cache-Control", "max-age="+cacheTime)
-        return next(c)
-    }
-}
 
 // Renderer
 
@@ -60,8 +39,16 @@ func Instance(s interfaces.Session) *echo.Echo {
     }))
 
     if os.Getenv("SCEPTRED_ENV") == "production" {
-        e.Use(cacheHeader)
         e.Use(middleware.Gzip())
+        e.Use(cacheMiddleware)
+        e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+            AllowOrigins: []string{"https://sceptred.qwghlm.co.uk"},
+        }))
+        e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+            HSTSMaxAge: 3600,
+        }))
+        // TODO Set domain as config option
+        // TODO Increase HSTS max age once stable rollout achieved
     }
 
     // Setup template renderer
