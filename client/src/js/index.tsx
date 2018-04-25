@@ -6,9 +6,18 @@ import { App } from './components/app';
 import { version } from '../../../package.json';
 import './vendor/polyfills';
 import '../sass/index.scss';
-import '../favicon.ico';
 
+// TODO Shorten this
+import '../favicon.ico';
 require('../manifest.json');
+require('../img/icons/icon-128x128.png');
+require('../img/icons/icon-144x144.png');
+require('../img/icons/icon-152x152.png');
+require('../img/icons/icon-192x192.png');
+require('../img/icons/icon-384x384.png');
+require('../img/icons/icon-512x512.png');
+require('../img/icons/icon-72x72.png');
+require('../img/icons/icon-96x96.png');
 
 declare global {
     const Raven: any;
