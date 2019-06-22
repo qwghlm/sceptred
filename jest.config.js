@@ -6,6 +6,8 @@ module.exports = {
     "projects": ["<rootDir>/client/js"],
     "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
 
+    "testURL": "http://localhost",
+
     "transform": {
       "^.+\\.tsx?$": "ts-jest",
       "^.+\\.js$": "babel-jest",
