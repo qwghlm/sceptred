@@ -3,6 +3,6 @@ click-plugins==1.0.3
 cligj==0.4.0
 Fiona==1.7.11.post1
 munch==2.2.0
-numpy==1.21.0
+numpy==1.22.0
 Shapely==1.6.4.post1
 six==1.11.0
